@@ -1,0 +1,69 @@
+# OpenSpec CLI Command Reference
+
+This appendix offers a quick reference for the `openspec` CLI commands used throughout the book. OpenSpec slash commands are covered in Appendix B. The CLI command names and examples are current as of OpenSpec CLI `1.13.1`. Since your installed version may differ, you may want to run `openspec --help` or `openspec <command> --help` to check the syntax available to you.
+
+The CLI helps manage the files and relationships that make a change reviewable. Decisions about a change's scope and the quality of its requirements remain with the people reviewing the work.
+
+## Typical workflow
+
+1.  You might run `openspec init` once in a project, then use `openspec update` when the generated instruction files need to catch up.
+2.  To begin a change, use `openspec new change <name>`, then inspect its artifact status with `openspec status --change <name>`.
+3.  You can use `openspec list`, `openspec show`, `openspec context`, and `openspec instructions` to inspect the repository and work out what an agent needs next.
+4.  Before treating the change as ready, consider running `openspec validate <name>`. In CI, `openspec validate --all` may be a better fit when the repository is the unit of validation.
+5.  After implementation and verification, you can run `openspec archive <name>`. Archiving updates the main specifications and moves the completed change out of the active work area.
+
+OpenSpec reports failures through the process exit status, which makes commands such as `validate` suitable for scripts and CI. The CLI help does not promise a numbered list of exit codes, so this reference does not invent one. In a pipeline, treat a nonzero status as a failed check and preserve the command output as the diagnostic.
+
+## Core commands
+
+The commands below cover the operations most projects use regularly. The `--json` options can help when another tool needs to consume a result, but reading the Markdown artifacts still matters during review.
+
+| Command | Purpose | Useful options |
+|-------------------------------------------------------------------------|---------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| `openspec init [path]` | Initialize OpenSpec in a project and write the selected tool instruction files. | `--tools all`, `--tools github-copilot`, `--language <language>`, `--profile <profile>`, `--force` |
+| `openspec update [path]` | Update OpenSpec instruction files after the CLI or tool configuration changes. | `--force` |
+| `openspec new change <name>` | Create a new change directory using the selected workflow schema. | `--description <text>`, `--goal <text>`, `--schema <name>`, `--store <id>`, `--json` |
+| `openspec list` | List active changes. | `--changes`, `--specs`, `--sort recent|name`, `--json`, `--store <id>` |
+| `openspec show [item-name]` | Display a change or specification. | `--type change|spec`, `--json`, `--diff`, `--deltas-only`, `--store <id>` |
+| `openspec status --change <id>` | Show which artifacts are complete for a change. | `--all`, `--schema <name>`, `--json`, `--store <id>` |
+| `openspec validate [item-name]` | Validate a change or specification. | `--all`, `--changes`, `--specs`, `--strict`, `--json`, `--type change|spec`, `--store <id>` |
+| `openspec archive [change-name]` | Archive a completed change and update the main specifications. | `--yes`, `--skip-specs`, `--no-validate`, `--json`, `--store <id>` |
+| `openspec doctor` | Report relationship health for the resolved OpenSpec root. | `--json`, `--store <id>` |
+
+The command names reflect two related interfaces. `openspec new change` creates a change. The older grouped forms, `openspec change show`, `openspec change list`, and `openspec change validate`, can inspect and validate changes. Since the help output marks `openspec change list` as deprecated, new scripts are better served by the top-level `list`, `show`, and `validate` commands.
+
+For a quick inspection of a repository, you could start with:
+
+``` bash
+openspec list
+openspec status --all
+openspec doctor
+```
+
+For a CI (continuous integration) check that covers both active and archived material, choose the narrowest validation that matches the pipeline's purpose. `openspec validate --all` validates all changes and specifications, while `openspec validate --archived` checks that archived changes have completed tasks.
+
+## Store and workset commands
+
+Stores and worksets address different needs. You can think of a store as a standalone OpenSpec repository registered on the local machine, giving several related projects a shared place for specifications and changes. A workset is a personal, local view that composes folders for a working session. Removing a workset does not remove its member folders.
+
+| Command | Purpose | Useful options |
+|--------------------------------------------------------------------------------------------|-----------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
+| `openspec store setup [id]` | Create and register a local store. | `--path <path>`, `--remote <url>`, `--init-git`, `--no-init-git`, `--json` |
+| `openspec store register [path]` | Register an existing local store. | `--id <id>`, `--yes`, `--json` |
+| `openspec store list` | List stores registered on this machine. | `--json` |
+| `openspec store doctor [id]` | Check a store's registration and metadata. | `--json` |
+| `openspec store unregister <id>` | Forget a registration without deleting the files. | `--json` |
+| `openspec store remove <id>` | Forget a registration and delete its local folder. | `--yes`, `--json` |
+| `openspec context` | Print the working context for the resolved OpenSpec root. | `--json`, `--store <id>`, `--code-workspace <path>`, `--force` |
+| `openspec workset create [name]` | Save a named view of project folders. | Repeat `--member <path>`; optionally use `--tool <id>` and `--json` |
+| `openspec workset list` | Show saved worksets and their members. | `--json` |
+| `openspec workset open <name>` | Open a saved workset in its preferred tool. | `--json` |
+| `openspec workset remove <name>` | Delete a saved workset without touching member folders. | `--json` |
+
+When the working root should come from a registered store rather than the current project, you can add `--store <id>` to commands that support it. If shared context is missing or unexpectedly empty, it may help to run `openspec store doctor` first. That checks the registration boundary before you inspect individual artifacts.
+
+::: callout-warning
+## OpenSpec Stores are still in BETA
+
+Please keep in mind the OpenSpec Stores feature is still in BETA release and may change before they are released as a production feature in OpenSpec.
+:::

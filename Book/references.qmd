@@ -1,0 +1,30 @@
+# References {.unnumbered}
+
+The links below are the primary sources used for current commands, repository behavior, and technology details. Version-sensitive claims should be checked against the source at the time a team applies them.
+
+## OpenSpec and workflow
+
+- [OpenSpec repository](https://github.com/Fission-AI/OpenSpec)^[<https://github.com/Fission-AI/OpenSpec>]
+- [OpenSpec documentation](https://github.com/Fission-AI/OpenSpec/tree/main/docs)^[<https://github.com/Fission-AI/OpenSpec/tree/main/docs>]
+- [OPSX workflow](https://github.com/Fission-AI/OpenSpec/blob/main/docs/opsx.md)^[<https://github.com/Fission-AI/OpenSpec/blob/main/docs/opsx.md>]
+- [Installation](https://github.com/Fission-AI/OpenSpec/blob/main/docs/installation.md)^[<https://github.com/Fission-AI/OpenSpec/blob/main/docs/installation.md>]
+- [Supported tools and aliases](https://github.com/Fission-AI/OpenSpec/blob/main/docs/supported-tools.md)^[<https://github.com/Fission-AI/OpenSpec/blob/main/docs/supported-tools.md>]
+- [Awesome-OpenSpec](https://github.com/speclib/awesome-openspec)^[<https://github.com/speclib/awesome-openspec>]
+
+## Petclinic and technology
+
+- [Spring Petclinic Angular](https://github.com/spring-petclinic/spring-petclinic-angular)^[<https://github.com/spring-petclinic/spring-petclinic-angular>]
+- [Spring Petclinic REST](https://github.com/spring-petclinic/spring-petclinic-rest)^[<https://github.com/spring-petclinic/spring-petclinic-rest>]
+- [Spring Boot reference](https://docs.spring.io/spring-boot/reference/)^[<https://docs.spring.io/spring-boot/reference/>]
+- [Spring Framework reference](https://docs.spring.io/spring-framework/reference/)^[<https://docs.spring.io/spring-framework/reference/>]
+- [Angular documentation](https://angular.dev/)^[<https://angular.dev/>]
+- [Java SE 21 documentation](https://docs.oracle.com/en/java/javase/21/)^[<https://docs.oracle.com/en/java/javase/21/>]
+- [TypeScript documentation](https://www.typescriptlang.org/docs/)^[<https://www.typescriptlang.org/docs/>]
+
+## AI-assisted development
+
+- [GitHub Copilot in VS Code](https://code.visualstudio.com/docs/copilot/overview)^[<https://code.visualstudio.com/docs/copilot/overview>]
+- [GitHub Copilot CLI](https://docs.github.com/en/copilot/concepts/agents/about-copilot-cli)^[<https://docs.github.com/en/copilot/concepts/agents/about-copilot-cli>]
+
+::: {#refs}
+:::

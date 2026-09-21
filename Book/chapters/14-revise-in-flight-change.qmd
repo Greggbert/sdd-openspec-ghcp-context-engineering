@@ -1,0 +1,104 @@
+# Revising an In-Flight Change
+
+## Learning objective
+
+By the end of this chapter, you can revise an active change when the business changes its mind before implementation is complete.  You can also decide whether the revision belongs in the existing change or in a separate one, then trace the decision through the specifications, API, UI, generated client, and tests.
+
+## Start with the decision that changed
+
+An active change can be treated as a working agreement rather than a permanent commitment.  The team may discover a missing business rule, reject an earlier assumption, or widen the requested behavior during implementation.  When that happens, the next step is usually to update the artifact that records the decision.  A corrective message in chat may reach the current implementer, but it does not update the instructions that reviewers, later agents, or the next developer will read.
+
+The interrupted proposal in this chapter began with one filter:
+
+- filter vehicles by Fleet Origin State;
+- add Active Status values of Active and Decommissioned; and
+- decide how the filters combine and how empty selections behave.
+
+The new request changes the shape of that work.  It is no longer enough to implement the original filter and append a second control.  The proposal needs to describe the combined behavior that the user now expects.
+
+Before changing the artifact, write down the decision that moved.  Ask:
+
+- Is Active Status an additional filter, or does it replace part of the original proposal?
+- Do the filters combine with `AND`, `OR`, or a rule that depends on the selected values?
+- What does an empty Fleet Origin State selection mean?
+- What does an empty Active Status selection mean?
+- Which completed work still supports the revised behavior?
+
+It helps to keep unanswered questions visible during review.  Reviewers should not have to infer product behavior from whatever the current query or UI happens to do.
+
+## Rebuild the active artifact
+
+Once the decision is clear, revise the active change as a complete description of the new behavior.  Revisit its scope, affected capabilities, requirements, scenarios, and task list.  Stale text is usually better replaced than left beside a second statement for the reader to reconcile.
+
+The revision will usually need to make these relationships explicit:
+
+- the filter controls available to the user;
+- the values each control accepts;
+- how multiple selections combine;
+- what the API receives when a control has no selection; and
+- what results and empty states the UI presents.
+
+Then trace the effects through the implementation.  A change to filter behavior can affect API parameters, query construction, validation, generated-client types, UI controls, and tests.  The exact files depend on the two repositories, but the artifact should name the affected surfaces before implementation resumes.
+
+It is also worth revisiting tasks in the same pass.  A completed task remains complete only when its result still satisfies the revised requirement.  A task that implemented the one-filter query may need to be reopened if the new combination rule invalidates that query.  A task that added shared plumbing may remain complete if the revised scenarios still exercise it.
+
+This distinction helps avoid two common errors.  Marking every earlier task incomplete throws away work that the new design still uses.  Leaving every task complete hides work that no longer proves the requested behavior.
+
+## Decide whether to amend or split the change
+
+Not every new request belongs in the active proposal.  Four questions can help with the decision:
+
+- How much implementation is already complete?
+- Does the new request change the same behavior or introduce an independent capability?
+- Does the release still treat both requests as one outcome?
+- Would a reviewer understand the final proposal without reconstructing its history?
+
+The active change is usually the better home when the new decision corrects or completes the behavior already under review.  The filter combination rule belongs with the filter proposal because it defines what that proposal means.
+
+A separate change may be appropriate when the new request has an independent purpose, review path, or release decision.  A separately valuable change is usually better kept outside the active proposal, even when the code touches the same screen.  Shared files create coordination work, but they do not make two business decisions one change.
+
+The change record can make that choice visible.  A short note explaining why the proposal was amended or split gives reviewers a way to check the scope without relying on chat history.
+
+## Keep implementation and review synchronized
+
+After revising the artifact, review it before asking an agent to continue.  The review can check whether the requirements and scenarios describe the same combination rules, whether the API contract can represent those rules, and whether the UI tasks still describe the original one-filter design.
+
+Then compare existing work with the revised scenarios.  For each completed item, ask what evidence it provides.  Code that still passes a narrow unit test may not satisfy the revised behavior if the test never combines the filters.  A generated client may compile while still exposing an obsolete parameter shape.  A label or help message may describe only the first filter even after the query supports both.
+
+When the review finds a gap, leave the proposal open.  Revise the requirement or scenario first, then update the affected task and implementation.  This order keeps the source of truth ahead of the code and gives the next verification pass a precise target.
+
+## Hands-on exercise
+
+Revise, review, apply, and verify the active filter change using the documented OpenSpec 1.13.1 workflows in both IDEs.
+
+1. Locate the active change and record the original one-filter behavior.
+2. Add the Active Status decision and resolve the filter-combination and empty-selection questions.
+3. Revise the requirements and scenarios so they describe the complete combined behavior.
+4. Reassess the API parameters, query design, generated client, UI controls, and affected tests.
+5. Reopen or reorder tasks that the new decision invalidated, while preserving work that still provides evidence.
+6. Review and apply the revised change, then verify the implementation before closing it.
+
+At each step, compare the active artifact with the code and tests.  If an implementation detail exposes an unanswered product decision, return to the artifact and record the decision there.  A code-only patch or a chat message that disappears from the change history would leave that gap unresolved.
+
+## Verification checkpoint
+
+Search the active artifacts, specifications, tasks, code, generated output, tests, and UI text for assumptions from the original one-filter design.  Then verify the revised scenarios, including the cases where one or both filters have no selection and where both filters are applied together.
+
+You can consider closing the change when:
+
+- the active artifact states one coherent filter behavior;
+- the combination and empty-selection rules are explicit;
+- the API, query, generated client, and UI use the same behavior;
+- stale tasks and prose no longer describe only the original filter; and
+- tests provide evidence for the revised scenarios and the behavior that remains unchanged.
+
+If the search finds an obsolete assumption, leave the change open.  Update the artifact or implementation that owns the assumption, then repeat the focused verification.  The change can be archived after the accepted specification and the implementation describe the same behavior.
+
+## What you learned
+
+An in-flight change works best when its source of truth is updated before the work that depends on it is re-evaluated.  The right unit of review is the behavior, not the number of files already changed.  Completed work can remain in place when it still proves the revised scenarios, while work whose evidence the new decision invalidates may need to be reopened.
+
+## Online references
+
+- [OpenSpec skills reference](https://openspec.dev/docs/skills)
+- [OpenSpec CLI reference](https://openspec.dev/docs/cli)

@@ -1,0 +1,100 @@
+# Writing Requirements an Agent Can Test
+
+## Learning objective
+
+Write observable requirements and scenarios that constrain implementation without prescribing its
+REST endpoints, database queries, or Angular components.
+
+## How SDD supports the objective
+
+An agent can turn an underspecified Jira story into a plausible implementation quickly.  That
+speed can make an unanswered question expensive: the agent might choose a validation rule, a
+matching strategy, or an error response before anyone notices the decision.
+
+One way to handle that risk is to move those decisions into a reviewable specification before
+implementation begins.  The requirements can describe behavior, the scenarios can make that
+behavior observable, and the design can record the technical choices needed to implement it.
+OpenSpec keeps those concerns in separate artifacts, which gives the agent something more stable
+than a chat transcript to work from.
+
+The specification does not replace judgment.  When the team has not decided what should happen,
+it can be better to preserve that question for review than to hide an agent's guess in code.
+
+## From acceptance criteria to requirements
+
+The running example starts with a Jira request for exact search by a 15-character truck
+unit number.  That sentence identifies the capability, but it does not describe every behavior
+that implementation and verification need.  Before creating the change, ask which inputs are
+valid, what happens when the input is missing or invalid, what a match returns, and what the user
+sees when no record matches.
+
+Once a decision is settled, turn it into a normative requirement.  `SHALL` or `MUST` can mark
+behavior that is required, while definitions can narrow terms that might otherwise invite
+different interpretations.  For example, the specification needs a shared meaning for
+`15 characters`, `exact match`, `missing`, and `invalid`.
+
+Keep the requirement at the business-behavior level.  It might state that a valid unit number
+returns matching vehicles without requiring a particular controller method, SQL predicate,
+repository class, or Angular component.  Those choices can live in `design.md` and in the
+implementation tasks.
+
+## Scenario design
+
+Given/When/Then scenarios offer one way to turn a requirement into an observable check:
+
+- `Given` establishes the relevant state and input.
+- `When` names the user or system action.
+- `Then` states the result that a reviewer, test, or running system can observe.
+
+For the unit-number search, scenarios might cover valid input, invalid input, a matching record,
+and no matching record.  A boundary scenario is most useful when the boundary represents required
+behavior, such as the difference between a 15-character value and a value that exceeds the
+allowed length.
+
+It is useful to keep the scenarios independent of implementation.  A scenario can require that
+an invalid value is rejected without prescribing whether validation occurs in a controller,
+service, or Angular form.  That separation gives the team room to change the technical design
+without silently changing the agreed behavior.
+
+## Tests can prove the wrong thing
+
+Green tests provide evidence that an assertion passed.  They do not, by themselves, show that the
+assertion came from an accepted requirement.  An agent might write a test around an unsupported
+assumption, make the implementation satisfy that test, and report success while the product
+behavior remains wrong.
+
+Before applying the change, trace each scenario to an observable result.  During implementation,
+record which code and test provide that evidence.  If a test has no corresponding scenario, ask
+whether it protects a real requirement or merely reflects an implementation detail.  If a
+scenario has no evidence, the change may not be ready to verify.
+
+## Hands-on exercise
+
+Rewrite the 15-character unit-number story as OpenSpec requirements and Given/When/Then scenarios.
+Separate the behavior from the technical design.  Record unresolved questions rather than
+choosing answers silently, then review the result with a partner before implementation.
+
+## Verification checkpoint
+
+For each requirement, it helps to check four things:
+
+- The language has one interpretation.
+- The behavior can be observed without reading the implementation.
+- The requirement stays within the change's scope.
+- At least one meaningful scenario provides evidence for it.
+
+Then inspect the scenarios as a set.  Together, they can cover the settled valid, invalid, match,
+and no-match behavior without adding technical choices that the requirements do not need.
+
+## What you learned
+
+A requirement describes behavior the system must provide.  A scenario makes one behavior concrete
+and testable.  A design choice explains how the team plans to implement it.  A test provides
+evidence that an implemented behavior produced an expected result.  Keeping those roles distinct
+can give the agent a bounded target and give the team a way to review whether the target was met.
+
+## Online references
+
+- [OpenSpec documentation](https://openspec.dev/docs)
+- [Spring Boot testing reference](https://docs.spring.io/spring-boot/reference/testing/index.html)
+- [Angular testing guide](https://angular.dev/guide/testing)

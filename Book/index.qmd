@@ -1,0 +1,15 @@
+# Preface {.unnumbered}
+
+AI-assisted development with tools like GitHub Copilot can be easy to start and difficult to control. A prompt can produce a plausible implementation in minutes, but plausibility is not the same as correctness. The hard questions remain: What are we building? Which parts of the existing system matter? How will we know that the result matches the intent?
+
+This book is for software engineers, technical leads, and architects who want better answers to those questions without turning every change into a heavyweight ceremony. It introduces Spec-Driven Development (SDD) with OpenSpec as a practical way to make intent explicit, keep requirements close to implementation, and give GitHub Copilot the project context it needs. The examples move from greenfield work to brownfield systems, then through the less glamorous parts of real delivery: drift, verification, archiving, governance, and troubleshooting.
+
+The approach has costs. Writing a useful spec takes time, and a vague or oversized spec can slow a team down instead of helping it. OpenSpec does not remove judgment from engineering, and Copilot can still misunderstand both the code and the specification. The goal is not to add paperwork for its own sake. It is to create a small, inspectable record of intent that helps people and tools make fewer expensive assumptions.
+
+This book presents Spec-Driven Development (SDD) as a practical response to that continuity problem.  It uses OpenSpec to keep requirements, proposed changes, design decisions, and implementation tasks in the repository where developers and agents can review them together.
+
+The running example is a commercial truck search application.  Its requirements change over three 90-minute mornings: the team first searches by a 15-character unit number, then adds VIN search, then shortens the unit-number limit and revises an active filter proposal. The changes are small enough to follow, but they expose the coordination problems that appear in larger systems.
+
+This is not an argument for writing a specification before every code edit.  Small, local, reversible changes may not justify the overhead.  The workflow earns its cost when behavior crosses layers, requirements are likely to change, or several people and agent sessions need the same account of what the system should do.
+
+Each part mirrors one morning of the training class.  You can read the book independently or use its exercises as the class lab guide.

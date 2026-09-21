@@ -1,0 +1,131 @@
+# Modifying Accepted Behavior
+
+## Learning objective
+
+By the end of this chapter, you can replace an accepted requirement without leaving contradictory
+rules in the source of truth.  You can also trace the replacement through the backend contract,
+the generated Angular client, the UI, and the tests in both repositories.
+
+## Start with the accepted requirement
+
+The original unit-number rule allows a value with 15 characters.  Because that rule is already
+accepted, the new request would change behavior that the repositories already describe and
+implement rather than add a separate feature.
+
+You can begin by locating the accepted requirement and its scenarios.  It helps to record the
+exact rule being replaced, then list the behavior that should remain unchanged.  That list is
+useful because changing a length constraint can affect more than one boundary.  Normalization,
+empty input, invalid input, matching, and the result shown for a match or no match may each have
+their own scenario.
+
+The change proposal should answer these questions before implementation:
+
+- Which accepted requirement is being replaced?
+- What does the revised maximum mean at the boundary of 10 characters?
+- Does normalization happen before the length check, and does the change alter that behavior?
+- What happens for empty input?
+- Which existing match, no-match, and error behavior remains unchanged?
+
+If the team has not decided one of these points, it may be better to keep it open for review.
+An agent should not choose a rule merely because the code currently makes that choice.
+
+## Write a complete modification
+
+OpenSpec distinguishes a modified requirement from an added requirement.  An added requirement
+introduces behavior that did not exist in the accepted specification.  A modified requirement
+replaces the accepted requirement with a new complete version.
+
+For this change, the delta would replace the 15-character rule with a maximum of 10 characters.
+It should carry revised scenarios for the valid boundary, values beyond the boundary, empty input,
+normalization, and the behavior that remains unchanged.  The exact scenarios depend on the
+decisions made during exploration, but the delta needs to contain those decisions rather than
+pointing back to an old rule and asking the implementer to combine the two.
+
+Appending a second requirement that says “maximum 10 characters” would leave both rules in the
+source of truth.  A reader could not tell whether 15 characters is still valid, whether the newer
+rule has priority, or which scenarios belong to which rule.  The implementation agent would face
+the same ambiguity.  Modification semantics remove the old rule and make the revised requirement
+the one that survives synchronization into the main specification.
+
+Review the delta as a set of operations:
+
+- `ADDED` introduces a new requirement.
+- `MODIFIED` replaces an accepted requirement and carries its complete revised behavior.
+- `REMOVED` deletes a requirement that no longer applies.
+- `RENAMED` changes the requirement's identity while preserving the intended behavior.
+
+The distinction that matters here is between `ADDED` and `MODIFIED`.  The unit-number length change
+fits `MODIFIED` because the new rule replaces an accepted one.
+
+## Full-stack impact
+
+The accepted requirement may appear in more places than the main specification.  A search of both
+repositories for the old constraint can establish the impact surface before the change is applied.
+The search can include the OpenSpec artifacts, backend validation, OpenAPI constraints, generated
+client output, frontend validation, UI text, and tests.  It does not by itself decide which files
+should change.
+
+Backend validation can enforce the revised rule, while the OpenAPI contract describes the same
+constraint.  Inspecting the generated contract before regenerating the Angular client gives the
+team a chance to catch a mismatch.  The frontend can then consume the reviewed contract rather
+than preserve an older generated constraint.
+
+Frontend validation and any UI text that still describes 15 characters would also need an update.
+The existing search behavior that the delta explicitly preserves can remain unchanged.  A passing
+test for a ten-character value would not be enough if a test, error message, or generated schema
+still accepts or describes the old limit.
+
+Use the tests to cover both sides of the replacement:
+
+- the new maximum and the value beyond it;
+- normalization and empty input, according to the reviewed decisions;
+- preserved match, no-match, and error behavior; and
+- consistent validation across the backend and Angular client.
+
+## Hands-on exercise
+
+The exercise is to implement and archive the revised unit-number rule in both repositories.  The
+change record can keep the sequence visible:
+
+1. Locate the accepted 15-character requirement and its scenarios.
+2. Decide the revised boundary, normalization, empty-input, and preserved-behavior rules.
+3. Create a `MODIFIED` delta containing the complete replacement requirement and scenarios.
+4. Update backend validation and the OpenAPI constraint.
+5. Regenerate the Angular client and update frontend validation, UI text, and affected tests.
+6. Verify the implementation against the delta before synchronizing and archiving it.
+
+At each step, compare the latest artifact with the previous accepted behavior.  If implementation
+work reveals an unanswered product decision, pause and revise the delta.  Resolving the gap with a
+code-only change or a corrective chat message would leave the source of truth unchanged.
+
+## Verification checkpoint
+
+Search the specifications, code, generated artifacts, UI text, and tests for obsolete 15-character
+assumptions.  Then inspect the final source-of-truth result that archive will produce.
+
+The change could be ready to close when:
+
+- the accepted requirement has one complete replacement rather than two contradictory rules;
+- the maximum-of-10 behavior and its boundary scenarios pass;
+- normalization and empty-input behavior match the reviewed decisions;
+- backend and frontend validation describe the same constraint;
+- generated artifacts no longer carry the old constraint; and
+- preserved search, match, no-match, and error behavior still has verification evidence.
+
+If the search finds an obsolete assumption, the change can stay open while the affected artifact,
+code, generated output, or test is updated and the focused verification is repeated.  Archiving
+would make sense only after the accepted specification and the implementation describe the same
+behavior.
+
+## What you learned
+
+A modified delta works as a replacement rather than an additional opinion about the same behavior.
+Carrying the complete revised requirement and its scenarios helps prevent the old and new
+unit-number rules from coexisting accidentally.  Searching the repositories and generated outputs
+then checks whether the replacement reached every boundary where the accepted rule was used.
+
+## Online references
+
+- [OpenSpec documentation](https://openspec.dev/docs)
+- [Jakarta Bean Validation](https://jakarta.ee/specifications/bean-validation/)
+- [Angular forms guide](https://angular.dev/guide/forms)

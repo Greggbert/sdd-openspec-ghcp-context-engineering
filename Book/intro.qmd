@@ -1,0 +1,28 @@
+# Introduction
+
+The central problem in AI-assisted development is not whether an agent can write a controller, repository, or user interface.  It is whether the next agent session can recover the decisions that shaped those files.
+
+A chat transcript is weak project memory.  It belongs to one session, mixes discarded ideas with final decisions, and rarely receives the same review as code.  Custom instructions and attached files help, but an agent can only use the context currently available to it.  Teams need a durable account of intended system behavior.
+
+SDD moves that account into the development workflow.  In this book, a specification defines current behavior, a delta states what should change, a design records consequential technical choices, and a task list makes implementation progress visible.  OpenSpec stores these artifacts beside the code and provides a workflow for proposing, applying, synchronizing, and archiving changes.
+
+## The running example
+
+The class builds a search capability for a Penske's existing commercial vehicle fleet.  The stack is Java 21 with Spring Boot 4 on the backend and Angular 21 with TypeScript on the frontend. 
+
+The domain evolves in four steps:
+
+1. Add exact search by a 15-character truck unit number.
+2. Add exact search by a 17-character VIN.
+3. Change the original unit-number rule to a maximum of 10 characters because the business has changed the requirement.
+4. Expand an unimplemented origin-state filter to include active status.
+
+The sequence gives us an additive change, a modification to existing behavior, and a change to work already in flight.  Those distinctions matter because each one asks the specification system to preserve a different relationship between old and new intent.  This example progression of changes gives us s small but realistic example that relflects the kind of different scenarios that spec-driven development has to address and shows us how OpenSpec, specifically, can handle these real life changes.
+
+## How to use the book
+
+Each morning's 90 minute class combines explanation, artifact review, and hands-on work to help commit the newly learned concepts to memory .  Run terminal commands in the VS Code terminal.  Run `/opsx:*` commands in GitHub Copilot Chat.  Stop after each generated artifact and review it before asking the agent to write code.
+
+::: {.callout-warning}
+OpenSpec can make a plan coherent; it cannot decide whether the plan is correct.  Developers still own requirement clarification, technical judgment, code review, and testing.
+:::

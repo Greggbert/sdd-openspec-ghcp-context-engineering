@@ -1,0 +1,183 @@
+# Coordinating Parallel Changes
+
+## Learning objective
+
+By the end of this chapter, you should be able to manage concurrent changes without treating
+isolated folders or branches as proof that the changes are compatible.  You should have a way to
+compare active deltas with the same accepted baseline, expose semantic overlap, and choose an
+archive order that can preserve both business decisions.
+
+## Isolation is not compatibility
+
+Parallel work tends to create two separate coordination problems.  Git can isolate edits to files,
+and OpenSpec can isolate proposed intent in separate change folders.  Neither mechanism, by itself,
+shows that the changes can be accepted together.
+
+Two changes can pass their own reviews and tests while making incompatible decisions about the
+same behavior.  They may add different values to one search contract, define different meanings
+for a shared request parameter, or ask the frontend to expose two controls that the backend cannot
+represent together.  The conflict is semantic even when the files do not conflict textually.
+
+It helps to keep the mechanisms distinct:
+
+- An OpenSpec change folder isolates a proposal, its requirements, design, and tasks from other
+	proposals.
+- A Git branch isolates a line of commits from another line of commits.
+- A worktree gives a branch its own working directory so developers or agents can work in parallel.
+
+These mechanisms can reduce accidental edits.  They do not, on their own, answer whether the
+proposals describe one coherent product behavior.  Comparing each proposal with the accepted
+specification and with the other active changes can answer that question more directly.
+
+## A pair of truck-search changes
+
+Consider two active changes in the truck-search system:
+
+- one adds License Plate search; and
+- another modifies VIN-related behavior.
+
+The changes have different business goals, so separate proposals make sense at first.  Each
+proposal should describe its own input rules, result behavior, and non-goals.  The separation lets
+reviewers discuss one decision without mixing it with the other.
+
+The proposals would still benefit from a shared-surface review.  Compare them against the latest
+accepted specifications and inspect whether both changes affect:
+
+- the backend search contract;
+- the generated Angular client;
+- the control that selects or submits a search mode;
+- shared validation and error behavior; and
+- regression tests for the search modes that already work.
+
+The purpose of this comparison need not be to reject parallel work.  It can instead surface
+decisions that may need to be made once.  For example, if both proposals change the shared search
+request, the team may need to agree on a request shape and mode-selection rule before either change
+becomes the new baseline.  A frontend proposal that invents a client shape independently of the
+backend proposal may already be behind the source of truth.
+
+## Compare deltas before archive
+
+One useful way to review each active change is twice: first against the accepted baseline, then
+against the other active changes.  The first comparison asks what the change adds, modifies, or
+preserves.  The second asks whether another proposal adds, modifies, or removes the same behavior.
+
+Start with the behavioral requirements, not the file list.  For each requirement, record:
+
+- the accepted behavior it assumes;
+- the behavior it changes or adds;
+- the shared contract or UI surface it touches; and
+- the evidence that will show the behavior works.
+
+Then compare the records.  Look for more than identical words.  These are overlap signals:
+
+- both changes alter the same endpoint or generated client method;
+- both changes define a different validation rule for the same input;
+- both changes change how the UI selects a search mode;
+- one change assumes a result shape that the other changes; or
+- a regression test in one change would fail after the other change is synchronized.
+
+When a comparison finds overlap, return to the requirements and scenarios.  Resolving the
+disagreement through implementation order alone could make the behavior accidental.  The team
+could combine the changes, revise one proposal, or keep both with an explicit compatibility
+decision.
+The choice belongs in the active artifacts so a reviewer can recover it without the originating
+chat session.
+
+## Coordinate the contract boundary
+
+The backend owns the OpenAPI contract in this book's two-repository lab.  That ownership suggests a
+practical order for the parallel changes: agree on the backend behavior, review the resulting
+contract, then regenerate the Angular client before completing frontend work.
+
+This order does not mean that frontend work has to wait for every backend task.  A frontend
+developer can prepare tests or UI structure against a reviewed proposal.  The generated client
+would still need to come from the accepted backend contract.  A hand-written client type may hide
+an unresolved contract decision rather than solve it.
+
+Keep the following questions visible while the changes are active:
+
+- Can the contract represent License Plate and VIN searches without ambiguous combinations?
+- Which input rules belong to each mode, and where are they enforced?
+- Does the shared UI expose the modes consistently with the contract?
+- Which existing unit-number and VIN scenarios must remain unchanged?
+- Which generated files and frontend tests must be regenerated or revised after synchronization?
+
+An answer that applies to both proposals belongs in the shared specification or in an explicit
+coordination decision.  An answer that applies to only one capability belongs in that change's
+requirements.  Keeping those scopes separate helps prevent a local assumption from becoming an
+accidental rule for every search mode.
+
+## Reconcile and archive
+
+Archive order can matter because synchronization changes the accepted baseline.  The first
+archived change becomes the comparison point for the next one.  In many cases, choosing the order
+from dependency makes more sense than choosing it from which developer finished first.
+
+When the other change depends on a shared contract or prerequisite behavior, it usually makes sense
+to archive the change that establishes it first.  If the changes are independent at the contract
+level, either order may work, but the second change still needs a fresh comparison against the
+updated baseline.
+
+After the first change is synchronized and archived:
+
+1. Re-read the second change against the latest main specifications.
+2. Replace stale assumptions in its requirements, design, and tasks.
+3. Recheck its API and generated-client impact against the accepted contract.
+4. Re-run the overlap review and record any decision that changed.
+5. Apply, verify, synchronize, and archive only after the revised change is coherent.
+
+Avoid silently rewriting the second change to fit the first.  If the first change
+changed a shared decision, update the second artifact so the new behavior remains reviewable.  If
+the goals are no longer compatible, keep the second change open and ask for a product decision
+rather than preserving two contradictory rules in the main specification.
+
+## Hands-on exercise
+
+Create two active changes for the prepared truck-search repositories: one for License Plate search
+and one for a VIN-related behavior change.
+
+1. Write the business goal, affected behavior, non-goals, and scenarios for each change.
+2. Inspect both changes against the same accepted specifications.
+3. Mark every shared backend contract, generated-client, UI, and regression-test surface.
+4. Identify one semantic overlap and record the decision that resolves it.
+5. Choose an archive order based on the dependency between the two changes.
+6. Synchronize the first change, then revise the second against the new baseline.
+7. Apply and verify the second change without removing either business goal.
+
+At each step, compare the artifact with the implementation and tests.  If a conflict appears only
+after the first change is archived, that is a sign that the second change may have become stale.  A
+code patch that leaves the active artifact describing the old contract will make the discrepancy
+harder to review.
+
+## Verification checkpoint
+
+One useful checkpoint is to validate the active artifacts before implementation, then validate the
+final main specifications after synchronization.  Run the regression tests for existing search
+modes as well as the tests for the two reconciled changes.  Include contract generation and
+frontend tests when the shared API or client changed.
+
+The work is ready to close when the evidence supports all of the following:
+
+- each active change has a distinct business purpose and an explicit scope;
+- shared requirements have one agreed interpretation;
+- the accepted specifications contain no contradictory search rules;
+- the generated client reflects the reviewed backend contract;
+- the UI and validation match the selected search behavior; and
+- affected new and regression scenarios have evidence from tests.
+
+If the second change still refers to the pre-archive baseline, keep it active.  Update the stale
+artifact, implementation, or test, then repeat the focused verification.  Isolation makes the work
+possible; comparison and synchronization are what can make the result coherent.
+
+## What you learned
+
+Parallel changes are independent proposals, but they do not necessarily become independent
+realities.  Git branches and worktrees protect concurrent edits, while OpenSpec records the
+decisions each change intends to make.  The team still needs to compare those decisions against one
+accepted baseline, coordinate shared contracts, and re-review any change that becomes stale after
+synchronization.
+
+## Online references
+
+- [OpenSpec documentation](https://openspec.dev/docs)
+- [Git worktree documentation](https://git-scm.com/docs/git-worktree)

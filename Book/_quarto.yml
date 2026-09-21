@@ -1,0 +1,94 @@
+project:
+  type: book
+
+book:
+  title: "Spec-Driven Development with OpenSpec and GitHub Copilot"
+  subtitle: "A Practical Guide for Java and Angular Developers"
+  author: "Gregg Obst"
+  date: "2026-09-20"
+  date-format: "MM/DD/YYYY"
+  output-file: "Spec-Driven_Development_with_OpenSpec_and_GitHub_Copilot"
+  chapters:
+    - index.qmd
+    - part: "Part I: Why Durable Intent Matters"
+      chapters:
+        - chapters/01-durable-intent.qmd
+        - chapters/02-openspec-operating-model.qmd
+        - chapters/03-testable-requirements.qmd
+        - chapters/04-context-engineering-copilot.qmd
+    - part: "Part II: Establishing the Greenfield Baseline"
+      chapters:
+        - chapters/05-two-repository-lab.qmd
+        - chapters/06-initialize-configure-openspec.qmd
+        - chapters/07-explore-unit-number-search.qmd
+        - chapters/08-propose-full-stack-change.qmd
+    - part: "Part III: Applying and Evolving the Specification"
+      chapters:
+        - chapters/09-apply-spring-boot.qmd
+        - chapters/10-apply-angular.qmd
+        - chapters/11-verify-sync-archive.qmd
+        - chapters/12-add-vin-search.qmd
+    - part: "Part IV: Change Under Pressure"
+      chapters:
+        - chapters/13-modify-accepted-behavior.qmd
+        - chapters/14-revise-in-flight-change.qmd
+        - chapters/15-parallel-changes.qmd
+        - chapters/16-team-practice.qmd
+    - summary.qmd
+    - references.qmd
+  appendices:
+    - appendices/installing-updating-openspec.qmd
+    - appendices/appendix-a.qmd
+    - appendices/appendix-b.qmd
+    - appendices/appendix-c.qmd
+    - appendices/troubleshooting-openspec.qmd
+    - appendices/appendix-d.qmd
+    - appendices/a-lab-setup.qmd
+    - appendices/b-prompt-workbook.qmd
+    - appendices/c-artifact-checklists.qmd
+    - appendices/d-instructor-guide.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    reference-location: document
+    theme:
+      - cosmo
+      - brand
+  pdf:
+    reference-location: document
+    pdf-engine: lualatex
+    documentclass: scrbook     # Use KOMA-Script for a more professional layout
+    fontsize: 11pt
+    papersize: letter
+    geometry:
+      - top=20mm
+      - bottom=20mm
+      - left=25mm
+      - right=25mm
+
+    # Font Settings (use TeX-safe defaults to avoid missing commercial fonts)
+    # Minion Pro is a commercial Adobe font; if you have it installed system-wide
+    # you can restore it here. For now use TeX Gyre Termes (bundled with TeX Live).
+    mainfont: "TeX Gyre Termes"
+    # Use a monospace font that ships with most TeX distributions
+    monofont: "DejaVu Sans Mono"
+
+
+    # Critical for O'Reilly style: 
+    # Ensures code doesn't look larger than surrounding text
+    monofontoptions: 
+      - "Scale=MatchLowercase"
+      - "StylisticSet=1"        # Optional: enables 'l' and '1' distinctions in some fonts
+
+    # Syntax Highlighting Style
+    highlight-style: arrow      # A clean, high-contrast style suitable for print
+    code-block-bg: true         # Adds a light gray background to code
+    code-block-border-left: "#31BAE9" # Optional: add a colored accent to code blocks
+
+    include-in-header:
+      text: |
+        \usepackage{wrapfig}
+        % Allow inline code to break at dots, hyphens, and underscores in PDF output
+        \renewcommand{\texttt}[1]{\nolinkurl{#1}}

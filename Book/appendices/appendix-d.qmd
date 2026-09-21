@@ -1,0 +1,15 @@
+# Further Reading and Community Resources
+
+OpenSpec is open-source software available through its GitHub project and repository. Those resources include an issue queue and discussions, which can provide information about OpenSpec and Spec-Driven Development more generally.
+
+## Official documentation
+
+The [OpenSpec repository](https://github.com/Fission-AI/OpenSpec) and its [documentation](https://github.com/Fission-AI/OpenSpec/tree/main/docs) are useful starting points. The [OPSX workflow](https://github.com/Fission-AI/OpenSpec/blob/main/docs/opsx.md) describes the workflow used throughout this book. The [installation guide](https://github.com/Fission-AI/OpenSpec/blob/main/docs/installation.md) covers setup, while [supported tools and aliases](https://github.com/Fission-AI/OpenSpec/blob/main/docs/supported-tools.md) lists the available integrations.
+
+These sources cover the mechanics of using OpenSpec. Your repository's proposal, requirements, design, tasks, and verification evidence still provide the context for a specific change. The documentation can explain how a command works, but it cannot decide whether the change is understood well enough to implement or whether the resulting behavior is correct. Your project team remains responsible for the specs, and OpenSpec is more useful when the team understands them fully.
+
+## Community schemas and extensions
+
+Community-built schemas and extensions may help when the official OpenSpec workflow does not cover a particular business domain or team practice. They can also provide a working example. It is useful to treat each community-built schema as a proposal to evaluate: read its source and examples, check its maintenance activity and compatibility with your OpenSpec version, and identify the assumptions it makes about your repository and development process.
+
+A small, representative change can provide a useful trial before the schema becomes a team convention. It helps to ask whether its artifacts make requirements easier to review, give Copilot useful context, and produce evidence that the implementation matches the intended behavior. If it adds more SDD ceremony without improving those checks, you might cherry-pick the useful ideas from the community-built schema and leave the rest behind. Recording adopted conventions in the repository gives the next developer a way to understand them.

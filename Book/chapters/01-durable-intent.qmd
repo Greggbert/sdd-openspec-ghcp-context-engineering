@@ -1,0 +1,72 @@
+# From Chat Sessions to Durable Intent
+
+## Learning objective
+
+By the end of this chapter, you should be able to explain the coordination problem that spec-driven development addresses and decide when a change might warrant a specification.
+
+## How SDD and OpenSpec help
+
+- What would change if agreed behavior moved out of a single Copilot session and into reviewable repository artifacts?
+- OpenSpec offers a place for that behavior beside the code, along with a workflow for proposing, applying, and archiving changes.  What does that make easier to review later?
+- The process does not replace engineering judgment.  It records the decisions that judgment produced so the team can revisit them.
+
+## The coordination problem
+
+- Start with a developer who asks Copilot to implement a change and ends the session with plausible code.  What does the next person inherit?
+- Follow the next developer or agent session, which can see the code but not the discarded alternatives and final decisions from the original conversation.
+- The implementation may satisfy a reasonable interpretation while still violating the business intent.  How would the team recognize that gap?
+- Three things are easy to confuse: what the agent can generate, what the team has agreed to build, and what the tests prove.  How might separating them change the conversation?
+
+## Jira, chat, and repository artifacts
+
+- What jobs belong to a Jira story, a chat transcript, code, tests, and a specification?
+- Jira can track the request, ownership, priority, and delivery status.  OpenSpec can record behavior, proposed change, design decisions, and implementation tasks.  Where should each piece of information live?
+- Why would neither a Jira story nor a chat transcript replace the other artifacts?
+- Issue identifiers and links can add traceability without requiring Jira API automation in this book.
+
+## When a specification earns its cost
+
+- Before choosing the workflow, consider four conditions: change risk, ambiguity, coordination cost, and reversibility.
+- A full specification may make sense when behavior crosses the backend and frontend, requirements may change, or multiple developers and agent sessions need the same intent.
+- A smaller record or direct edit may be enough for a change that is local, obvious, and easy to reverse.
+- There is a real cost: a specification can become ceremony or stale documentation when the team does not review and update it.  What review habit would keep that from happening?
+
+## Running example
+
+The book uses a commercial truck search system as its running example:
+
+- The backend uses Java 21 and Spring Boot 4.1.1.
+- The frontend uses Angular 21 and TypeScript.
+- The backend and frontend live in separate repositories, each with its own OpenSpec history.
+- The first request asks for search by a 15-character truck unit number but leaves several behaviors unsettled.
+
+Those missing decisions make the problem concrete: matching rules, invalid input, no-match behavior, response shape, and the boundary between the two repositories.
+
+## Hands-on exercise
+
+Review the unit-number Jira story and list every behavior GitHub Copilot would otherwise have to guess.  Could you classify each item as one of the following?
+
+- a business requirement;
+- an implementation decision;
+- a test or verification question; or
+- an explicit non-goal.
+
+## Verification checkpoint
+
+Produce a short decision record containing:
+
+- unresolved questions that block implementation;
+- assumptions the team has accepted;
+- behaviors outside the first change; and
+- an SDD or no-SDD decision with its reasons.
+
+Another developer should be able to understand what remains undecided without reading the original Copilot conversation.  Does the record meet that test?
+
+## What you learned
+
+You should now be able to distinguish a work-management request from an engineering specification, identify when Copilot lacks durable context, and judge whether the cost of recording intent is justified.  The next chapter turns that intent into OpenSpec artifacts.
+
+## Online references
+
+- [OpenSpec documentation](https://openspec.dev/docs)
+- [GitHub Copilot documentation](https://docs.github.com/en/copilot)

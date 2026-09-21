@@ -1,0 +1,42 @@
+# The OpenSpec Operating Model
+
+## Learning objective
+
+By the end of this chapter, you should be able to read an OpenSpec repository, decide which artifact fits a piece of information, and explain how accepted behavior can become an implemented and archived change.
+
+## The operating model
+
+- Markdown artifacts can serve as reviewable inputs to agent work.
+- Accepted behavior is easier to follow when it stays separate from active and archived changes.
+- Dependencies between artifacts can expose missing decisions before implementation begins.
+- The repository tree can act as a record of what the team accepts, what it is changing, and what it has completed.
+
+## Repository anatomy
+
+- A useful tour starts with `openspec/specs/`, `openspec/changes/`, schemas, prompts, and skills.
+- The rationale and scope generally belong in `proposal.md`, behavioral changes in delta specs, implementation decisions in `design.md`, and work items in `tasks.md`.
+- Comparing the current source of truth with a proposed delta helps show which behavior stays, changes, or is added.
+
+## Commands and workflows
+
+- It helps to distinguish terminal CLI commands from Copilot slash commands and Agent Skills.
+- The workflow moves from explore and propose through apply, verify, sync, and archive.
+- Operations may depend on an optional profile, a particular host, or a local environment, so those conditions belong near the operation they affect.
+
+## Hands-on exercise
+
+Try classifying sample statements as rationale, requirement, design decision, implementation task, or verification evidence.  For each statement, identify the artifact that would contain it and the consequence of placing it elsewhere.
+
+## Verification checkpoint
+
+The checkpoint is to place each statement in the artifact that fits it and explain why moving it elsewhere could weaken the workflow.  A satisfactory classification distinguishes behavior from implementation and evidence from intent.
+
+## What you learned
+
+At this point, you should be able to read an OpenSpec tree as a record of current behavior, intended change, implementation work, and completed history.  The next chapter uses those distinctions to introduce requirements and testable scenarios.
+
+## Online references
+
+- [OpenSpec concepts](https://openspec.dev/docs/concepts)
+- [OpenSpec CLI reference](https://openspec.dev/docs/cli)
+- [OpenSpec skills reference](https://openspec.dev/docs/skills)

@@ -1,0 +1,175 @@
+# Applying the Angular Change
+
+The backend change is now implemented and its OpenAPI document can serve as the handoff artifact.  In
+the Angular repository, use that artifact to generate the client and implement the frontend
+scenarios from the reviewed change.  Reconstructing the API from a chat response or a manually
+copied TypeScript interface would leave the two repositories with different sources of truth.
+
+## Learning objective
+
+By the end of this chapter, you can import the reviewed OpenAPI document, generate the Angular
+client, implement the unit-number search states, and trace each frontend scenario to a test and a
+running verification path.
+
+## How the contract supports the objective
+
+In this workflow, the backend owns the API contract while the frontend handles the interaction
+with that contract and the way its results appear to a user.  Keeping those responsibilities
+separate gives the two repositories a useful boundary:
+
+| Concern | Backend repository | Angular repository |
+|---|---|---|
+| Request and response schema | Publishes the reviewed OpenAPI document | Consumes generated types and methods |
+| API validation | Defines and enforces the accepted input | Provides immediate feedback where the specification allows it |
+| Search result | Returns the agreed response | Renders the returned data |
+| No match and failure | Publishes the response or error contract | Maps the response to the agreed empty or error state |
+
+The table is an ownership check, not a second specification.  If the generated client disagrees
+with the backend scenarios, the contract boundary is the first place to inspect and the owning
+artifact may need repair.  A frontend-only request model can hide the mismatch rather than resolve
+it.
+
+## Generate the client
+
+Start from the OpenAPI document produced and inspected in the previous chapter.  Recording the
+revision or commit that supplied it makes the client reproducible for another developer.
+
+Before generation, inspect the frontend repository instructions and its existing generated-client
+configuration.  Check the output directory, naming conventions, package version, and the command
+the repository uses for generation.  The exact command belongs to the prepared repository, so a
+one-off command from a different project could produce misleading output.
+
+Run the configured OpenAPI Generator task, then inspect the diff.  The generated output is expected
+to contain the request and response types, service methods, and transport configuration described
+by the document.  Before writing component code, check whether:
+
+- the unit-number constraint appears where the generator exposes it;
+- the success response has the fields the frontend scenario needs;
+- the no-match and error responses remain distinguishable; and
+- the generated service points at the expected local backend URL for the test environment.
+
+Keeping generated files in their configured directory and leaving them unedited gives application
+decisions a clear home in hand-written services, components, and tests.  Regenerate when the
+backend contract changes, when the generator configuration changes, or when a clean checkout
+cannot reproduce the same client.  A generated diff can provide evidence of a contract change to
+review rather than noise to hide.
+
+## Implement the search experience
+
+Read the frontend delta specification before choosing Angular boundaries.  The UI needs to make
+the specified behavior visible without duplicating the backend's implementation.
+
+### Input and validation
+
+Bind the search control to the input described by the specification.  Client-side validation can
+cover rules the frontend is allowed to know, such as the settled length or empty input behavior.
+The backend still provides the final check because a client-side validation rule can be bypassed or
+become stale after the contract changes.
+
+Keep validation messages tied to the actual state of the control.  The UI can avoid sending a
+request for input the specification says is invalid, and it should distinguish a valid search with
+no record from a backend error.
+
+### Request and display states
+
+Model the states the user can observe.  At minimum, the component or its view model will usually
+need a clear path for:
+
+1. the initial state before a search;
+2. loading while the request is in progress;
+3. a matching result;
+4. a valid search with no matching record; and
+5. an API or network error.
+
+Each state benefits from one visible outcome and an appropriate transition.  When a second search
+starts, the result from the first request should not appear to belong to the second.  If the
+frontend specification allows retrying, a failure can give the user a way to recover without a
+page reload.
+
+Route the request through the generated client, preferably behind a small hand-written service or
+facade when that matches the repository's existing Angular design.  The component can then
+coordinate input and presentation without knowing URL paths, serializing request bodies, or
+reproducing the generated response type.
+
+## Trace scenarios to implementation
+
+Use the frontend scenarios as the review spine.  A traceability table can make omissions visible
+before the browser test runs:
+
+| Frontend scenario | UI behavior | Evidence |
+|---|---|---|
+| Accepted unit number | Enables or submits the search according to the specification | Component interaction test and successful result assertion |
+| Invalid input | Shows the agreed validation state and avoids an invalid request | Validation or component test |
+| Matching record | Renders the fields selected for the user-facing result | Component test and browser assertion |
+| No matching record | Renders the agreed empty state, not an error state | Component test and browser assertion |
+| Backend or network failure | Renders the agreed error and recovery behavior | Service/component test and browser assertion |
+
+Add rows for any scenario in the reviewed frontend specification that is not represented here.
+Each row need not map to one test type; the useful question is which test observes the behavior and
+which implementation boundary owns it.
+
+## Frontend tests
+
+Use the narrowest test that provides meaningful evidence for the behavior under review.
+
+- Use Vitest for pure validation or state-transition logic when the repository keeps that logic
+  separate from Angular rendering.
+- Use Angular component tests for control interaction, generated-client calls, loading behavior,
+  result rendering, empty states, and error states.  Stub the generated client at the service
+  boundary instead of testing generated code.
+- Use Playwright for the browser-to-backend path.  Start the applications on the recorded lab
+  ports or the repository's configured test ports, then assert the user-visible result rather
+  than an internal component field.
+
+Review the test doubles alongside the production code.  A mock that always returns a result cannot
+prove the empty state, and a test that asserts a method was called says little about what the user
+saw.  For each scenario, assert the observable state and, where relevant, that invalid input did
+not produce an API call.
+
+## Hands-on exercise
+
+Apply the Angular unit-number change in the prepared frontend repository.
+
+1. Import the reviewed OpenAPI document from the backend handoff and generate the configured
+	TypeScript Angular client.
+2. Inspect the generated diff and compare its types and methods with the backend scenarios.
+3. Implement the input, validation, request, loading, result, empty, and error paths using the
+	generated client.
+4. Add focused component tests for every frontend scenario, then add or update the Playwright path.
+5. Repeat the workflow in VS Code and IntelliJ IDEA.  Compare the prompt entry points, but keep
+	the repository commands, artifacts, and evidence the same.
+
+Successful client generation alone is not enough to mark the frontend tasks complete.  Generation
+shows that the document can produce code; it does not show that the UI implements the accepted
+behavior.
+
+## Verification checkpoint
+
+The Angular change can move to cross-repository verification once the following evidence is
+available:
+
+- the generated client comes from the reviewed backend document;
+- generated files are isolated from hand-written application code;
+- the UI uses generated request and response types rather than duplicate models;
+- invalid input, loading, result, no-match, and error behavior each have evidence;
+- component tests assert visible behavior and meaningful request boundaries; and
+- the Playwright path exercises the configured frontend and backend together.
+
+If the generated client and the specification disagree, leave the task open while the backend
+contract is inspected.  If the contract matches but a UI scenario is missing, the frontend
+implementation or test needs attention.  The next chapter can then validate the two repositories
+together and decide whether the changes are ready to synchronize and archive.
+
+## What you learned
+
+OpenAPI generation removes manual transport duplication, but frontend review still has a role.
+The backend publishes the contract, the generated client carries that contract into Angular, and
+the frontend makes the agreed states visible to the user.  That makes evidence for the behavior
+more meaningful than generated files or a passing request alone.
+
+## Online references
+
+- [Angular testing guide](https://angular.dev/guide/testing)
+- [OpenAPI Generator TypeScript Angular generator](https://openapi-generator.tech/docs/generators/typescript-angular)
+- [Vitest guide](https://vitest.dev/guide/)
+- [Playwright documentation](https://playwright.dev/docs/intro)

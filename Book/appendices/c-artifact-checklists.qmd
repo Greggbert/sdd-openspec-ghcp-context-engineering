@@ -1,0 +1,50 @@
+# Artifact Review Checklists
+
+## Proposal
+
+- Does it make the business problem and intended outcome clear?
+- Is the scope narrow enough to review and implement with confidence?
+- Does it call out the exclusions that matter for this change?
+- Does it leave out technical assumptions that have not been approved?
+- Could a reviewer tell whether this adds behavior or modifies what is already accepted?
+
+## Requirements and scenarios
+
+- Does each requirement describe behavior that someone could observe?
+- Are terms such as "maximum," "exact," and "optional" clear enough to avoid ambiguity?
+- Do the scenarios cover successful, invalid, and empty outcomes where those cases matter?
+- Would an additive delta leave existing behavior unchanged?
+- Does a modified delta include the full replacement requirement?
+- Could each scenario become an automated or repeatable test?
+
+## Design
+
+- Does it focus on decisions that have implementation consequences?
+- Does it explain the API, UI, validation, and persistence boundaries that may be affected?
+- Does it identify compatibility or migration concerns that reviewers may need to consider?
+- Does it record tradeoffs instead of presenting one choice as inevitable?
+- Does it keep from duplicating behavioral requirements?
+
+## Tasks
+
+- Would each task produce a visible code, test, or documentation result?
+- Could each requirement be traced to implementation and verification work?
+- Are the tasks ordered in a way that reflects their dependencies?
+- Are the review and test steps clear enough to follow?
+- Would a new agent session be able to tell what remains incomplete?
+
+## Apply review
+
+- Does the implementation appear to match the latest artifacts rather than an earlier chat message?
+- Are the frontend and backend validation rules consistent with one another?
+- Do the tests demonstrate the scenarios rather than only executing lines?
+- Has the agent changed code outside the approved scope?
+- Does the task list reflect what has actually been completed?
+
+## Archive readiness
+
+- Has the team accepted the final behavior?
+- Do the affected tests pass?
+- Would the main spec remain coherent after the delta merges?
+- Have overlapping active changes been reviewed against the new baseline?
+- Is any unfinished work represented by a separate tracked change?

@@ -1,0 +1,178 @@
+# Proposing the First Full-Stack Change
+
+The exploration record from the previous chapter gives the unit-number search its intended meaning.
+This chapter uses those decisions to shape artifacts that another developer could review and apply.
+The backend and frontend remain separate changes, while sharing one behavioral contract.
+
+## Learning objective
+
+By the end of this chapter, you should be able to create and review proposal, specification, design,
+and task artifacts for the first truck-search capability.  You should also be able to tell whether
+the two repository changes are ready to apply or still depend on an unresolved decision.
+
+## How proposal supports the objective
+
+A proposal can explain why the change exists and where it stops.  A specification can state what a
+user or client can observe.  A design can explain how the repository might implement that behavior.
+Tasks can then make the work executable in dependency order.
+
+OpenSpec keeps these answers in separate artifacts because they serve different readers and can
+change at different rates.  The proposal gives reviewers a view of scope.  The delta specification
+gives the team testable behavior.  The design records implementation choices.  The task list gives
+the agent and developer a sequence to follow.
+
+An unresolved question from the exploration record would not belong in a requirement.  It could be
+resolved with its owner or kept visible as a proposal dependency.  A confident sentence in the wrong
+artifact would still describe an unresolved decision.
+
+## Start with two linked changes
+
+One workable approach is to create an active change in each repository.  The backend change would
+own the API contract, while the frontend change would consume it through the generated TypeScript
+client.  Each repository would therefore have its own proposal, delta specification, design, and
+tasks, while the two changes shared terms and ordering constraints.
+
+Before writing the artifacts, it can help to record the boundary between the repositories:
+
+| Decision | Backend responsibility | Frontend responsibility |
+|---|---|---|
+| Search behavior | Define the accepted input, match behavior, result shape, and API errors | Present the same behavior without redefining it |
+| Contract | Publish the reviewed OpenAPI document | Generate and consume the client from that document |
+| Validation | Enforce the API boundary and describe it in OpenAPI | Give immediate feedback where the agreed behavior allows it |
+| States | Return the agreed result, empty, and error responses | Render loading, result, empty, and error states |
+
+The decision record from chapter 7 can supply the entries in this table.  The table is not meant to
+create new behavior.  Its purpose is to expose ownership before the two proposals begin to drift.
+
+## Backend proposal
+
+The backend proposal could connect the business request to the repository change.  It would state
+that the capability adds unit-number search, name the affected service boundary, and list related
+search capabilities that remain out of scope.  The rationale can stay short because the requirements
+and scenarios will carry the behavior.
+
+The backend delta specification could define the observable contract selected during exploration.
+For each requirement, it would include scenarios for the agreed valid input, invalid input, no
+match, and any other case that the decision record marks as necessary.  Each scenario should
+describe the request and observable response without prescribing a controller class or database
+query.
+
+The design can then record the implementation boundary, perhaps including:
+
+- REST endpoint and request mapping;
+- validation location and error model;
+- service and persistence boundaries;
+- OpenAPI publication;
+- tests that demonstrate the specified scenarios.
+
+The design need not become a second requirements document.  If a design choice changes observable
+behavior, it should return to the specification for review rather than remain hidden in
+implementation prose.
+
+## Frontend proposal
+
+The frontend proposal could name the user-facing search capability and its scope.  It would refer
+to the backend-owned contract rather than describe a second version of the API.  The frontend delta
+specification should describe what the user can enter, what appears while the request is running,
+and what the user sees for a result, an empty response, or an error.
+
+The frontend design should record the Angular boundaries that implement those scenarios:
+
+- form and input validation;
+- generated-client integration;
+- loading, result, empty, and error state handling;
+- component or service boundaries;
+- tests for the specified interaction.
+
+Client generation would follow the availability of the backend contract.  The frontend proposal can
+describe that dependency, but it should avoid inventing request types or duplicating the OpenAPI
+contract by hand.
+
+## Order the tasks
+
+Tasks work best when a developer can tell what must happen first and what evidence closes each task.
+A typical dependency order might be:
+
+1. Record the backend proposal and delta specification from the agreed decisions.
+2. Record the backend design, including the contract and test boundaries.
+3. Implement and test the backend behavior, then publish the OpenAPI document.
+4. Import the reviewed contract into the frontend repository and generate the client.
+5. Record and implement the frontend states and interaction.
+6. Run the frontend tests and the cross-application verification path.
+
+The active OpenSpec tasks can describe this order without claiming that code exists before the apply
+step.  A task would be complete once its code, artifact, or verification evidence exists.  If a
+frontend task depends on an OpenAPI detail that the backend proposal has not settled, that question
+would need to return to review before implementation continues.
+
+## Review the artifacts
+
+It can help to review the two changes as one capability.  Start with the exploration record, then
+follow each requirement into its design decision and tasks.  A traceability table can make that
+review easier:
+
+| Requirement or scenario | Design decision | Task | Evidence expected |
+|---|---|---|---|
+| Agreed search behavior | API and application boundary | Backend implementation and test | Passing scenario test and contract |
+| Agreed invalid-input behavior | Validation and error mapping | Backend and frontend validation tasks | Response and visible state |
+| Agreed no-match behavior | Empty response and UI state | Backend response and frontend rendering tasks | Empty-state test |
+
+Rows for the remaining scenarios from the decision record can be added.  A blank design or task
+cell would suggest that the proposal is incomplete.  A task with no requirement or necessary design
+decision might be a candidate for removal.
+
+During review, look for three common defects:
+
+- duplicated rules whose wording differs between repositories;
+- assumptions presented as accepted behavior;
+- implementation details placed in requirements without a reason.
+
+It is also worth checking names and meanings across the contract.  A result called “empty” in the
+backend would normally remain an empty state in the frontend unless the agreed behavior says
+otherwise.
+
+## Hands-on exercise
+
+Create and review the unit-number search changes in both repositories using VS Code and IntelliJ
+IDEA.
+
+The exercise can start from the chapter 7 decision record.  Create the backend change first, then
+the frontend change with an explicit dependency on the backend-owned contract.  You might ask the
+agent to draft each artifact separately and inspect the result before asking it to create the next
+one.  The review can stay focused on behavior, ownership, and task order.
+
+After the review, compare the two IDE workflows.  The commands and artifacts would ideally remain
+the same even if the prompt entry points differ.  Any difference that affects how the agent finds
+repository instructions or OpenSpec skills is worth recording.
+
+## Verification checkpoint
+
+The proposal is ready to apply when the following checks hold:
+
+- every implementation-blocking question from exploration has an answer, owner, or explicit deferral;
+- each accepted requirement has observable scenarios;
+- each scenario maps to a design decision and at least one task;
+- the backend owns the OpenAPI contract;
+- contract publication precedes client generation;
+- the frontend describes states that match the backend responses; and
+- no task introduces behavior outside the reviewed scope.
+
+If a check fails, the artifact that owns the missing information is usually the right place to
+revise.  A missing requirement is better repaired there than through a more detailed implementation
+task.
+
+## What you learned
+
+A full-stack proposal is in a good position to apply when its artifacts agree about behavior,
+ownership, and order.  The backend produces the contract, the frontend consumes it, and both
+repositories keep their own implementation decisions and evidence.
+
+The next chapter applies the backend change.  Its first reference point is the reviewed proposal,
+specification, design, and task sequence created here, rather than the original Jira story or a
+previous chat session.
+
+## Online references
+
+- [OpenSpec quickstart](https://openspec.dev/docs/quickstart)
+- [OpenSpec concepts](https://openspec.dev/docs/concepts)
+- [OpenAPI Specification](https://spec.openapis.org/oas/latest.html)

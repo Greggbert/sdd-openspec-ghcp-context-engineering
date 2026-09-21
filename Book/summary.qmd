@@ -1,0 +1,13 @@
+# Summary
+
+OpenSpec gives an AI-assisted team a durable place to keep intent, but the files alone do not create alignment. The team must still ask precise questions, review generated artifacts, test the implementation, and reconcile overlapping decisions.
+
+The truck-search sequence demonstrates the core patterns:
+
+- A greenfield change establishes the first accepted behavior through explore, propose, apply, and archive.
+- An additive delta introduces VIN search without replacing unit-number search.
+- A modified delta replaces the old unit-number constraint with a maximum of 10 characters.
+- An active proposal can be revised before implementation when the business changes direction.
+- Parallel changes require both artifact isolation and source-control isolation, followed by deliberate synchronization.
+
+The practical test is whether a developer or agent can enter the repository in a later session and recover what the system should do, what is changing, and how completion will be verified. When the specs, code, and tests answer those questions consistently, context has become shared engineering material rather than chat history.

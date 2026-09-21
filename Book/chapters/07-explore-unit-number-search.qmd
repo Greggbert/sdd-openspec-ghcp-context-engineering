@@ -1,0 +1,117 @@
+# Exploring the Unit-Number Search
+
+## Learning objective
+
+Exploration can help resolve business uncertainty before implementation artifacts are created.  By
+the end of this chapter, you should have a decision record that describes what the unit-number
+search may need to do, which questions remain open, and who owns the next answer.
+
+## How exploration supports the objective
+
+Exploration works best as a thinking step rather than an implementation request.  The agent can
+inspect the repositories, compare existing conventions, and expose questions that a short Jira
+story leaves unstated.  A plausible guess should not become a requirement just because it makes
+the next prompt easier to write.
+
+This distinction can matter for a full-stack change.  The backend and frontend will usually need to
+agree on the meaning of a unit number, the shape of a successful result, and the way failures
+appear to the user.  An unresolved decision in one repository may become a contract mismatch in
+the other.
+
+## Start from the Jira story
+
+A useful starting point is the request to search by a 15-character unit number.  Read the story as
+a source of stated intent rather than as a complete specification.  Extract the acceptance
+criteria exactly as they are written, then mark any behavior that the story implies but does not
+define.
+
+It can help to keep the Jira issue connected to the future OpenSpec work.  The issue provides the
+business context; the proposal and specifications can describe the behavior that the team agrees
+to build.  Preserving that link gives reviewers a way to move from the requested change to the
+artifacts that explain its scope.
+
+During exploration, ask the agent to inspect the relevant backend and frontend conventions.  The
+goal is not to produce `proposal.md`, `design.md`, or `tasks.md` yet.  The goal is to discover
+which decisions those artifacts will have to record.
+
+## Questions that shape the behavior
+
+The phrase “search by a 15-character unit number” may leave several implementation-blocking
+questions open:
+
+- Does the search require an exact match, or may it return partial matches?
+- Does the system normalize input before searching?  If so, which characters or formats does it
+	accept?
+- What should happen when the input is empty or malformed?
+- What should happen when the input is valid but no unit matches it?
+- What fields belong in the result, and how should the frontend display them?
+- Which errors belong in the API response, and which should become user-visible messages?
+- Which related capabilities are explicitly out of scope for this change?
+
+These questions are better answered with the repository's existing behavior, the business owner's
+decision, or an explicit deferral than with a guess based on the ticket's wording.  A decision
+record can keep the uncertainty visible:
+
+| Question | Decision or status | Owner or next action |
+|---|---|---|
+| Exact or partial matching? | Open | Confirm with the business owner |
+| Empty and malformed input? | Open | Compare existing validation conventions |
+| Unknown unit number? | Open | Define the API and UI behavior together |
+| Result shape? | Open | Agree on the backend-owned contract |
+| Non-goals? | Open | Record deferred search capabilities |
+
+The table can be useful even before it contains many answers.  It keeps an unanswered question
+visible instead of allowing it to disappear into generated code, and it gives the eventual
+proposal a clearer boundary.
+
+## Compare exploration in both IDEs
+
+Running the exploration workflow in VS Code and IntelliJ IDEA can provide a useful comparison.  The
+model may use different wording, organize its findings differently, or notice different repository
+details in each environment.  That variation is not necessarily a problem.  The decisions that
+affect the change still need one agreed record.
+
+Compare the results for coverage rather than prose.  Did both explorations identify the same
+implementation-blocking questions?  Did either one infer behavior that the Jira story does not
+state?  Did either one miss a repository convention that the other found?  Resolve those
+differences with evidence or mark them for an owner.  A response that sounds more confident is not
+by itself a reason to choose its answer.
+
+## Hands-on exercise
+
+You can run the OpenSpec exploration workflow against the unit-number search request.  Start with
+the Jira story, inspect the relevant repository conventions, and record the decisions and open
+questions.  Repeating the exploration in VS Code and IntelliJ IDEA may expose differences worth
+resolving before the findings are combined into one agreed decision record.
+
+Change artifacts can wait during this exercise.  The intended output is the decision record, not an
+early proposal built on assumptions.  Once the behavior is understood well enough to review, the
+next chapter can turn that record into coordinated backend and frontend proposal artifacts.
+
+## Verification checkpoint
+
+Before leaving exploration, it is worth checking every question that could block implementation.
+Each one should have an answer, an owner, or an explicit deferral.  Also confirm that the record
+distinguishes:
+
+- behavior stated by the Jira story;
+- behavior inferred from existing repository conventions; and
+- behavior that still requires a business or technical decision.
+
+If those categories are mixed together, more exploration may be needed.  If they are clear, the
+team may have enough information to decide whether to propose the change or continue investigating.
+
+## What you learned
+
+Exploration can reduce risk when the request names a capability but leaves its observable behavior
+open.  It gives the team a place to resolve cross-repository decisions before those decisions are
+copied into API code, frontend state, and tests.
+
+A well-understood change may move directly to proposal.  An unclear change may need more
+exploration rather than a more elaborate implementation prompt.  The next artifact should record
+agreed behavior and remaining boundaries instead of hiding uncertainty behind confident language.
+
+## Online references
+
+- [OpenSpec skills reference](https://openspec.dev/docs/skills)
+- [GitHub Copilot prompt engineering](https://docs.github.com/en/copilot/concepts/prompt-engineering)

@@ -1,0 +1,66 @@
+# Preparing the Two-Repository Lab
+
+The exercises in Part II use two prepared repositories: `commercial-truck-search-api` and
+`commercial-truck-search-ui`.  The backend owns the OpenAPI contract, and OpenAPI Generator
+produces the TypeScript Angular client consumed by the frontend.  Before asking an agent to change
+behavior, you may want to establish a baseline for both repositories.  That gives you a way to
+distinguish an environment problem from a specification or implementation defect.
+
+## Learning objective
+
+By the end of this chapter, you should be able to clone, inspect, build, test, and run both
+repositories.  You will also have a record of the tool versions, application ports, and clean
+commits that can help you repeat the later exercises.
+
+## How the lab supports the objective
+
+- You can use the prepared repositories to keep the exercises focused on SDD rather than project
+  scaffolding.
+- You can keep an independent OpenSpec history beside each codebase.
+- The backend can remain the API owner while the frontend client is generated from that contract.
+
+## Backend baseline
+
+It may help to inspect the backend before changing it.  Check the versions and tools in use: Java
+21, Spring Boot 4.1.1, Maven, Spring Data JPA, and H2.  Locate the existing test conventions and
+application boundaries.  Also check whether truck search has been implemented.  Later chapters
+use its absence as the starting condition for the first feature.
+
+## Frontend baseline
+
+Inspect the frontend separately.  Check for Angular 21 and Node.js 24.19.0, then locate the
+Vitest, component-test, Playwright, and generated-client boundaries.  Record the local backend
+and frontend ports from the prepared repositories.  The two applications may not use the same
+defaults in every environment.
+
+## VS Code and IntelliJ IDEA setup
+
+Open both repositories in VS Code or IntelliJ IDEA.  Check that GitHub Copilot Chat is available in
+the IDE you plan to use, then record which terminal, task runner, and project view you used for
+each command.  The commands and files remain the same, although each IDE exposes them differently.
+Keeping that difference visible can help separate an IDE problem from a repository problem.
+
+## Hands-on exercise
+
+Clone `commercial-truck-search-api` and `commercial-truck-search-ui`.  Build, test, and run both
+starter repositories without making a feature change.  You can leave OpenSpec uninitialized in
+this chapter; the next chapter uses the clean baseline to show what initialization adds.
+
+## Verification checkpoint
+
+Record the baseline commands that succeed, along with the tool versions, known application ports,
+and commit IDs.  Before moving on, check that both repositories have passing existing tests and a
+clean working tree.  Those commits can serve as reset points for the later exercises.
+
+## What you learned
+
+A known baseline gives later failures a reference point.  If a starter repository does not build or
+its existing tests do not pass, fix or record that environment problem before an agent implements
+a feature.  That leaves the next chapter free to focus on configuring OpenSpec rather than
+debugging an unexamined starting state.
+
+## Online references
+
+- [Spring Boot system requirements](https://docs.spring.io/spring-boot/system-requirements.html)
+- [Angular local environment setup](https://angular.dev/tools/cli/setup-local)
+- [OpenAPI Generator installation](https://openapi-generator.tech/docs/installation)

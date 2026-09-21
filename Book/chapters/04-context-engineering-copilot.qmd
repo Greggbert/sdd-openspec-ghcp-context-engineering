@@ -1,0 +1,48 @@
+# Engineering Context for GitHub Copilot
+
+## Learning objective
+
+Explore how a bounded context package might help GitHub Copilot recover the right constraints across sessions in VS Code and IntelliJ IDEA.
+
+## How context engineering supports SDD
+
+- Store stable repository facts in repository instructions.
+- Store repeatable workflows in prompt files and Agent Skills.
+- Store change-specific intent in OpenSpec artifacts.
+- Consider keeping transient exploration in chat until the team accepts it as part of the project context.
+
+## Context limits and failure modes
+
+- Examine how context-window competition, stale context, accidental omission, and conflicting instructions can affect Copilot's output.
+- Consider the difference between adding more context and providing better-scoped context.
+- Trace how duplicated rules can drift when they live in multiple files.
+
+## Repository instructions
+
+- Describe the stack, architecture, testing requirements, and generated-code constraints.
+- Consider how backend rules might be separated from frontend rules.
+- Compare how VS Code and IntelliJ IDEA discover and use repository instructions.
+
+## Prompt files and Agent Skills
+
+- Consider which reusable commands belong in prompt files.
+- Consider which multi-step domain workflows belong in Agent Skills.
+- Examine how generated OpenSpec integrations work and when `openspec update` might be appropriate.
+
+## Hands-on exercise
+
+Try breaking one oversized Copilot prompt into stable instructions, reusable workflow guidance, and change-specific artifacts.
+
+## Verification checkpoint
+
+Open a fresh session in each IDE.  Check whether the repository can reproduce the required constraints without the earlier transcript.
+
+## What you learned
+
+Decide which durable context source is smallest and most suitable for each kind of information.
+
+## Online references
+
+- [GitHub Copilot customization](https://docs.github.com/en/copilot/customizing-copilot)
+- [OpenSpec supported tools](https://openspec.dev/docs/supported-tools)
+- [OpenSpec skills reference](https://openspec.dev/docs/skills)

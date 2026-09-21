@@ -1,0 +1,140 @@
+# Making SDD a Team Practice
+
+## Learning objective
+
+Establish a proportionate, reviewable OpenSpec workflow that can survive beyond the book's exercises.
+
+The exercises used one person, two repositories, and a controlled sequence of changes.  A team has
+to answer harder questions: who owns a decision, how much specification work a change deserves, and
+how a reviewer can recover the reasoning after the original Copilot session is gone.  SDD becomes a
+team practice when the repository records those decisions without turning every edit into a formal
+project.
+
+## Put decisions in the right place
+
+An agent can propose code, tests, and artifact text.  It cannot decide whether a business behavior is
+acceptable, whether a contract change is compatible with existing clients, or whether a risk is worth
+the cost.  A human owner must make those decisions and leave enough evidence for another person to
+review them.
+
+Use the repository artifacts for engineering intent and Jira for work tracking:
+
+- Jira records the work item, status, priority, and responsible people.
+- `proposal.md` records the business goal, scope, and non-goals for a change.
+- Delta specifications record the behavior the team will add, modify, or remove.
+- `design.md` records implementation decisions and their constraints.
+- `tasks.md` records the work sequence and its verification points.
+- Commits, pull requests, and test output provide evidence that the accepted intent was implemented.
+
+This division prevents two common failures.  A Jira ticket should not be the only place where an
+agent can find a behavioral rule, and an OpenSpec change should not become a second work-tracking
+system.
+
+## Make traceability recoverable
+
+Traceability is useful when it lets a reviewer move from a decision to its evidence without asking
+the original author to reconstruct the conversation.  Define a small naming and linking convention
+for both repositories.  For example, a Jira issue can link to the OpenSpec change name, the pull
+request can mention the same issue, and the verification record can point to the relevant test
+command or result.
+
+The exact convention matters less than using it consistently.  At minimum, a reviewer should be able
+to answer these questions:
+
+- Which business decision does this change implement?
+- Which requirements and scenarios express that decision?
+- Which code, generated artifacts, and tests carry it out?
+- What evidence supports synchronization and archive readiness?
+
+Keep the links close to the artifacts they explain.  A change that affects the backend contract and
+the Angular client should identify both repositories and the point at which the client must be
+regenerated.  That makes the contract boundary visible during review instead of leaving it implicit
+in task order.
+
+## Assign review ownership
+
+Review ownership follows the decision being reviewed.  The same person may hold several roles on a
+small change, but the roles should still be explicit.
+
+- A product or business owner reviews behavior, scope, and non-goals when the change affects what the
+	system promises.
+- A technical reviewer checks contracts, architecture, data handling, and integration boundaries.
+- An implementation reviewer checks that code and tests satisfy the reviewed requirements.
+- The person responsible for synchronization or archival checks that the accepted specifications and
+	evidence are complete.
+
+These reviews do not require four people or four meetings.  They require the team to name the
+questions that must be answered before work moves forward.  A behavior change needs business review.
+An OpenAPI or persistence change needs technical review.  A routine, reversible edit may need only a
+short recorded decision and focused verification.
+
+## Scale the artifacts to the risk
+
+OpenSpec is a control for uncertainty and coordination.  It is not a requirement that every line
+change receive the same amount of ceremony.  Before creating a full change, classify the work by its
+uncertainty, reversibility, and blast radius.
+
+Use a lighter record for a routine, low-risk, reversible change whose behavior is already covered by
+the accepted specifications.  Use a full proposal, delta specification, design, task list, and
+verification record when the change crosses a repository boundary, changes a contract, modifies
+accepted behavior, or creates a meaningful regression risk.  Urgency does not remove the need to
+record a decision.  It may justify a smaller initial artifact and a follow-up review.
+
+Record deliberate exceptions.  A short note should state why the full workflow was unnecessary and
+what evidence still supports the change.  This gives the next reviewer a reason for the missing
+artifacts instead of making the repository look incomplete by accident.
+
+## Maintain the context that agents use
+
+The workflow itself changes over time.  OpenSpec versions, Copilot integration files, generated
+clients, commands, and test tooling can all make an old instruction inaccurate.  Treat those files
+as maintained engineering assets.
+
+Review the repository context when you upgrade OpenSpec or the Copilot integration.  Remove duplicated
+instructions when two files begin to disagree.  Check command examples against the versions used by
+the repositories.  Revisit generated integration files after an update rather than assuming that a
+new version preserves the old layout or behavior.
+
+The same rule applies to the book's examples.  A command that worked for the prepared repositories at
+one version can become misleading after a tool upgrade.  Keep version-sensitive guidance tied to a
+tested version, and make the version visible when a reader needs it to reproduce the result.
+
+## Capstone: defend the amount of specification
+
+Complete the capstone by proposing a new commercial truck search change across both repositories.
+The purpose is not to produce the largest possible set of artifacts.  It is to defend the amount of
+specification work the change needs.
+
+1. State the business goal, affected behavior, non-goals, and owner.
+2. Classify the change by uncertainty, reversibility, urgency, and blast radius.
+3. Choose the OpenSpec artifacts that follow from that classification.
+4. Record the backend contract boundary and the frontend impact, including generated-client work.
+5. Assign business and technical review where the change requires those decisions.
+6. Link the Jira issue, OpenSpec change, commits, pull requests, and verification evidence.
+7. Apply, verify, synchronize, and archive the change only after the accepted specifications and
+	 implementation agree.
+
+## Verification checkpoint
+
+Ask a reviewer in a fresh session to reconstruct the capstone's intent and evidence using repository
+artifacts alone.  The reviewer should be able to identify the business decision, the changed
+behavior, the responsible reviewers, the contract boundary, and the evidence for completion without
+opening the originating chat session.
+
+If the reviewer cannot do that, find the missing decision or link before treating the change as a
+team practice success.  The problem may be an underspecified requirement, an unrecorded exception, a
+stale instruction, or a verification step that produced no recoverable evidence.
+
+## What you learned
+
+SDD works as an engineering control when the team records intent, assigns human ownership, scales
+the artifacts to the risk, and preserves evidence through synchronization and archive.  It also has
+a cost: someone must review the decisions, maintain the context, and keep the artifacts current.  A
+proportionate workflow makes that cost visible instead of hiding it in repeated rework or fragile
+agent sessions.
+
+## Online references
+
+- [OpenSpec documentation](https://openspec.dev/docs)
+- [GitHub Copilot customization](https://docs.github.com/en/copilot/customizing-copilot)
+- [Atlassian Jira documentation](https://support.atlassian.com/jira-software-cloud/)

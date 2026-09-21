@@ -1,0 +1,156 @@
+# Verifying, Synchronizing, and Archiving
+
+The backend and frontend changes now exist in two repositories.  A passing test in either
+repository may not, by itself, show that the change is complete.  This chapter separates the
+evidence gathered by validation, implementation review, synchronization, and archival.
+
+## Learning objective
+
+By the end of this chapter, you should be able to validate the OpenSpec artifacts, compare the
+implementation with the accepted change, synchronize accepted deltas into the main specifications,
+and archive a completed change without losing its history.
+
+## Four different checks
+
+These checks address different questions.  Running one generally does not replace the others.
+
+| Check | Question it answers | Evidence it produces |
+|---|---|---|
+| Artifact validation | Are the proposal, requirements, design, and tasks structured correctly? | The OpenSpec CLI result and any reported structural errors |
+| Implementation verification | Does the code and its test suite implement the accepted behavior? | Code review, focused tests, integration evidence, and the task status |
+| Synchronization | Have accepted requirements moved into the main specifications? | Updated main specs and the retained change record |
+| Archival | Is the change complete and recoverable after active work closes? | An archived change containing its reason, decisions, and evidence |
+
+Artifact validation is usually the cheapest check, so you might run it first.  It can catch a malformed artifact or a
+missing required section.  It cannot prove that the application behaves correctly, that the tests
+exercise the right path, or that the two repositories agree.
+
+## Validate the artifacts
+
+Run the OpenSpec validation command configured for the repository.  You will usually want to validate the backend and frontend change
+directories separately because each repository owns its own code, tests,
+and specification context.
+
+Read the result rather than treating a successful exit code as the whole review.  Check
+that the validator examined the expected change and that the reported paths match the artifacts you
+edited.
+If validation fails, repair the artifact structure before asking Copilot to inspect the
+implementation.  A code review built on an incomplete change description may otherwise have no
+stable target.
+
+Validation also has a useful limit: it checks the shape and rules the CLI knows about.  It does not
+decide whether a requirement is complete, whether a design is coherent, or whether an accepted
+scenario works in a running application.
+
+## Verify the implementation
+
+Compare the implementation with the proposal, requirements, design, and tasks.  It helps to start
+with the requirements and scenarios because they describe the behavior a user or another system can
+observe.  You can then use the design and tasks to check whether the implementation follows the
+agreed boundaries.
+
+For the unit-number change, one useful inspection order follows the contract:
+
+1. Verify the backend behavior and its API document.
+2. Check that the frontend client was generated from that reviewed API document.
+3. Check the frontend states against the frontend requirements.
+4. Run the cross-repository path and confirm the browser-visible result.
+
+This order can make a contract mismatch easier to locate.  If the backend behavior or API document
+is wrong, the backend-owned artifact is the natural place to repair it.  If the contract is correct but the UI is
+missing a scenario, the frontend implementation or its tests may need the repair.  Adding an undocumented workaround to one repository
+can make the other appear complete without resolving the underlying gap.
+
+Use the task list as a checklist, not as proof.  A completed task means that someone marked it
+complete.  The tests and review still need to show that the accepted behavior works and that the
+implementation remains coherent with the design.
+
+## Synchronize accepted changes
+
+Synchronization moves an accepted delta into the main specifications.  In OpenSpec 1.13.1, it is
+useful to treat `sync` as a specification update, not as a code-generation or test command.  Before
+running it, check that the implementation is complete, the tests pass, and the change has been accepted
+by the team.
+
+Inspect the main specifications before synchronization.  Note which requirements already exist,
+which are new, and which accepted behavior the delta changes.  Then run the repository's configured
+`sync` workflow and inspect the resulting diff.  Look for the accepted behavior in the
+main specifications, while checking that conditions remain present and the change record remains intact.
+
+Repeat the inspection after synchronization.  Check that:
+
+- the main specifications describe the behavior now implemented;
+- unchanged requirements remain unchanged;
+- the delta still records why the change was made; and
+- identifiers such as the Jira issue and cross-repository change identifier remain attached.
+
+If the diff changes more than the accepted delta, pause and review the generated or proposed update.
+Treat synchronization as a specification update, rather than a way to resolve ambiguity by editing
+the specification until it fits the code.
+
+## Archive only completed work
+
+Archiving closes the active change after its accepted behavior has been synchronized and verified.
+Ideally, it leaves a future reader enough context to understand what changed, why it changed,
+and where the supporting evidence came from.
+
+Before archiving the backend and frontend changes, confirm that:
+
+- artifact validation succeeds in both repositories;
+- implementation tasks are complete;
+- focused tests and the cross-repository path pass;
+- main specifications are coherent after synchronization; and
+- the change record preserves its Jira and cross-repository identifiers.
+
+Archive the changes using the repository's configured OpenSpec workflow.  Inspect the archive after
+the operation.  A moved directory would not be sufficient if the archive had lost the proposal,
+requirements, design, tasks, or the reason for the change.
+
+You will generally want to archive the two repositories only when their completion states agree.  If the
+backend is ready but the frontend still has an open scenario, consider keeping the active work
+open and recording the missing evidence.  The archive is most useful when it describes completed
+work rather than a hopeful stopping point.
+
+## The fresh-session test
+
+A useful check after archival is to start a new Copilot session.  Provide the repository artifacts,
+not the previous chat transcript, and ask what the unit-number change requires.  See whether the session can recover the
+accepted behavior from the main specifications and the archived change.
+
+This test can expose decisions that still exist only in someone's memory.  When the fresh session
+cannot recover a condition, identifier, or boundary, return to the specifications or archive and
+record it there.  A remembered conversation does not belong to the repository's
+source of truth.
+
+## Hands-on exercise
+
+Validate, verify, synchronize when appropriate, and archive the unit-number changes in both
+repositories.
+
+1. Run artifact validation in each repository and repair any structural failure.
+2. Compare the backend and frontend implementation with their accepted requirements, designs, and
+	tasks.
+3. Run the focused tests and the cross-repository verification path.
+4. Inspect the main specifications, synchronize the accepted deltas, and review the resulting diff.
+5. Preserve the Jira and cross-repository identifiers, then archive only after both repositories
+	meet the completion conditions.
+6. Start a fresh Copilot session and recover the accepted behavior from repository artifacts.
+
+## Verification checkpoint
+
+The unit-number change may be ready to close when the main specifications are coherent, active
+tasks are complete, the tests and cross-repository path pass, and the archived artifacts preserve
+the reason for the change.  If any of those conditions is missing, consider leaving the change active
+and recording the missing evidence.
+
+## What you learned
+
+Validation checks artifact structure.  Tests and review verify behavior.  Synchronization records
+accepted behavior in the main specifications.  Archiving closes the active change while preserving
+the decisions and identifiers needed to recover it later.
+
+## Online references
+
+- [OpenSpec CLI reference](https://openspec.dev/docs/cli)
+- [OpenSpec skills reference](https://openspec.dev/docs/skills)
+- [OpenSpec concepts](https://openspec.dev/docs/concepts)

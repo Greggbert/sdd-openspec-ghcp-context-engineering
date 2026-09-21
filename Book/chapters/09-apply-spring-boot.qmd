@@ -1,0 +1,97 @@
+# Applying the Spring Boot Change
+
+The reviewed backend proposal, specification, design, and task sequence can now guide the code
+change.  The aim is to preserve the behavior those artifacts describe while keeping implementation
+choices inside the approved design boundary.
+
+## Learning objective
+
+By the end of this chapter, you can apply the unit-number change in the Spring Boot repository and
+trace each backend scenario to implementation code, a meaningful assertion, and local verification
+output.
+
+## How apply supports the objective
+
+The task list provides the starting point for implementation.  You can follow its accepted order
+instead of reconstructing intent from an earlier chat session or the original request.  When a task
+exposes a missing requirement or an implementation choice outside the reviewed design, stop and
+return that question to review.  An unresolved decision needs an answer before it becomes code.
+
+Update task state only when the related code and evidence agree.  A changed file is not evidence
+that the behavior works, and a passing test is not enough if the test asserts the wrong behavior.
+
+## Backend implementation
+
+The backend design can be applied across the boundaries it names:
+
+- validation at the agreed API boundary;
+- controller behavior and response mapping;
+- service behavior for the approved unit-number capability;
+- repository access through the existing persistence boundary; and
+- error behavior described by the specification and design.
+
+Where the repository design calls for them, use Spring Data JPA and H2.  Keep those persistence
+choices in the implementation.  The behavioral requirements can describe what a client sends and
+observes without specifying which repository interface or database query supplies the result.
+
+Keep the change within the approved unit-number scope.  If implementation reveals a related
+search behavior that the proposal did not cover, record it as a question or follow-up.  That keeps
+the new decision separate from the change currently under review.
+
+## Contract ownership
+
+Treat the backend as the owner of the API contract.  Generate the OpenAPI document from the
+implemented API, then inspect it before handing it to the Angular repository.  Check the request
+constraints, response types, and error responses against the reviewed specification.
+
+The generated document is part of the evidence for the backend change.  If it omits a constraint,
+uses the wrong response shape, or describes an error as a success response, the mismatch points to
+an implementation defect.  The frontend repository should not have to compensate by maintaining a
+second version of the contract.
+
+## Backend tests
+
+Add focused unit tests where isolation clarifies validation, service, or error behavior.  Add
+Spring Boot integration tests for the scenarios that require the application, persistence, or HTTP
+boundary together.
+
+For each specified scenario, check that the test exercises the relevant boundary and asserts an
+observable result.  Review the assertions for accidental agreement with the implementation.  A
+test that copies an incorrect status code or response shape from the implementation may stay green
+while the contract is wrong.
+
+## Hands-on exercise
+
+Apply the backend unit-number change in the Spring Boot repository.  Work from the reviewed task
+sequence and keep the proposal, specification, design, and task files available as you apply each
+step.  The parallel VS Code and IntelliJ IDEA instructions let you compare the two workflows; the
+repository artifacts and verification criteria can remain the same even when the prompt entry
+points differ.
+
+When the implementation and tests are ready, generate the OpenAPI document and inspect it against
+the backend scenarios.  Once those checks pass, the contract is ready for the frontend chapter.
+
+## Verification checkpoint
+
+A practical handoff checkpoint is that every scenario has all three forms of evidence:
+
+1. implementation code at the boundary responsible for the behavior;
+2. a meaningful test assertion; and
+3. passing local output from the relevant test or verification command.
+
+Also confirm that the generated OpenAPI document matches the reviewed request constraints,
+responses, and errors.  If a scenario has no test or the contract disagrees with the specification,
+leave the task open and repair the owning artifact or implementation before handoff.
+
+## What you learned
+
+Applying a checked task list means preserving the reviewed behavior while making the implementation
+concrete.  Green tests and completed tasks provide evidence to inspect, rather than automatic proof
+of correctness.  The backend handoff can proceed when the code, tests, and generated contract agree
+with the scenarios.
+
+## Online references
+
+- [Spring Boot testing](https://docs.spring.io/spring-boot/reference/testing/index.html)
+- [Spring Data JPA reference](https://docs.spring.io/spring-data/jpa/reference/)
+- [H2 Database documentation](https://h2database.com/html/main.html)

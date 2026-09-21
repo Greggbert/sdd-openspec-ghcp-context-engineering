@@ -1,0 +1,71 @@
+
+# Initialize and Configure OpenSpec
+
+## Learning objective
+
+This chapter walks through installing OpenSpec 1.13.1 and configuring both repositories with
+project context that the team can review and maintain in version control.
+
+## What initialization adds
+
+When you initialize a repository, OpenSpec generates GitHub Copilot integration files from a
+selected profile.  These files can keep repository-specific constraints close to the code they
+govern and make the configuration visible in version control.  That makes them a reasonable
+place to start, although the generated profile may still need repository-specific review.
+
+## Install and inspect the CLI
+
+You can install the pinned OpenSpec package with npm.  It is worth checking that the CLI reports
+version 1.13.1 and inspecting the available commands before initializing either repository.
+
+It helps to keep two maintenance actions separate:
+
+- Upgrade the package when the team changes the OpenSpec CLI version.
+- Run `openspec update` when the team needs to refresh repository integrations from the installed
+	package.
+
+## Configure the backend repository
+
+In the backend repository, you can initialize GitHub Copilot support with the profile that covers
+Java, Spring Boot, Maven, JPA, H2, testing, and OpenAPI ownership.  Before committing the
+generated files, review them to see whether the repository-specific rules describe the backend
+rather than the frontend.
+
+## Configure the frontend repository
+
+In the frontend repository, you can initialize GitHub Copilot support with the profile that
+covers Angular, the generated client, Vitest, component tests, and Playwright.  Backend
+implementation rules generally belong in the backend repository.  The frontend consumes the
+backend contract, but it does not own the backend implementation.
+
+## Hands-on exercise: initialize both repositories
+
+You can use the parallel VS Code and IntelliJ IDEA instructions to initialize and configure both
+repositories.  Performing the same repository operations in each IDE may help distinguish an IDE
+integration problem from an OpenSpec configuration problem.
+
+## Verification checkpoint: inspect the result
+
+For a newly initialized repository, consider running the version, status, validation, and health
+checks that apply.  These checks should let you confirm that:
+
+- the CLI reports OpenSpec 1.13.1;
+- each repository has the expected generated integration files;
+- validation accepts the generated configuration; and
+- the health check reports a usable initialization.
+
+Reviewing the generated diff before committing can show what initialization added.  The
+repository instructions can then remain the team-owned description of local constraints.
+
+## What you learned
+
+OpenSpec generates the integration files, while the team can retain ownership of the
+repository-specific constraints and their review.  When the CLI version changes, the team can
+upgrade the package.  When it needs to refresh integrations from the installed version, it can run
+`openspec update`.
+
+## Online references
+
+- [OpenSpec installation](https://openspec.dev/docs/installation)
+- [OpenSpec CLI reference](https://openspec.dev/docs/cli)
+- [OpenSpec supported tools](https://openspec.dev/docs/supported-tools)

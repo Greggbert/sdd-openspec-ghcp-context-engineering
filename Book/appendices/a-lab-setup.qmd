@@ -1,0 +1,46 @@
+# Lab Setup
+
+## Required tools
+
+Plan to have these available for each participant:
+
+- Windows 11 or macOS;
+- Git and access to the two prepared Bitbucket repositories;
+- VS Code or IntelliJ IDEA with GitHub Copilot Chat access;
+- OpenSpec 1.13.1;
+- Node.js 24.19.0 and npm;
+- Java 21 and Maven for the Spring Boot 4.1.1 project;
+- Angular 21, Vitest, Playwright, and OpenAPI Generator for the frontend project;
+- Quarto only if participants will render the book locally.
+
+Before the class, check the current OpenSpec installation instructions at <https://openspec.dev/docs/installation>.  Tool versions and package commands can change.
+
+## Prepare the exercise repositories
+
+Start by cloning the prepared backend and frontend repositories.  It may help to confirm that each repository builds and passes its tests before initializing OpenSpec.  The backend owns the OpenAPI contract, and OpenAPI Generator produces the TypeScript Angular client used by the frontend.
+
+```bash
+cd commercial-truck-search-api
+openspec init
+
+cd ../commercial-truck-search-ui
+openspec init
+```
+
+When initialization asks which AI tool to configure, select GitHub Copilot.  Give each repository its own context instead of copying one configuration into both repositories.
+
+The backend configuration records Java 21, Spring Boot 4.1.1, Maven, Spring Data JPA, H2, test conventions, and ownership of the OpenAPI contract.  The frontend configuration records Angular 21, generated-client boundaries, Vitest, Angular component tests, and Playwright.
+
+Review the generated configuration.  It can describe stable project facts, but it should not invent database products, deployment platforms, or business rules that the class has not selected.
+
+## Preflight check
+
+Before Morning 1, check that:
+
+1.  Both starter applications build and their existing tests pass.
+2.  `openspec init` created the expected project files in both repositories.
+3.  GitHub Copilot Chat recognizes the expected OpenSpec commands in VS Code and IntelliJ IDEA.
+4.  Each participant knows which commands belong in the terminal and which belong in chat.
+5.  Each repository has a clean baseline commit suitable for reset between exercises.
+
+You may want to keep prepared checkpoints for both repositories after each major exercise.  That gives participants who miss a step a way to resume from the same accepted specs, contracts, and code state as the rest of the class.
