@@ -1,156 +1,355 @@
 # Verifying, Synchronizing, and Archiving
 
-The backend and frontend changes now exist in two repositories.  A passing test in either
-repository may not, by itself, show that the change is complete.  This chapter separates the
-evidence gathered by validation, implementation review, synchronization, and archival.
+The backend and frontend implementations now exist in separate repositories.  Before closing either
+change, test a stronger claim than "the code passes."  The artifacts must be valid, the code must
+match the accepted scenarios, the two applications must agree on the contract, and the main
+specifications must receive the behavior that shipped.
+
+OpenSpec separates that work into distinct checks.  Use artifact validation to examine the change's
+structure.  Use implementation verification to compare code and tests with the accepted
+artifacts.  Review synchronization when archival merges the delta into the main specs.  Then inspect the archive
+as the retained history of the decision.  None of these checks substitutes for the others.
 
 ## Learning objective
 
-By the end of this chapter, you should be able to validate the OpenSpec artifacts, compare the
-implementation with the accepted change, synchronize accepted deltas into the main specifications,
-and archive a completed change without losing its history.
+By the end of this chapter, you should be able to use `openspec validate` and `/opsx:verify` for
+their different purposes, review the main-spec update produced during archival, and preserve the
+reason and identity of a change after active work ends.
 
-## Four different checks
+## Treat completion as a claim
 
-These checks address different questions.  Running one generally does not replace the others.
+Break "the change is done" into claims that repository evidence can support:
 
-| Check | Question it answers | Evidence it produces |
+| Completion claim | Evidence | Limit |
 |---|---|---|
-| Artifact validation | Are the proposal, requirements, design, and tasks structured correctly? | The OpenSpec CLI result and any reported structural errors |
-| Implementation verification | Does the code and its test suite implement the accepted behavior? | Code review, focused tests, integration evidence, and the task status |
-| Synchronization | Have accepted requirements moved into the main specifications? | Updated main specs and the retained change record |
-| Archival | Is the change complete and recoverable after active work closes? | An archived change containing its reason, decisions, and evidence |
+| The artifacts follow OpenSpec's structure | `openspec validate <change>` output | Does not test application behavior |
+| The implementation matches the accepted change | `/opsx:verify`, code review, and scenario-focused tests | Does not prove that two running applications work together |
+| The integrated path preserves the contract | A browser-to-backend test and its output | Does not update the main specs |
+| The main specs contain the accepted delta | The archive preview and reviewed spec diff | Does not prove that tests passed |
+| The decision remains recoverable | Archived artifacts, identifiers, and a fresh-session check | Does not revisit whether the original decision was correct |
 
-Artifact validation is usually the cheapest check, so you might run it first.  It can catch a malformed artifact or a
-missing required section.  It cannot prove that the application behaves correctly, that the tests
-exercise the right path, or that the two repositories agree.
+Run these checks in order.  Failed artifact validation leaves implementation review without a stable
+target.  A missing implementation scenario makes the proposed main-spec update premature.  An
+unexpected spec diff should stop archival before it records the wrong behavior.
 
-## Validate the artifacts
+Capture the result in the pull request, issue, or team review record:
 
-Run the OpenSpec validation command configured for the repository.  You will usually want to validate the backend and frontend change
-directories separately because each repository owns its own code, tests,
-and specification context.
+```text
+Change: add-unit-number-search-api
+Artifact validation: pass, <command or CI run>
+Scenario verification: pass, <focused test commands>
+Cross-repository path: pass, <browser test or recorded run>
+Main-spec update: reviewed, <commit or diff>
+Archive path: openspec/changes/archive/<date>-add-unit-number-search-api/
+Related change: add-unit-number-search-ui
+Work item: <Jira issue>
+```
 
-Read the result rather than treating a successful exit code as the whole review.  Check
-that the validator examined the expected change and that the reported paths match the artifacts you
-edited.
-If validation fails, repair the artifact structure before asking Copilot to inspect the
-implementation.  A code review built on an incomplete change description may otherwise have no
-stable target.
+Keep each entry traceable to repository evidence.  Do not create another OpenSpec artifact merely to
+repeat information already recorded by the team's review process.
 
-Validation also has a useful limit: it checks the shape and rules the CLI knows about.  It does not
-decide whether a requirement is complete, whether a design is coherent, or whether an accepted
-scenario works in a running application.
+## Reestablish the change boundary
 
-## Verify the implementation
+Start by recovering the accepted scope from each repository.  In this lab, the backend change is
+`add-unit-number-search-api`, and the frontend change is `add-unit-number-search-ui`.  A shared Jira
+issue or cross-repository identifier connects them as one product change without erasing repository
+ownership.
 
-Compare the implementation with the proposal, requirements, design, and tasks.  It helps to start
-with the requirements and scenarios because they describe the behavior a user or another system can
-observe.  You can then use the design and tasks to check whether the implementation follows the
-agreed boundaries.
+Run the inspection commands from the root of each repository:
 
-For the unit-number change, one useful inspection order follows the contract:
+```bash
+openspec status --change add-unit-number-search-api
+openspec show add-unit-number-search-api
+openspec validate add-unit-number-search-api --strict
+```
 
-1. Verify the backend behavior and its API document.
-2. Check that the frontend client was generated from that reviewed API document.
-3. Check the frontend states against the frontend requirements.
-4. Run the cross-repository path and confirm the browser-visible result.
+```bash
+openspec status --change add-unit-number-search-ui
+openspec show add-unit-number-search-ui
+openspec validate add-unit-number-search-ui --strict
+```
 
-This order can make a contract mismatch easier to locate.  If the backend behavior or API document
-is wrong, the backend-owned artifact is the natural place to repair it.  If the contract is correct but the UI is
-missing a scenario, the frontend implementation or its tests may need the repair.  Adding an undocumented workaround to one repository
-can make the other appear complete without resolving the underlying gap.
+Use `status` to inspect artifact completion, `show` to read the change and its deltas, and `validate`
+to find structural problems such as a malformed delta or a requirement without a scenario.  These
+commands do not prove that Angular sent the expected request or that Spring Boot returned the
+accepted response.  Implementation verification covers that question.
 
-Use the task list as a checklist, not as proof.  A completed task means that someone marked it
-complete.  The tests and review still need to show that the accepted behavior works and that the
-implementation remains coherent with the design.
+Read the artifacts after the commands finish.  Do not let a successful exit code replace checking
+that the CLI resolved the intended OpenSpec root, selected the intended change, and examined the
+files just reviewed.  In a repository with several active changes, validating the wrong change
+provides reassuring but irrelevant output.
 
-## Synchronize accepted changes
+::: {.callout-note}
+## Validation checks artifacts, not application behavior
 
-Synchronization moves an accepted delta into the main specifications.  In OpenSpec 1.13.1, it is
-useful to treat `sync` as a specification update, not as a code-generation or test command.  Before
-running it, check that the implementation is complete, the tests pass, and the change has been accepted
-by the team.
+`openspec validate` checks structures and relationships covered by the OpenSpec rules.  It does not
+run the application's scenario path or decide whether a requirement expresses the team's
+intent.  Keep its output as one part of the completion evidence.
+:::
 
-Inspect the main specifications before synchronization.  Note which requirements already exist,
-which are new, and which accepted behavior the delta changes.  Then run the repository's configured
-`sync` workflow and inspect the resulting diff.  Look for the accepted behavior in the
-main specifications, while checking that conditions remain present and the change record remains intact.
+## Verify the implementation against the artifacts
 
-Repeat the inspection after synchronization.  Check that:
+Open each repository in turn, select the named change, and run OpenSpec's verification skill:
 
-- the main specifications describe the behavior now implemented;
-- unchanged requirements remain unchanged;
-- the delta still records why the change was made; and
-- identifiers such as the Jira issue and cross-repository change identifier remain attached.
+```text
+/opsx:verify
+```
 
-If the diff changes more than the accepted delta, pause and review the generated or proposed update.
-Treat synchronization as a specification update, rather than a way to resolve ambiguity by editing
-the specification until it fits the code.
+Review its findings under completeness, correctness, and coherence.  Check that every task is
+complete, each requirement has corresponding code and tests, and the implementation still follows
+the reviewed design.  The skill reports findings but does not block archival, so decide how to
+resolve each warning before proceeding.
 
-## Archive only completed work
+If the frontend report finds all tasks checked but no focused test for the no-match scenario, keep
+the change open and add the missing evidence.  A user-visible state in the accepted delta deserves a
+stronger response than an optional naming cleanup.
 
-Archiving closes the active change after its accepted behavior has been synchronized and verified.
-Ideally, it leaves a future reader enough context to understand what changed, why it changed,
-and where the supporting evidence came from.
+Use the report to guide inspection, then confirm its claims in the repository.  An agent can miss a
+test hidden behind an unfamiliar convention, infer correspondence from similar names, or accept a
+checked task without reproducing its command.  Connect every accepted scenario to code and to a
+check that fails when the behavior breaks.
 
-Before archiving the backend and frontend changes, confirm that:
+### Build a scenario-to-evidence map
 
-- artifact validation succeeds in both repositories;
-- implementation tasks are complete;
-- focused tests and the cross-repository path pass;
-- main specifications are coherent after synchronization; and
-- the change record preserves its Jira and cross-repository identifiers.
+Map the unit-number scenarios before running a broad final suite:
 
-Archive the changes using the repository's configured OpenSpec workflow.  Inspect the archive after
-the operation.  A moved directory would not be sufficient if the archive had lost the proposal,
-requirements, design, tasks, or the reason for the change.
+| Accepted scenario | Backend evidence | Frontend evidence | Cross-repository evidence |
+|---|---|---|---|
+| Invalid unit number | Request validation test | Submission and feedback test | Browser confirms that invalid input does not produce a search result |
+| Matching unit | Controller or service test for the reviewed response | Component test for the result state | Browser displays data returned by the running backend |
+| No matching unit | API test for the reviewed no-match contract | Component test for the empty state | Browser distinguishes no match from request failure |
+| Request failure | Error-contract test where specified | Component test for the error and retry path | Integrated test or controlled failure evidence where practical |
 
-You will generally want to archive the two repositories only when their completion states agree.  If the
-backend is ready but the frontend still has an open scenario, consider keeping the active work
-open and recording the missing evidence.  The archive is most useful when it describes completed
-work rather than a hopeful stopping point.
+Include only scenarios from the accepted delta specifications.  If the change does not define retry
+behavior, omit that assertion or return to the change for a reviewed decision before implementing it.
 
-## The fresh-session test
+Run focused checks before broad suites.  Use each repository's package, build, and test configuration
+rather than inventing generic commands.  Preserve the exact commands and results in the review
+record:
 
-A useful check after archival is to start a new Copilot session.  Provide the repository artifacts,
-not the previous chat transcript, and ask what the unit-number change requires.  See whether the session can recover the
-accepted behavior from the main specifications and the archived change.
+```text
+Backend scenario: matching unit
+Command: <repository-configured focused Spring Boot test>
+Result: pass
 
-This test can expose decisions that still exist only in someone's memory.  When the fresh session
-cannot recover a condition, identifier, or boundary, return to the specifications or archive and
-record it there.  A remembered conversation does not belong to the repository's
-source of truth.
+Frontend scenario: no matching unit
+Command: <repository-configured focused Angular test>
+Result: pass
+
+Integrated scenario: matching unit from browser through API
+Command: <repository-configured Playwright test>
+Result: pass
+```
+
+### Follow the contract across repositories
+
+Review the cross-repository path because each repository can pass in isolation while the product
+path fails.  Start with the backend-owned OpenAPI document and confirm that it generated the Angular
+client under test.  Then trace one accepted example through the browser, generated client, HTTP
+boundary, backend implementation, and rendered result.
+
+For a matching unit, check these handoffs:
+
+1. Confirm that the browser submits the input accepted by the frontend delta.
+2. Confirm that the generated client sends the request described by the reviewed OpenAPI operation.
+3. Compare the backend status and response shape with the API document.
+4. Trace the response through the frontend without introducing another contract.
+5. Compare the rendered fields and state with the frontend scenario.
+
+Repeat the path for distinctions that often disappear at a repository boundary, especially no match
+versus request failure.  Backend tests can distinguish their status codes, and component tests can
+distinguish views built from mocked values.  Use the integrated path to show that the generated
+client carries the distinction between them.
+
+When a mismatch appears, repair the boundary that owns it.  A backend response that contradicts the
+reviewed OpenAPI document belongs in the backend change.  A correct generated response that produces
+the wrong visible state belongs in the frontend implementation or delta.  Do not change the main
+specification merely to match whichever behavior happened to ship.
+
+## Decide whether the change is ready to close
+
+Make the completion decision against explicit conditions:
+
+- both named changes pass strict artifact validation;
+- every accepted scenario maps to implementation and appropriate test evidence;
+- the reviewed OpenAPI document matches the client used by the frontend;
+- the configured backend, frontend, and cross-repository checks pass;
+- checked tasks correspond to completed work rather than planned or partial work; and
+- the team has repaired unresolved warnings or recorded them as accepted limits.
+
+Each OpenSpec root can archive its own change.  For one user-facing feature, keep both changes active
+until the product path passes.  If the repositories must close at different times, record that
+decision and link their completion states.
+
+::: {.callout-warning}
+## A checked task is not test evidence
+
+A checkbox records workflow state, not test evidence.  Keep the command and result available where
+the team reviews completion.
+:::
+
+## Understand synchronization during archive
+
+In the current OpenSpec CLI workflow, archiving normally performs the specification update.  The
+command validates the change, previews its effect on `openspec/specs/`, merges the delta after
+confirmation, and moves the change directory under `openspec/changes/archive/`.
+
+Here, synchronization means reviewing that transfer from active delta to main
+specification.  Keep code generation, deployment, and cross-repository contract exchange in their own
+workflows.  Never rewrite a requirement during archival simply to match the implementation.
+
+Before running archive, inspect the relevant main spec and active delta side by side:
+
+- identify every requirement to be added, modified, removed, or renamed;
+- match modified requirements to their identities in the main spec;
+- check that no condition or scenario disappears during the merge;
+- remove behavior that was not accepted for this change; and
+- compare the resulting main-spec behavior with the implementation just verified.
+
+Then run archive interactively so that its proposed spec updates remain visible:
+
+```bash
+openspec archive add-unit-number-search-api
+```
+
+Review the preview before confirming it.  After the command completes, inspect the repository diff:
+
+```bash
+git diff -- openspec/specs openspec/changes
+```
+
+Repeat the process in the frontend repository with its own change:
+
+```bash
+openspec archive add-unit-number-search-ui
+git diff -- openspec/specs openspec/changes
+```
+
+Expect the diff to show the accepted requirements in the main specs and the dated change directory
+under the archive.  Stop before commit if it contains unrelated specification edits, missing
+scenarios, or an unexpected capability name.
+
+For agents or CI, `--yes` can answer archive confirmations non-interactively:
+
+```bash
+openspec archive add-unit-number-search-api --yes
+```
+
+`--yes` removes the prompt, not the review obligation.  Inspect the proposed update beforehand or
+review the resulting diff before accepting the commit.
+
+Reserve `--skip-specs` for changes that do not update main specifications, such as some tooling or
+documentation changes.  Do not use it for the unit-number feature: that would archive the delta
+while leaving the main source of truth behind.  Likewise, do not use `--no-validate` to bypass a
+malformed change.
+
+## Inspect what archival preserved
+
+An archive earns its place by making the decision recoverable.  Open the dated directory and check
+for the material a future reviewer needs:
+
+- the proposal explaining the reason and scope;
+- delta specifications containing the reviewed scenarios;
+- the design decisions and boundaries used during implementation;
+- the completed task history;
+- the Jira issue and cross-repository identifier; and
+- any repository convention that points to test, pull request, or release evidence.
+
+Keep current behavior in the main specs and change history in the archive.  Packing discarded
+options into the main spec makes current behavior harder to read.  Treating the archive as a moved
+folder makes past decisions harder to recover.
+
+After both archive operations, compare their identifiers and resulting main specs.  Keep API
+behavior in the backend spec and user-visible interaction in the frontend spec.  Use the shared
+identifier to connect them without duplicating either specification.
+
+## Respond to failed checks without hiding them
+
+Expect verification to reopen work that appeared finished.  Repair it while the change remains
+active and its intent remains nearby.
+
+| Finding | Likely next step | Reason not to archive yet |
+|---|---|---|
+| `openspec validate` reports a malformed scenario | Repair the delta structure and rerun validation | The implementation target cannot be validated |
+| `/opsx:verify` finds an accepted scenario with no code | Implement or revise the accepted scope through review | The change claims behavior the code lacks |
+| Focused test fails | Repair the owning implementation boundary and rerun the same check | The evidence rejects the completion claim |
+| Integrated path collapses no match into failure | Inspect the OpenAPI and generated-client boundary | Isolated tests did not preserve the contract distinction |
+| Archive preview changes an unrelated requirement | Cancel, inspect requirement identity and delta content, then retry | The proposed main-spec update exceeds the accepted delta |
+| One repository remains incomplete | Keep both changes active or record a reviewed split-close decision | The shared product change lacks agreed completion evidence |
+
+Do not edit checkboxes, main specs, or archive contents merely to silence a warning.  Change the
+artifact or implementation that owns the mismatch, review the correction, and repeat the smallest
+check capable of rejecting it.  Run broader validation after the focused check passes.
+
+## Run the fresh-session test
+
+After archival, start a Copilot session without the transcript from Chapters 8 through 10.  Point it
+to the repository artifacts:
+
+```text
+From the current main specs and archived OpenSpec changes:
+
+1. What unit-number search behavior is currently accepted?
+2. Which archived change introduced it, and why?
+3. Which scenarios distinguish invalid input, no match, and request failure?
+4. Which related change belongs to the other repository?
+5. What evidence would you inspect before modifying this behavior?
+
+For each answer, name the artifact that supports it.  Report anything the repository does not say.
+```
+
+Evaluate the answer against the sources.  Look for current behavior in the main specs, the reason in
+the archive, and the relationship between backend and frontend changes in their shared
+identifier.  A missing answer exposes a decision left in chat history, personal memory, or an unlinked issue.
+
+Do not repair every weak answer by packing more prose into the main specification.  Put
+change-specific reasoning in the archive, implementation detail in the code or design, and execution
+evidence in the team's verification record.  Require the session to cite the right source and admit
+what the repository does not say.
 
 ## Hands-on exercise
 
-Validate, verify, synchronize when appropriate, and archive the unit-number changes in both
-repositories.
+Close the unit-number search across the prepared backend and frontend repositories:
 
-1. Run artifact validation in each repository and repair any structural failure.
-2. Compare the backend and frontend implementation with their accepted requirements, designs, and
-	tasks.
-3. Run the focused tests and the cross-repository verification path.
-4. Inspect the main specifications, synchronize the accepted deltas, and review the resulting diff.
-5. Preserve the Jira and cross-repository identifiers, then archive only after both repositories
-	meet the completion conditions.
-6. Start a fresh Copilot session and recover the accepted behavior from repository artifacts.
+1. Record the two change names, their shared Jira or cross-repository identifier, and the main specs
+	each delta would affect.
+2. Run `openspec status`, `openspec show`, and strict `openspec validate` for each named change.
+3. Run `/opsx:verify` in each repository, inspect its completeness, correctness, and coherence
+	findings, and resolve any warning that weakens an accepted scenario.
+4. Build a scenario-to-evidence map for invalid input, match, no match, and request failure where
+	those scenarios appear in the accepted deltas.
+5. Run the configured focused backend and frontend tests, followed by the browser-to-backend path.
+6. Inspect each active delta beside its target main spec, then run `openspec archive <change>`
+	interactively and review the proposed updates before confirmation.
+7. Inspect `git diff -- openspec/specs openspec/changes` in both repositories.  Confirm that the main
+	specs received only the accepted behavior and that each dated archive retained its artifacts and
+	identifiers.
+8. Start a fresh Copilot session and ask it to recover the current behavior, original reason, related
+	repository change, and remaining limits from repository artifacts alone.
 
 ## Verification checkpoint
 
-The unit-number change may be ready to close when the main specifications are coherent, active
-tasks are complete, the tests and cross-repository path pass, and the archived artifacts preserve
-the reason for the change.  If any of those conditions is missing, consider leaving the change active
-and recording the missing evidence.
+Accept the archive commits only when:
+
+- both changes pass strict artifact validation;
+- each accepted scenario points to implementation and reproducible evidence;
+- the generated frontend client reflects the reviewed backend contract;
+- the cross-repository path preserves the distinctions required by both deltas;
+- the updated main specs describe the behavior that passed verification;
+- the archives preserve the proposal, decisions, tasks, and linking identifiers; and
+- a fresh session can recover current behavior and change history without the old transcript.
+
+Keep any unmet condition visible as an open item rather than hiding it behind an archive date.
 
 ## What you learned
 
-Validation checks artifact structure.  Tests and review verify behavior.  Synchronization records
-accepted behavior in the main specifications.  Archiving closes the active change while preserving
-the decisions and identifiers needed to recover it later.
+Use `openspec validate` to check artifact structure and `/opsx:verify` to compare the implementation
+with the accepted change.  After the code and cross-repository path pass, archive the change and
+review the delta merged into the main specs.  The work is ready to close when a fresh session can
+recover both the current behavior and the reason it changed from repository evidence.
 
 ## Online references
 
-- [OpenSpec CLI reference](https://openspec.dev/docs/cli)
-- [OpenSpec skills reference](https://openspec.dev/docs/skills)
-- [OpenSpec concepts](https://openspec.dev/docs/concepts)
+- [OpenSpec CLI reference](https://openspec.dev/docs/cli)^[<https://openspec.dev/docs/cli>]
+- [OpenSpec skills reference](https://openspec.dev/docs/skills)^[<https://openspec.dev/docs/skills>]
+- [OpenSpec concepts](https://openspec.dev/docs/concepts)^[<https://openspec.dev/docs/concepts>]

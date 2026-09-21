@@ -1,104 +1,458 @@
 # Revising an In-Flight Change
 
+Implementation has started on a Fleet Origin State filter.  The backend already handles part of
+the request when the product owner asks for another filter: Active Status, with values of `Active`
+and `Decommissioned`.
+
+Continuing from that conversation would leave the code ahead of the active proposal.  Opening a
+second change could split one result-filtering rule across two plans.  Discarding the first change
+would lose work that may still fit.  Instead, pause implementation and revise the active OpenSpec
+change until its proposal, delta specifications, design, and tasks describe the new outcome.
+
 ## Learning objective
 
-By the end of this chapter, you can revise an active change when the business changes its mind before implementation is complete.  You can also decide whether the revision belongs in the existing change or in a separate one, then trace the decision through the specifications, API, UI, generated client, and tests.
+By the end of this chapter, you should be able to revise an active OpenSpec change without
+confusing proposed behavior with accepted behavior.  You should also be able to decide whether to
+revise or split the change, reassess partial implementation, and determine when `/opsx:apply` can
+resume.
 
-## Start with the decision that changed
+## Treat the active change as the current plan
 
-An active change can be treated as a working agreement rather than a permanent commitment.  The team may discover a missing business rule, reject an earlier assumption, or widen the requested behavior during implementation.  When that happens, the next step is usually to update the artifact that records the decision.  A corrective message in chat may reach the current implementer, but it does not update the instructions that reviewers, later agents, or the next developer will read.
+An OpenSpec change under `openspec/changes/<change-name>/` describes behavior that has not yet
+joined the accepted specifications.  Some tasks may already be checked, but archive has not made
+the delta part of `openspec/specs/`.
 
-The interrupted proposal in this chapter began with one filter:
+That distinction matters when the request changes:
 
-- filter vehicles by Fleet Origin State;
-- add Active Status values of Active and Decommissioned; and
-- decide how the filters combine and how empty selections behave.
+| State | Where current behavior lives | How a new decision would usually enter |
+|---|---|---|
+| Accepted behavior | `openspec/specs/` | A new change with an `ADDED`, `MODIFIED`, `REMOVED`, or `RENAMED` delta |
+| Proposed behavior | `openspec/changes/<change-name>/` | A revision to that active change, when the scope still belongs together |
+| Implemented but unarchived behavior | Code and tests, plus the active change | A revision to the artifacts followed by reassessment of the implementation |
 
-The new request changes the shape of that work.  It is no longer enough to implement the original filter and append a second control.  The proposal needs to describe the combined behavior that the user now expects.
+Suppose the active delta contains an `ADDED` requirement named `Filter vehicles by fleet origin
+state`.  Adding Active Status does not turn that block into a `MODIFIED` requirement.  The team is
+editing a proposed addition, not replacing an accepted requirement.  Chapter 13 used `MODIFIED`
+because the target requirement already lived under `openspec/specs/`.
 
-Before changing the artifact, write down the decision that moved.  Ask:
+::: {.callout-warning}
+## Do not archive the old plan to make revision easier
 
-- Is Active Status an additional filter, or does it replace part of the original proposal?
-- Do the filters combine with `AND`, `OR`, or a rule that depends on the selected values?
-- What does an empty Fleet Origin State selection mean?
-- What does an empty Active Status selection mean?
-- Which completed work still supports the revised behavior?
+Do not archive the old plan merely to create a new baseline.  That would move unverified behavior
+toward the accepted specifications.  Keep the change active while its scope and evidence remain
+unsettled.
+:::
 
-It helps to keep unanswered questions visible during review.  Reviewers should not have to infer product behavior from whatever the current query or UI happens to do.
+## Recover the interruption point
 
-## Rebuild the active artifact
+Before editing, recover the state of the named change:
 
-Once the decision is clear, revise the active change as a complete description of the new behavior.  Revisit its scope, affected capabilities, requirements, scenarios, and task list.  Stale text is usually better replaced than left beside a second statement for the reader to reconcile.
+For a change named `add-vehicle-filters`, start with:
 
-The revision will usually need to make these relationships explicit:
+```bash
+openspec status --change add-vehicle-filters
+openspec show add-vehicle-filters --diff
+openspec validate add-vehicle-filters --strict
+```
 
-- the filter controls available to the user;
-- the values each control accepts;
-- how multiple selections combine;
-- what the API receives when a control has no selection; and
-- what results and empty states the UI presents.
+Use `status` to find the available artifacts and checked tasks.  Use `show --diff` to inspect the
+proposal and requirement deltas.  Use `validate` to find structural problems.  A clean validation
+result cannot show whether the artifacts agree with the revised request.
 
-Then trace the effects through the implementation.  A change to filter behavior can affect API parameters, query construction, validation, generated-client types, UI controls, and tests.  The exact files depend on the two repositories, but the artifact should name the affected surfaces before implementation resumes.
+Read the files as a set after running those commands.  For each artifact, ask a different
+question:
 
-It is also worth revisiting tasks in the same pass.  A completed task remains complete only when its result still satisfies the revised requirement.  A task that implemented the one-filter query may need to be reopened if the new combination rule invalidates that query.  A task that added shared plumbing may remain complete if the revised scenarios still exercise it.
+| Artifact | Question after the interruption |
+|---|---|
+| `proposal.md` | Does the reason and scope still describe the outcome the product owner wants? |
+| `specs/**/spec.md` | Could every requirement and scenario still be accepted as written? |
+| `design.md` | Can the chosen API, query, and UI design represent the revised behavior? |
+| `tasks.md` | Which checked tasks still produce evidence for the revised scenarios? |
 
-This distinction helps avoid two common errors.  Marking every earlier task incomplete throws away work that the new design still uses.  Leaving every task complete hides work that no longer proves the requested behavior.
+Inspect the implementation in the same pass without treating it as the source of the new business
+rule.  Existing query logic may reveal that `AND` is easy to implement or that an empty parameter
+already has a meaning.  Record the product decision in the change instead of inheriting whichever
+behavior the code happens to contain.
 
-## Decide whether to amend or split the change
+## Name the decision that moved
 
-Not every new request belongs in the active proposal.  Four questions can help with the decision:
+“Add Active Status” sounds specific until it meets the existing filter.  Several decisions may
+still be open:
 
-- How much implementation is already complete?
-- Does the new request change the same behavior or introduce an independent capability?
-- Does the release still treat both requests as one outcome?
-- Would a reviewer understand the final proposal without reconstructing its history?
+- Should Active Status narrow the same result set as Fleet Origin State?
+- Should selecting both filters use `AND` or `OR`?
+- Should one control be optional, or must the user choose both values?
+- Should no selection omit a query parameter, send an empty value, or mean “all”?
+- Should the result list distinguish no matches from a failed request?
+- Should Active Status use a fixed set of values or accept arbitrary text?
 
-The active change is usually the better home when the new decision corrects or completes the behavior already under review.  The filter combination rule belongs with the filter proposal because it defines what that proposal means.
+Record answers before asking an agent to continue implementation.  For this exercise, use the
+following reviewed decisions:
 
-A separate change may be appropriate when the new request has an independent purpose, review path, or release decision.  A separately valuable change is usually better kept outside the active proposal, even when the code touches the same screen.  Shared files create coordination work, but they do not make two business decisions one change.
+| Topic | Revised decision |
+|---|---|
+| Available filters | Fleet Origin State and Active Status |
+| Status values | `Active` and `Decommissioned` |
+| Combination rule | When both filters have values, a vehicle must match both |
+| One empty selection | Apply only the populated filter |
+| Both selections empty | Return the unfiltered result set |
+| No matching vehicles | Show the existing empty-results state |
+| Request failure | Preserve the existing error state |
 
-The change record can make that choice visible.  A short note explaining why the proposal was amended or split gives reviewers a way to check the scope without relying on chat history.
+These choices belong to the worked example, not to OpenSpec.  Another product could require at
+least one filter or treat an empty selection as invalid.  What matters here is that implementation
+resumes from a reviewed meaning.
 
-## Keep implementation and review synchronized
+An exploration prompt can help expose omissions without changing either artifacts or code:
 
-After revising the artifact, review it before asking an agent to continue.  The review can check whether the requirements and scenarios describe the same combination rules, whether the API contract can represent those rules, and whether the UI tasks still describe the original one-filter design.
+```markdown
+/opsx:explore add-vehicle-filters
 
-Then compare existing work with the revised scenarios.  For each completed item, ask what evidence it provides.  Code that still passes a narrow unit test may not satisfy the revised behavior if the test never combines the filters.  A generated client may compile while still exposing an obsolete parameter shape.  A label or help message may describe only the first filter even after the query supports both.
+The active change currently adds Fleet Origin State filtering.  The product owner now wants an
+optional Active Status filter with values Active and Decommissioned.
 
-When the review finds a gap, leave the proposal open.  Revise the requirement or scenario first, then update the affected task and implementation.  This order keeps the source of truth ahead of the code and gives the next verification pass a precise target.
+Compare the proposal, delta specifications, design, tasks, implementation, and tests.  Identify:
+- assumptions that describe only the original one-filter behavior;
+- unresolved combination and empty-selection rules;
+- completed work that may still satisfy the revised behavior; and
+- generated or cross-repository surfaces that may become stale.
+
+Do not edit artifacts or code.  Do not infer product decisions from the implementation.
+```
+
+Explore mode can expose the questions, but its conversation does not revise the source of truth.  Move
+the reviewed answers into the active artifacts.
+
+## Decide whether to revise or split the change
+
+Judge scope from the business outcome rather than the files touched:
+
+| Revise the active change when... | Start a separate change when... |
+|---|---|
+| The new decision completes or corrects proposed behavior | The new request has value on its own |
+| Reviewers would evaluate both parts as one outcome | Either part could be released or withdrawn independently |
+| One set of scenarios must describe how the behaviors interact | Combining them would hide different risks or owners |
+| The original behavior no longer satisfies the request | The active change still meets its reviewed purpose |
+
+Shared files alone should not force a merge.  Two independent changes may both touch a search
+component, while one coherent filter behavior may span a controller, generated client, Angular
+form, and test suites in two repositories.
+
+For the exercise, keep Active Status in `add-vehicle-filters`.  The two controls define one result
+set, and neither filter can explain the combination or empty-selection rules alone.  Preserve that
+reasoning in the proposal:
+
+```markdown
+## Revision note
+
+Active Status was added while implementation was in progress.  It remains in this change because
+the status and fleet-origin controls jointly determine one vehicle-search result set.  The revised
+requirements replace the earlier one-filter proposal rather than adding an independent release.
+```
+
+Keep the note short.  A reviewer needs the scope decision, not a diary of the conversation.
+
+## Revise the artifacts as a set
+
+Use OpenSpec's update skill to revise existing planning artifacts without changing application
+code:
+
+```text
+/opsx:update add-vehicle-filters
+
+Revise this active change to add an optional Active Status filter with values Active and
+Decommissioned.  When both filters have values, results must match both.  When one filter is empty,
+apply only the populated filter.  When both are empty, return the unfiltered result set.  Preserve
+the existing empty-results and request-error states.
+
+Show each proposed artifact revision before writing it.  Do not modify application code.
+```
+
+Review each artifact revision before accepting it.  A proposal may have the right scope while its
+delta omits the both-empty scenario.  A correct delta may still conflict with a design that sends
+empty strings for both parameters.
+
+### Revise the proposal boundary
+
+Revise the proposal's outcome and boundaries.  Its `What Changes` section might move from this:
+
+```markdown
+## What Changes
+
+- Add a Fleet Origin State control to vehicle search.
+- Send the selected state to the search API.
+- Show vehicles from the selected fleet origin state.
+```
+
+to this:
+
+```markdown
+## What Changes
+
+- Add Fleet Origin State and Active Status controls to vehicle search.
+- Support Active and Decommissioned status values.
+- Apply both populated filters with AND semantics.
+- Omit an unselected filter from the request and preserve the unfiltered result when neither is
+	selected.
+- Preserve the existing empty-results and request-error states.
+
+## Non-Goals
+
+- Multi-select values within either filter
+- Changes to vehicle status definitions
+- New sorting or pagination behavior
+```
+
+Replace the stale one-filter wording.  Do not leave reviewers to decide whether the first or last
+version wins.
+
+### Rewrite the proposed requirement completely
+
+Suppose the original delta adds a requirement for Fleet Origin State filtering.  Revise that
+proposed requirement into a complete statement of the combined behavior:
+
+```markdown
+## ADDED Requirements
+
+### Requirement: Filter vehicle search results
+
+The search UI SHALL allow a user to filter vehicles by Fleet Origin State and Active Status.  The
+available Active Status values SHALL be `Active` and `Decommissioned`.  When both filters have
+values, a returned vehicle SHALL match both values.
+
+#### Scenario: Both filters are selected
+
+- **GIVEN** Fleet Origin State is `OH`
+- **AND** Active Status is `Active`
+- **WHEN** the user applies the filters
+- **THEN** every returned vehicle has Fleet Origin State `OH`
+- **AND** every returned vehicle has Active Status `Active`
+
+#### Scenario: Only Fleet Origin State is selected
+
+- **GIVEN** Fleet Origin State is `OH`
+- **AND** Active Status has no selection
+- **WHEN** the user applies the filters
+- **THEN** every returned vehicle has Fleet Origin State `OH`
+
+#### Scenario: Only Active Status is selected
+
+- **GIVEN** Fleet Origin State has no selection
+- **AND** Active Status is `Decommissioned`
+- **WHEN** the user applies the filters
+- **THEN** every returned vehicle has Active Status `Decommissioned`
+
+#### Scenario: Neither filter is selected
+
+- **GIVEN** neither filter has a selection
+- **WHEN** the user applies the filters
+- **THEN** the search returns the unfiltered result set
+
+#### Scenario: No vehicle matches the selected filters
+
+- **GIVEN** no vehicle matches the selected filter values
+- **WHEN** the user applies the filters
+- **THEN** the UI shows the existing empty-results state
+```
+
+Why keep `ADDED` here?  The filter requirement has not entered the accepted specification, so the
+team is revising the proposed addition itself.  Replacing `ADDED` with `MODIFIED` merely because
+the draft changed would confuse artifact history with delta semantics.
+
+Carry forward any earlier scenarios for resetting filters, preserving pagination, or handling a
+request failure unless the revision deliberately removes them.
+
+### Revisit design decisions
+
+Requirements should describe observable behavior, while the design can explain how the two
+repositories will represent it.  A revised design might include decisions such as:
+
+- the backend accepts optional `fleetOriginState` and `activeStatus` query parameters;
+- the query layer adds a predicate only for a populated parameter;
+- two predicates combine with `AND`;
+- the backend-owned OpenAPI document defines the status enum;
+- the Angular client is regenerated from that document; and
+- the UI leaves an unselected control absent from the request rather than sending an empty string.
+
+Keep framework details in the design rather than repeating them in every scenario.  Also record
+ownership: if Angular invents its own status union before the backend contract changes, both
+repositories can compile while disagreeing on capitalization or allowed values.
+
+An impact table can make stale assumptions easier to find:
+
+| Surface | Original assumption | Revision to review |
+|---|---|---|
+| API parameters | One optional state value | Two optional values with defined omission behavior |
+| Query construction | One state predicate | Zero, one, or two predicates; two combine with `AND` |
+| OpenAPI document | State parameter only | Status enum and optional status parameter |
+| Generated client | One filter argument | Regenerated method or request type for both filters |
+| Angular form | One select control | Two controls with independent empty selections |
+| Result states | State-filtered results | Combined results plus preserved empty and error states |
+
+### Reassess every task checkbox
+
+A checked task records work against the earlier plan.  Keep it checked only when its output still
+supports the revised artifacts.
+
+The task list might change from:
+
+```markdown
+- [x] 1.1 Add the fleet-origin query parameter to the API contract
+- [x] 1.2 Implement the fleet-origin query predicate
+- [ ] 2.1 Regenerate the Angular client
+- [ ] 2.2 Add the Fleet Origin State control
+- [ ] 3.1 Add integrated filter tests
+```
+
+to:
+
+```markdown
+- [ ] 1.1 Revise the API contract for optional fleet-origin and active-status parameters
+- [ ] 1.2 Implement zero, one, and two-predicate query behavior
+- [ ] 1.3 Add backend tests for each filter combination
+- [ ] 2.1 Regenerate the Angular client from the revised contract
+- [ ] 2.2 Add Fleet Origin State and Active Status controls
+- [ ] 2.3 Preserve empty-results and request-error states
+- [ ] 3.1 Add integrated tests for empty, single-filter, and combined-filter requests
+```
+
+Reopen both backend tasks if the checked contract and query cannot represent Active Status.  Keep
+a completed request-object task checked if its implementation still satisfies the revised design.  Judge
+the evidence, not the effort already spent.
+
+::: {.callout-note}
+## Update changes artifacts, not application code
+
+`/opsx:update` should revise the existing plan and stop.  Resume `/opsx:apply` only after reviewers
+accept the updated proposal, requirements, design, and tasks.  Keeping those steps separate makes
+it easier to see whether a code edit came from the reviewed revision or from an agent's inference.
+:::
+
+## Check coherence before resuming implementation
+
+After editing the artifacts, rerun the three opening checks:
+
+```bash
+openspec status --change add-vehicle-filters
+openspec show add-vehicle-filters --diff
+openspec validate add-vehicle-filters --strict
+```
+
+Ask the update skill for a coherence review without supplying another revision:
+
+```text
+/opsx:update add-vehicle-filters
+```
+
+Look for contradictions among artifacts:
+
+- Does the proposal promise both filters while a scenario still names only one available control?
+- Does the design omit empty parameters while a task asks the client to send empty strings?
+- Does the status enum have the same spelling in the delta, OpenAPI design, and UI task?
+- Does each combination rule have a scenario and corresponding test task?
+- Do any checked tasks rely on the superseded one-filter contract?
+
+`openspec validate` can reject malformed requirement structures.  It cannot decide whether `AND`
+reflects the product owner's request or detect every disagreement between the design and tasks.  Compare
+those artifacts with the recorded decision before resuming implementation.
+
+## Reconcile partial implementation with the revision
+
+Once the revised artifacts pass review, classify the existing work before writing more code:
+
+| Finding | Example | Likely treatment |
+|---|---|---|
+| Reusable | The request model already supports optional filter fields | Keep it and retain supporting tests |
+| Incomplete | The API accepts fleet origin but not active status | Extend it under the revised task |
+| Contradictory | The query treats an empty value as no results | Change it before claiming the both-empty scenario |
+| Stale generated output | The Angular client exposes only fleet origin | Regenerate after the backend contract is reviewed |
+
+Do not discard all partial work or treat every completed line as settled.  Code may survive
+unchanged while its test needs another case because it proves only one branch of the revised rule.
+
+Resume implementation by naming the change:
+
+```text
+/opsx:apply add-vehicle-filters
+```
+
+Let the apply workflow read the revised artifacts and work through the pending tasks.  Mark a task
+complete only after its implementation and focused checks pass.  If coding exposes another
+unanswered business question, pause apply and return to the artifact that owns the decision.
+
+Suppose the generated client represents an unselected status as `undefined`, while the backend
+distinguishes a missing parameter from an empty string.  Treat that mismatch as a contract question.  Resolve
+the intended request behavior, revise the delta or design, and then continue the client work.
+
+## Verify the revised behavior
+
+Test the revised scenarios alongside the behavior the change intends to preserve.  A one-filter test
+suite would provide weak evidence after both filters become part of the request.
+
+Build a small scenario-to-evidence map before closure:
+
+| Revised scenario | Backend evidence | Frontend evidence | Integrated evidence |
+|---|---|---|---|
+| Both filters populated | Query or API test proves `AND` behavior | Component sends both values | Browser result matches both values |
+| Fleet origin only | Missing status adds no status predicate | Empty status is omitted | Request and results use only fleet origin |
+| Active status only | Missing fleet origin adds no state predicate | Empty fleet origin is omitted | Request and results use only status |
+| Neither populated | No filter predicate changes the result set | Both controls can remain empty | Browser shows the unfiltered result set |
+| No matches | API returns the reviewed no-match response | Existing empty state renders | Browser distinguishes no match from failure |
+
+Run `/opsx:verify` after the focused repository tests:
+
+```text
+/opsx:verify add-vehicle-filters
+```
+
+Use its completeness, correctness, and coherence findings to locate missing evidence or drift.  Inspect
+the cited code and reproduce the relevant commands before deciding that the change is ready to
+archive.
+
+Search for remnants of the original plan as a final check.  Useful terms may include the old
+requirement heading, the original API parameter, UI labels that mention only Fleet Origin State,
+handwritten client types, and tests whose names still imply one-filter behavior.
 
 ## Hands-on exercise
 
-Revise, review, apply, and verify the active filter change using the documented OpenSpec 1.13.1 workflows in both IDEs.
+Revise the active filter change in the prepared repositories:
 
-1. Locate the active change and record the original one-filter behavior.
-2. Add the Active Status decision and resolve the filter-combination and empty-selection questions.
-3. Revise the requirements and scenarios so they describe the complete combined behavior.
-4. Reassess the API parameters, query design, generated client, UI controls, and affected tests.
-5. Reopen or reorder tasks that the new decision invalidated, while preserving work that still provides evidence.
-6. Review and apply the revised change, then verify the implementation before closing it.
+1. Run `status`, `show --diff`, and strict validation for `add-vehicle-filters`.
+2. Record the original one-filter behavior and identify which tasks and implementation already
+	exist.
+3. Apply the exercise decisions for Active Status, `AND` behavior, and empty selections.
+4. Decide whether to revise or split the change, then record the reason in the proposal.
+5. Use `/opsx:update` to revise the proposal, delta specifications, design, and tasks without
+	changing application code.
+6. Review each proposed artifact edit and run the coherence and validation checks again.
+7. Classify partial implementation as reusable, incomplete, contradictory, or stale.
+8. Resume `/opsx:apply`, run focused tests, and use `/opsx:verify` before closure.
 
-At each step, compare the active artifact with the code and tests.  If an implementation detail exposes an unanswered product decision, return to the artifact and record the decision there.  A code-only patch or a chat message that disappears from the change history would leave that gap unresolved.
+Keep the change active if an artifact still describes only Fleet Origin State, the contract cannot
+represent empty selections consistently, or the tests never exercise both filters together.
 
 ## Verification checkpoint
 
-Search the active artifacts, specifications, tasks, code, generated output, tests, and UI text for assumptions from the original one-filter design.  Then verify the revised scenarios, including the cases where one or both filters have no selection and where both filters are applied together.
+Before closing the change, ask whether a developer with no chat history could recover:
 
-You can consider closing the change when:
+- why Active Status joined the existing change;
+- which status values the contract accepts;
+- how two populated filters combine;
+- what each empty-selection case means;
+- which earlier work remained valid and which tasks reopened;
+- which tests provide evidence for every revised scenario.
 
-- the active artifact states one coherent filter behavior;
-- the combination and empty-selection rules are explicit;
-- the API, query, generated client, and UI use the same behavior;
-- stale tasks and prose no longer describe only the original filter; and
-- tests provide evidence for the revised scenarios and the behavior that remains unchanged.
-
-If the search finds an obsolete assumption, leave the change open.  Update the artifact or implementation that owns the assumption, then repeat the focused verification.  The change can be archived after the accepted specification and the implementation describe the same behavior.
+Leave the change active if any answer depends on an old conversation or accidental implementation
+behavior.  Archive only after the artifacts provide those answers and focused tests support the
+revised scenarios.
 
 ## What you learned
 
-An in-flight change works best when its source of truth is updated before the work that depends on it is re-evaluated.  The right unit of review is the behavior, not the number of files already changed.  Completed work can remain in place when it still proves the revised scenarios, while work whose evidence the new decision invalidates may need to be reopened.
+Revise an in-flight change when the new decision still belongs to the same business outcome.  Update
+its full planning set before coding resumes, and reopen any task whose evidence no longer applies.  If
+the next developer still needs the original chat to understand the change, the revision is not finished.
 
 ## Online references
 
-- [OpenSpec skills reference](https://openspec.dev/docs/skills)
-- [OpenSpec CLI reference](https://openspec.dev/docs/cli)
+- [OpenSpec skills reference](https://openspec.dev/docs/skills)^[<https://openspec.dev/docs/skills>]
+- [OpenSpec CLI reference](https://openspec.dev/docs/cli)^[<https://openspec.dev/docs/cli>]

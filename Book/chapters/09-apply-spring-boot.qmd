@@ -1,97 +1,327 @@
 # Applying the Spring Boot Change
 
-The reviewed backend proposal, specification, design, and task sequence can now guide the code
-change.  The aim is to preserve the behavior those artifacts describe while keeping implementation
-choices inside the approved design boundary.
+What happens when a reviewed OpenSpec plan meets an existing Spring Boot codebase?  Use the apply
+workflow to find out one task at a time.  Let Copilot inspect the active change and nearby code,
+then require a focused test before it checks off the task.  If the repository contradicts the
+plan, pause and repair the artifact that owns the decision.
 
 ## Learning objective
 
-By the end of this chapter, you can apply the unit-number change in the Spring Boot repository and
-trace each backend scenario to implementation code, a meaningful assertion, and local verification
-output.
+Use this chapter to apply the backend unit-number change without reducing OpenSpec to a prompt
+template.  By the end, you should be able to start or resume `/opsx:apply`, connect each backend
+scenario to code and a meaningful assertion, recognize when implementation should stop, and
+prepare a reviewed OpenAPI document for the Angular handoff.
 
-## How apply supports the objective
+## Move from artifacts to code
 
-The task list provides the starting point for implementation.  You can follow its accepted order
-instead of reconstructing intent from an earlier chat session or the original request.  When a task
-exposes a missing requirement or an implementation choice outside the reviewed design, stop and
-return that question to review.  An unresolved decision needs an answer before it becomes code.
+The proposal workflow answered, "What change should the team review?"  Apply asks a different
+question: "What code and evidence would satisfy the reviewed change in this repository?"
 
-Update task state only when the related code and evidence agree.  A changed file is not evidence
-that the behavior works, and a passing test is not enough if the test asserts the wrong behavior.
+Keep the four planning artifacts in distinct roles while answering it:
 
-## Backend implementation
+| Artifact | Question during apply | Reason to pause |
+|---|---|---|
+| `proposal.md` | Does this edit remain inside the accepted purpose and scope? | The implementation introduces a deferred capability or affects an unnamed system |
+| Delta `spec.md` | Which observable result must this task produce? | The scenario cannot determine a request, response, or error outcome |
+| `design.md` | Which technical boundary and trade-off should guide the edit? | The codebase disproves an assumption or requires a consequential new choice |
+| `tasks.md` | What remains, and what evidence would justify checking it off? | The task has no matching requirement, test, or reviewable output |
 
-The backend design can be applied across the boundaries it names:
+Do not ask Copilot to implement from `tasks.md` alone.  A task such as "add the search endpoint"
+cannot settle the accepted matching rule, response shape, or no-match behavior.  Require the
+workflow to read the proposal, delta specification, and design before treating the checklist as
+executable work.
 
-- validation at the agreed API boundary;
-- controller behavior and response mapping;
-- service behavior for the approved unit-number capability;
-- repository access through the existing persistence boundary; and
-- error behavior described by the specification and design.
+::: {.callout-note}
+## Apply does not approve the plan
 
-Where the repository design calls for them, use Spring Data JPA and H2.  Keep those persistence
-choices in the implementation.  The behavioral requirements can describe what a client sends and
-observes without specifying which repository interface or database query supplies the result.
+Treat a reviewed plan as the current implementation target, not as an infallible prediction.  If
+the code exposes a missing behavior or an impossible design assumption, return to the owning
+artifact and review the correction before continuing.
+:::
 
-Keep the change within the approved unit-number scope.  If implementation reveals a related
-search behavior that the proposal did not cover, record it as a question or follow-up.  That keeps
-the new decision separate from the change currently under review.
+## Check readiness before changing code
 
-## Contract ownership
+Start in the backend repository and inspect the active change from the terminal:
 
-Treat the backend as the owner of the API contract.  Generate the OpenAPI document from the
-implemented API, then inspect it before handing it to the Angular repository.  Check the request
-constraints, response types, and error responses against the reviewed specification.
+```bash
+openspec status --change add-unit-number-search-api
+openspec validate add-unit-number-search-api
+openspec show add-unit-number-search-api
+```
 
-The generated document is part of the evidence for the backend change.  If it omits a constraint,
-uses the wrong response shape, or describes an error as a success response, the mismatch points to
-an implementation defect.  The frontend repository should not have to compensate by maintaining a
-second version of the contract.
+Look for the expected change name, complete planning artifacts, structurally valid requirements,
+and unchecked implementation tasks.  Then read the files themselves; structural validation
+cannot decide whether the team chose the right behavior.
 
-## Backend tests
+Before invoking apply, answer these questions from the artifacts:
 
-Add focused unit tests where isolation clarifies validation, service, or error behavior.  Add
-Spring Boot integration tests for the scenarios that require the application, persistence, or HTTP
-boundary together.
+- Which unit-number inputs should the API accept or reject?
+- What should a client observe for a match and for no match?
+- Which error responses belong to this change?
+- Which existing controller, service, and persistence boundaries should remain in place?
+- Which test command and OpenAPI generation path does the repository use?
+- Which capabilities, such as VIN or partial search, remain outside this change?
 
-For each specified scenario, check that the test exercises the relevant boundary and asserts an
-observable result.  Review the assertions for accidental agreement with the implementation.  A
-test that copies an incorrect status code or response shape from the implementation may stay green
-while the contract is wrong.
+If any answer requires a guess, stop there.  A more detailed prompt should not substitute for a
+missing product decision, and an implementation convention should not quietly become new API
+behavior.
+
+Also check the worktree before delegating edits.  Note which files already contain user changes
+and locate the nearest comparable search path.  Ask Copilot to preserve unrelated work and inspect
+the nearest implementation and test before creating another abstraction.
+
+## Start a bounded apply session
+
+Name the change when more than one active change could be selected:
+
+```text
+/opsx:apply add-unit-number-search-api
+```
+
+The installed workflow should read the change context, find pending tasks in `tasks.md`, implement
+them, and mark completed checkboxes as work progresses.  Strengthen that invocation with a bounded
+request when repository details or review expectations deserve emphasis:
+
+```markdown
+/opsx:apply add-unit-number-search-api
+
+Apply the next unchecked backend task from the active change.
+
+Before editing:
+- read proposal.md, the unit-number-search delta specification, design.md, and tasks.md;
+- inspect the existing controller, service, repository, and nearest tests; and
+- state which scenario the task should satisfy and which focused check could disprove the edit.
+
+During implementation:
+- preserve the existing Spring Boot boundaries described by the design;
+- keep VIN, partial search, and frontend behavior outside this change;
+- do not invent a response or validation rule when the artifacts are silent; and
+- preserve unrelated worktree changes.
+
+After editing, run the narrow test named by the repository or task.  Mark the task complete only
+after the code, assertion, and test output agree.  Pause and report contradictions or missing
+decisions instead of choosing behavior on the team's behalf.
+```
+
+Start with one unchecked task so that a focused test can reject the implementation before the same
+mistake spreads through controller, service, repository, contract, and test code.  A tightly
+coupled pair of edits may need to land together; ask Copilot to explain that dependency and run the
+narrowest useful check afterward.
+
+The editor need not change the source of truth.  In VS Code, invoke the installed OPSX prompt from
+Copilot Chat and attach only the files needed to resolve the current task.  In IntelliJ IDEA, use
+the corresponding installed workflow and working-set controls.  In either client, judge the result
+against the same repository artifacts and commands.
+
+## Follow a scenario through the backend
+
+Choose one scenario before choosing files.  Trace a matching unit number through the application:
+
+```text
+delta scenario
+    |
+    v
+request validation -> controller mapping -> service decision -> repository query
+    |                                                        |
+    +---------------- focused assertions --------------------+
+                             |
+                             v
+                    generated OpenAPI document
+```
+
+Use this path as an inspection guide, not as permission to add every layer.  If the repository
+already keeps validation in a request type or delegates search directly from a controller to a
+service, follow that local design unless `design.md` explicitly changes it.
+
+### Keep validation at the API boundary
+
+Start with the accepted input rule, then find the Spring boundary that already validates comparable
+request values.  Reuse its annotation, validator, or error-mapping convention when it can express
+the reviewed behavior without changing it.
+
+Then write or adapt a focused assertion.  Could the test distinguish invalid input from a valid
+unit number that has no match?  Could it catch an implementation that trims, folds case, or accepts
+partial input when the specification does not permit that transformation?
+
+Avoid deriving the rule from a database column or a frontend control.  Those details might suggest
+a useful implementation, but the backend delta should remain the authority for what a client may
+send and observe.
+
+### Preserve controller and error semantics
+
+Next, inspect the controller or route that owns adjacent search behavior.  Follow its response-
+mapping pattern for successful results, no match, and invalid requests only where that pattern
+agrees with the reviewed scenarios.
+
+Make assertions at the HTTP boundary for status, body shape, and relevant headers.  A service test
+could prove that no entity was returned while still missing a controller that maps the absence to
+the wrong response.  Conversely, a controller test with a fully stubbed service might not prove the
+repository query.
+
+### Add service and persistence behavior narrowly
+
+Let the design decide whether Spring Data JPA and H2 belong in this path.  Search for the nearest
+repository method and naming convention before adding a query, and avoid broad cleanup while the
+change remains focused on unit-number search.
+
+Choose test boundaries by the defect each test could expose:
+
+| Boundary | Useful question | Possible evidence |
+|---|---|---|
+| Validator or request model | Does invalid input fail under the reviewed rule? | Focused validation test |
+| Service | Does the use case preserve match and no-match meaning? | Unit test with a controlled repository result |
+| Repository | Does persisted data produce the reviewed match behavior? | JPA slice or repository test where needed |
+| HTTP API | Can a client observe the specified status and body? | Spring Boot integration test |
+
+Do not add every test type mechanically.  Choose the narrowest test that could fail for the defect
+under review, then add an integration test where several Spring boundaries must cooperate to prove
+the scenario.
+
+## Use the test result to control progress
+
+After the first implementation edit, run the focused check named in `tasks.md` or the repository
+instructions.  Ask Copilot to report what the result established and what it left untested instead
+of presenting a green command as complete proof.
+
+A useful progress report might use this form:
+
+```text
+Task: 1.2 Map match and no-match responses
+Scenario exercised: valid unit number with no matching truck
+Implementation boundary: controller response mapping
+Command run: <repository-configured focused test command>
+Result: pass
+Remaining gap: invalid-input response belongs to task 1.3
+Task checkbox updated: yes
+```
+
+Keep the checkbox open when the command fails, when the assertion does not observe the specified
+result, or when the generated output still disagrees with the change.  If a task contains several
+independent outcomes, consider splitting it in `tasks.md` so that partial progress remains visible
+without overstating completion.
+
+Compare each passing assertion with the delta scenario before accepting it.  Otherwise, a test may
+repeat the implementation's mistake.  The requirement should supply the expected behavior; the
+production method should not supply the expected value back to its own test.
+
+## Know when to return to the artifacts
+
+Implementation often reveals facts that planning missed.  Use the kind of mismatch to choose the
+file that needs review:
+
+| Discovery during apply | Return to | Do not hide it by |
+|---|---|---|
+| The requested outcome exceeds the proposal scope | `proposal.md` | Adding an untracked side feature |
+| Match or no-match behavior remains ambiguous | Delta `spec.md` | Selecting a convenient status code |
+| The planned persistence path conflicts with the codebase | `design.md` | Creating a parallel architecture |
+| A scenario has no implementation or test work | `tasks.md` | Relying on a broad final test task |
+
+After revising an artifact, inspect its dependents again.  A changed no-match requirement may alter
+controller mapping, OpenAPI responses, test assertions, or the frontend handoff.  Update the
+affected design and tasks before resuming `/opsx:apply`.
+
+::: {.callout-warning}
+## Do not make the implementation retroactively correct
+
+If the code behaves differently from the reviewed requirement, do not rewrite the requirement
+merely to make the test pass.  Ask whether the requirement was wrong, whether the implementation
+was wrong, or whether the team has made a new decision.  Record and review that decision before
+continuing.
+:::
+
+## Generate and inspect the backend contract
+
+Once the HTTP scenarios pass, generate the OpenAPI document through the repository's configured
+Spring Boot path.  Do not recreate the schema by hand for the frontend.  The generated document
+should carry the implemented request constraints, response schemas, and error responses across the
+repository boundary.
+
+Inspect the document as another implementation output:
+
+- Does the unit-number operation use the reviewed path and request location?
+- Do required fields and constraints match the delta scenarios?
+- Can the success schema supply every field promised by the backend change?
+- Can a client distinguish no match from invalid input and other reviewed errors?
+- Does each documented status correspond to tested controller behavior?
+
+If generation succeeds but the document omits a validation constraint, leave the contract task
+open.  Repair the owning annotation, schema customization, or controller description.  A
+successful generator run would show only that a document could be produced, not that it describes
+the accepted API.
+
+Use a short traceability table during review:
+
+| Backend scenario | Implementation owner | Assertion | Contract evidence |
+|---|---|---|---|
+| Valid input with match | Request boundary through repository | Reviewed success status and body | Operation and success schema |
+| Valid input with no match | Service or controller mapping | Reviewed no-match response | Documented no-match response |
+| Invalid input | Validation and error mapping | Reviewed validation response | Request constraint and error schema |
+| Reviewed backend failure | Error boundary | Reviewed error status and body | Documented error response |
+
+Replace the generic row labels with the actual scenarios from the active delta.  If the delta has
+another scenario, add a row rather than assuming one of these examples covers it.
+
+## Resume without relying on chat memory
+
+If the session ends after task 1.2, start a fresh session, name the same change, and let the
+unchecked boxes identify the remaining work:
+
+```text
+/opsx:apply add-unit-number-search-api
+```
+
+Before accepting the resumed task, ask the agent to read the current artifacts and inspect the
+latest test evidence.  The task list can record claimed progress, while a short reviewed handoff
+may record a failing command or temporary blocker.  Neither should require the old conversation to
+reconstruct accepted behavior.
 
 ## Hands-on exercise
 
-Apply the backend unit-number change in the Spring Boot repository.  Work from the reviewed task
-sequence and keep the proposal, specification, design, and task files available as you apply each
-step.  The parallel VS Code and IntelliJ IDEA instructions let you compare the two workflows; the
-repository artifacts and verification criteria can remain the same even when the prompt entry
-points differ.
+Apply the backend unit-number change in the prepared Spring Boot repository.
 
-When the implementation and tests are ready, generate the OpenAPI document and inspect it against
-the backend scenarios.  Once those checks pass, the contract is ready for the frontend chapter.
+1. Run `openspec status`, `openspec validate`, and `openspec show` for
+	`add-unit-number-search-api`, then read the four artifact types in dependency order.
+2. Identify the first unchecked task, its governing scenario, the existing implementation
+	boundary, and one focused check that could reject the proposed edit.
+3. Run `/opsx:apply add-unit-number-search-api` in VS Code.  Ask Copilot to stop after the task's
+	focused check and explain the evidence before updating the checkbox.
+4. Continue through validation, controller mapping, service behavior, persistence, and error
+	handling only where the reviewed design and task list call for them.
+5. Add focused tests for every backend scenario, using a Spring Boot integration test when the
+	application, persistence, and HTTP boundaries must work together.
+6. Generate the OpenAPI document through the configured repository path and compare it with each
+	backend scenario.
+7. Resume the same change in a fresh session or in IntelliJ IDEA.  Confirm that the artifacts and
+	unchecked tasks provide enough context without replaying the earlier chat.
+8. Leave any unsupported task open, record the blocker in the owning artifact, and rerun the
+	affected checks after review.
 
 ## Verification checkpoint
 
-A practical handoff checkpoint is that every scenario has all three forms of evidence:
+Before handing the contract to the Angular repository, ask:
 
-1. implementation code at the boundary responsible for the behavior;
-2. a meaningful test assertion; and
-3. passing local output from the relevant test or verification command.
+- Does every backend scenario map to an implementation boundary and an observable assertion?
+- Did the focused and integration checks run through the repository's configured commands?
+- Do checked tasks correspond to passing evidence rather than edited files?
+- Did implementation remain inside the proposal scope and reviewed design?
+- Were contradictions returned to the owning OpenSpec artifact?
+- Does the generated OpenAPI document match the tested constraints, response types, and errors?
+- Could a fresh Copilot session identify the next task from the active change alone?
 
-Also confirm that the generated OpenAPI document matches the reviewed request constraints,
-responses, and errors.  If a scenario has no test or the contract disagrees with the specification,
-leave the task open and repair the owning artifact or implementation before handoff.
+Let any "no" keep the backend handoff open.  Begin Chapter 10 with a reviewed contract rather than
+an Angular workaround for behavior the backend has not settled.
 
 ## What you learned
 
-Applying a checked task list means preserving the reviewed behavior while making the implementation
-concrete.  Green tests and completed tasks provide evidence to inspect, rather than automatic proof
-of correctness.  The backend handoff can proceed when the code, tests, and generated contract agree
-with the scenarios.
+Apply should now mean more than "ask Copilot to write the code."  Move from one reviewed task to
+one bounded edit and one discriminating check.  When a check exposes a missing decision, return to
+the artifact that owns it.  Hand the frontend only the behavior supported by the backend code,
+tests, and generated OpenAPI document.
 
 ## Online references
 
-- [Spring Boot testing](https://docs.spring.io/spring-boot/reference/testing/index.html)
-- [Spring Data JPA reference](https://docs.spring.io/spring-data/jpa/reference/)
-- [H2 Database documentation](https://h2database.com/html/main.html)
+- [OpenSpec command reference](https://github.com/Fission-AI/OpenSpec/blob/main/docs/commands.md)^[<https://github.com/Fission-AI/OpenSpec/blob/main/docs/commands.md>]
+- [OpenSpec skills reference](https://openspec.dev/docs/skills)^[<https://openspec.dev/docs/skills>]
+- [Spring Boot testing](https://docs.spring.io/spring-boot/reference/testing/index.html)^[<https://docs.spring.io/spring-boot/reference/testing/index.html>]
+- [Spring Data JPA reference](https://docs.spring.io/spring-data/jpa/reference/)^[<https://docs.spring.io/spring-data/jpa/reference/>]
+- [H2 Database documentation](https://h2database.com/html/main.html)^[<https://h2database.com/html/main.html>]

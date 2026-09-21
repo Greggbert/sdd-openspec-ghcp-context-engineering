@@ -1,140 +1,321 @@
 # Making SDD a Team Practice
 
+A developer finishes an OpenSpec change, closes the Copilot session, and opens a pull request.  The
+tests pass, the code looks reasonable, and every task has a checkmark.  Yet the reviewer still has
+to ask what behavior changed, who approved it, and whether the Angular client came from the same
+contract as the Spring Boot implementation.
+
+What separated this work from a private OpenSpec exercise?  Not the number of artifact files.  Ask
+whether another developer could enter after the original session disappeared and make the next
+correct decision.  That person would need the business intent, accepted behavior, technical
+constraints, and verification evidence without depending on the author's memory.
+
+Treat that handoff as the test for team practice.  Then agree on which changes deserve a spec, where
+decisions belong, who reviews them, and what evidence permits the work to move forward.  Installing
+OpenSpec in every repository without that agreement may only create more places to disagree.
+
 ## Learning objective
 
-Establish a proportionate, reviewable OpenSpec workflow that can survive beyond the book's exercises.
+By the end of this chapter, you should be able to introduce a proportionate OpenSpec workflow to a
+team, define its decision and review boundaries, and test whether the resulting record can support
+a developer who did not participate in the original Copilot session.
 
-The exercises used one person, two repositories, and a controlled sequence of changes.  A team has
-to answer harder questions: who owns a decision, how much specification work a change deserves, and
-how a reviewer can recover the reasoning after the original Copilot session is gone.  SDD becomes a
-team practice when the repository records those decisions without turning every edit into a formal
-project.
+## Start with the handoff problem
 
-## Put decisions in the right place
+The exercises used one person, two repositories, and a controlled sequence of changes.  Now picture
+the commercial truck search moving through a delivery team.  A product owner requests the search
+mode in Jira.  One developer shapes the backend contract, another regenerates the Angular client,
+and a third reviews validation behavior.  Interruptions and parallel work separate those steps.
 
-An agent can propose code, tests, and artifact text.  It cannot decide whether a business behavior is
-acceptable, whether a contract change is compatible with existing clients, or whether a risk is worth
-the cost.  A human owner must make those decisions and leave enough evidence for another person to
-review them.
+Where should the next person look if "commercial truck" means something different in the ticket,
+delta specification, API schema, and UI test?  Let Jira establish priority and ownership.  Let the
+OpenSpec change record the proposed behavior and technical decisions.  Let the repository preserve
+the reviewed result.  Keep chat as working space rather than the only place where a decision exists.
 
-Use the repository artifacts for engineering intent and Jira for work tracking:
+::: {.callout-note}
+## A practical test for shared context
 
-- Jira records the work item, status, priority, and responsible people.
-- `proposal.md` records the business goal, scope, and non-goals for a change.
-- Delta specifications record the behavior the team will add, modify, or remove.
-- `design.md` records implementation decisions and their constraints.
-- `tasks.md` records the work sequence and its verification points.
-- Commits, pull requests, and test output provide evidence that the accepted intent was implemented.
+Ask a reviewer to explain what should change, what should remain unchanged, and how the team will
+know the work is complete using repository artifacts alone.  A "no" points to a handoff problem,
+even when the implementation passes its tests.
+:::
 
-This division prevents two common failures.  A Jira ticket should not be the only place where an
-agent can find a behavioral rule, and an OpenSpec change should not become a second work-tracking
-system.
+## Agree on the minimum operating model
 
-## Make traceability recoverable
+Before asking everyone to create artifacts, settle a few working rules.  Which work
+requires an OpenSpec change?  Who may accept behavior?  When may implementation begin?  What would
+count as enough verification to synchronize or archive?
 
-Traceability is useful when it lets a reviewer move from a decision to its evidence without asking
-the original author to reconstruct the conversation.  Define a small naming and linking convention
-for both repositories.  For example, a Jira issue can link to the OpenSpec change name, the pull
-request can mention the same issue, and the verification record can point to the relevant test
-command or result.
+Keep the first agreement short enough to scan during a change.  A longer process document may be
+harder to apply and easier to ignore.  Adapt the following example to the repository's paths and
+commands:
 
-The exact convention matters less than using it consistently.  At minimum, a reviewer should be able
-to answer these questions:
+```markdown
+## OpenSpec working agreement
 
-- Which business decision does this change implement?
-- Which requirements and scenarios express that decision?
-- Which code, generated artifacts, and tests carry it out?
-- What evidence supports synchronization and archive readiness?
+- Create a full change for new behavior, contract changes, cross-repository work, and changes to
+	accepted requirements.
+- Link the change name from the Jira issue and pull request.
+- Obtain behavior review before implementation when the proposal changes a user-visible outcome.
+- Obtain technical review before implementation when the delta changes an API, persistence model,
+	security boundary, or generated client.
+- Keep decisions in OpenSpec artifacts; use chat and meetings to develop them.
+- Record focused test commands and results before synchronization or archive.
+- Recheck every active change after its accepted baseline moves.
+```
 
-Keep the links close to the artifacts they explain.  A change that affects the backend contract and
-the Angular client should identify both repositories and the point at which the client must be
-regenerated.  That makes the contract boundary visible during review instead of leaving it implicit
-in task order.
+Would every team choose those exact rules?  Probably not.  Match the approval and evidence burden to
+the product's constraints.  Keep the boundary explicit so people and agents can see where a
+lightweight record ends and a reviewed change begins.
 
-## Assign review ownership
+## Give each system one job
 
-Review ownership follows the decision being reviewed.  The same person may hold several roles on a
-small change, but the roles should still be explicit.
+Teams often lose intent because the same decision appears in several tools with slightly different
+wording.  Copying the full requirement into Jira, a proposal, a pull request, and a chat prompt may
+look thorough, but which copy would be corrected after review?
 
-- A product or business owner reviews behavior, scope, and non-goals when the change affects what the
-	system promises.
-- A technical reviewer checks contracts, architecture, data handling, and integration boundaries.
-- An implementation reviewer checks that code and tests satisfy the reviewed requirements.
-- The person responsible for synchronization or archival checks that the accepted specifications and
-	evidence are complete.
+A clearer division might look like this:
 
-These reviews do not require four people or four meetings.  They require the team to name the
-questions that must be answered before work moves forward.  A behavior change needs business review.
-An OpenAPI or persistence change needs technical review.  A routine, reversible edit may need only a
-short recorded decision and focused verification.
+| System or artifact | Question it should answer | What it should avoid becoming |
+|---|---|---|
+| Jira issue | Why is the work scheduled, who owns it, and what is its status? | The only source of detailed behavior |
+| `proposal.md` | What outcome is proposed, what is in scope, and what is excluded? | A duplicate task board |
+| Delta specifications | Which observable behavior would be added, modified, or removed? | An implementation diary |
+| `design.md` | Which technical choices and constraints shape the implementation? | A restatement of every requirement |
+| `tasks.md` | In what order could the team implement and verify the change? | Evidence that unchecked behavior is acceptable |
+| Pull request | What code and artifact revisions are ready for review? | The first place a product decision appears |
+| Tests and verification record | What evidence supports the reviewed behavior? | A substitute for deciding what the behavior should be |
 
-## Scale the artifacts to the risk
+Do not eliminate links between tools; make them directional.  Point from the Jira issue to the
+OpenSpec change for behavior.  Point from the pull request to both, then record the verification
+commands there or in the change.  Reviewers can follow that chain without comparing several
+competing copies of the requirement.
 
-OpenSpec is a control for uncertainty and coordination.  It is not a requirement that every line
-change receive the same amount of ceremony.  Before creating a full change, classify the work by its
-uncertainty, reversibility, and blast radius.
+## Walk one change through the team
 
-Use a lighter record for a routine, low-risk, reversible change whose behavior is already covered by
-the accepted specifications.  Use a full proposal, delta specification, design, task list, and
-verification record when the change crosses a repository boundary, changes a contract, modifies
-accepted behavior, or creates a meaningful regression risk.  Urgency does not remove the need to
-record a decision.  It may justify a smaller initial artifact and a follow-up review.
+Test the shared workflow against one change.  Suppose the product owner requests commercial truck
+search across the Spring Boot and Angular repositories.  How might that request move without
+turning OpenSpec into a sequence of gates for their own sake?
 
-Record deliberate exceptions.  A short note should state why the full workflow was unnecessary and
-what evidence still supports the change.  This gives the next reviewer a reason for the missing
-artifacts instead of making the repository look incomplete by accident.
+### Frame the proposal together
 
-## Maintain the context that agents use
+Begin with the business goal, affected behavior, non-goals, and known repository boundaries.  Use
+an exploration session to uncover current routes, generated client code, and existing search
+scenarios.  Do not ask the agent to decide what counts as a commercial truck; assign that definition
+to an accountable human owner.
 
-The workflow itself changes over time.  OpenSpec versions, Copilot integration files, generated
-clients, commands, and test tooling can all make an old instruction inaccurate.  Treat those files
-as maintained engineering assets.
+Focus the early review on meaning rather than prose quality:
 
-Review the repository context when you upgrade OpenSpec or the Copilot integration.  Remove duplicated
-instructions when two files begin to disagree.  Check command examples against the versions used by
-the repositories.  Revisit generated integration files after an update rather than assuming that a
-new version preserves the old layout or behavior.
+- Would two reviewers interpret "commercial truck" the same way?
+- Which current search modes must remain unchanged?
+- Does the request alter a public contract or only add a client-side filter?
+- Which repository owns the contract from which the client is generated?
+- What outcome should occur for invalid input, no match, and service failure?
 
-The same rule applies to the book's examples.  A command that worked for the prepared repositories at
-one version can become misleading after a tool upgrade.  Keep version-sensitive guidance tied to a
-tested version, and make the version visible when a reader needs it to reproduce the result.
+Resolve those questions while changing the proposal remains cheap.  Waiting until pull-request
+review may turn the same disagreement into code rework across both repositories.
 
-## Capstone: defend the amount of specification
+### Review behavior before design hardens
 
-Complete the capstone by proposing a new commercial truck search change across both repositories.
-The purpose is not to produce the largest possible set of artifacts.  It is to defend the amount of
-specification work the change needs.
+Once the proposal and delta scenarios express the requested outcome, ask the product or domain
+reviewer to accept the behavior boundary.  Leave class names, endpoint paths, and component
+structure to technical review unless those choices affect the product contract.
 
-1. State the business goal, affected behavior, non-goals, and owner.
-2. Classify the change by uncertainty, reversibility, urgency, and blast radius.
-3. Choose the OpenSpec artifacts that follow from that classification.
-4. Record the backend contract boundary and the frontend impact, including generated-client work.
-5. Assign business and technical review where the change requires those decisions.
-6. Link the Jira issue, OpenSpec change, commits, pull requests, and verification evidence.
-7. Apply, verify, synchronize, and archive the change only after the accepted specifications and
-	 implementation agree.
+Next, examine `design.md` and the cross-repository implications with the technical reviewer.  Would
+the backend publish the OpenAPI change before the frontend regenerates its client?  Could old and
+new clients coexist during deployment?  Which validation belongs in the API, and which feedback
+belongs in the UI?  Let those answers shape the implementation plan without reopening an already
+settled business outcome.
+
+### Turn tasks into handoff points
+
+A private checklist may follow whatever order helps its author.  For a team task list, show where
+work passes to someone else and what must be true at that point.
+
+For the commercial truck change, a useful sequence could include:
+
+1. Review the behavior and non-goals with the named business owner.
+2. Review the proposed request and response contract with backend and frontend owners.
+3. Implement and test the backend behavior against the reviewed scenarios.
+4. Publish the contract artifact and regenerate the Angular client from it.
+5. Implement the UI states and run focused frontend tests.
+6. Compare the implementation, generated artifacts, and accepted scenarios before archive.
+
+Give each step a verification point rather than a bare completion claim.  "Regenerate the client"
+says what to do.  "Regenerate from the reviewed backend contract and confirm no hand-written request
+type remains" gives the next reviewer something to inspect.
+
+### Preserve the review result
+
+Approval in a meeting or chat may unblock the author, but would it help the developer who takes over
+next week?  Record the result in the artifact that governs the behavior or design.  Skip the meeting
+transcript; preserve enough context to prevent the same question from returning during implementation.
+
+Carry the OpenSpec change name into commits and pull requests.  Name the commands run and any checks
+that remain outside automation.  After synchronization or archive, ask whether the accepted
+specifications describe the behavior without requiring the active change folder.
+
+## Match review ownership to the decision
+
+Would every artifact need a separate approver?  That rule could add delay without improving the
+decision.  Review ownership may work better when it follows the consequence under review.
+
+| Decision | Likely reviewer | Review question |
+|---|---|---|
+| User-visible behavior and non-goals | Product or domain owner | Is this the outcome the system should promise? |
+| API, data, security, or deployment boundary | Technical owner | Can the design preserve the required constraints? |
+| Code and automated tests | Implementation reviewer | Does the implementation satisfy the reviewed scenarios? |
+| Synchronization and archive readiness | Change owner or release reviewer | Do accepted specs, implementation, and evidence now agree? |
+
+One person may cover several rows on a small team.  Still, name the decision behind each approval.
+A product owner accepting endpoint naming does not replace technical review, and code approval does
+not settle an ambiguous business rule.
+
+Define escalation points for consequences that need a specific owner, such as a new public API, a
+removed scenario, a security boundary, or disagreement between active changes.  Keep routine edits
+with the normal reviewer.  Let consequence, rather than title or artifact count, determine the
+review path.
+
+## Scale the workflow to the risk
+
+Requiring the same artifact set for a typo and a cross-repository contract change would teach the
+team to work around the process.  How much specification would help before its maintenance cost
+exceeds the uncertainty it removes?
+
+Use a simple classification to discuss that choice:
+
+| Change shape | Possible record | Typical review |
+|---|---|---|
+| Existing behavior, low risk, easy to reverse | Issue or pull-request note tied to accepted specs | Implementation review |
+| Local behavior with bounded impact | Proposal, delta scenarios, and focused tasks | Behavior and implementation review |
+| Contract, security, persistence, or cross-repository change | Full proposal, deltas, design, tasks, and verification record | Named behavior and technical review |
+| Urgent production repair | Small initial record with owner, risk, and verification, followed by artifact repair | Immediate peer review and scheduled follow-up |
+
+Do not let the matrix make the decision automatically.  Use it to expose uncertainty,
+reversibility, blast radius, contract impact, and the cost of discovering a mistake late.  When a
+smaller artifact set seems sufficient, record the exception so the reviewer can challenge the
+reason rather than wonder whether files were forgotten.
+
+::: {.callout-warning}
+## Ceremony can hide missing thought
+
+A complete folder may still contain vague requirements, copied design text, and tasks that prove
+only that files changed.  Review the decisions and scenarios, not the presence of filenames.  A
+smaller record with a precise boundary could serve the team better than a full set of unexamined
+artifacts.
+:::
+
+## Make Copilot work from reviewed context
+
+Once a team shares artifacts, start Copilot prompts from reviewed material rather than each
+developer's reconstruction of the ticket.  This only works while the repository context remains
+current.
+
+Ask Copilot to compare implementation with accepted scenarios, identify a contract boundary, or
+draft tests for review.  Point to the relevant proposal, delta, design, and repository instructions.
+State where the agent must stop and request a human decision.
+
+```markdown
+Read the active `add-commercial-truck-search` artifacts and the accepted truck-search specs.
+
+Report any mismatch between the proposed scenarios, backend contract, generated Angular client,
+and current tests.  Do not choose new product behavior or edit accepted specifications.  List any
+decision that requires the product owner or API owner.
+```
+
+Would another developer find the same governing requirements and unresolved decisions from the same
+repository state?  If the answer depends on instructions held in one person's prompt history, move
+those instructions into maintained repository context.
+
+Review that context after changes to OpenSpec, Copilot customization files, generated-client
+commands, or test tooling.  Run the documented commands, remove contradictory instructions, and
+revise examples whose paths or behavior changed.
+
+## Introduce the practice in stages
+
+A team may resist SDD for reasonable reasons.  The artifacts take time, reviewers can become a
+bottleneck, and poorly scoped specs can freeze choices that implementation still needs to explore.
+Starting with every repository and every change could make those costs arrive before the team sees
+the handoff benefit.
+
+Gather evidence with a limited pilot:
+
+1. Choose one capability with a real handoff or cross-repository boundary.
+2. Agree on the minimum rules and name the reviewers before opening the change.
+3. Run two or three changes through proposal, implementation, verification, and archive.
+4. Ask a developer outside the work to reconstruct one completed change from repository artifacts.
+5. Revise the agreement where the handoff failed or where an artifact added no useful decision.
+
+Measure friction in concrete terms.  Which questions returned during code review?
+Which decisions had no owner?  Which artifact became stale first?  Where did a reviewer still need
+the author or chat transcript?  Those observations say more than a count of created spec files.
+
+Teams might also watch for signs that the practice is becoming performative:
+
+- Proposals appear after the code and merely describe it.
+- Reviewers approve artifact folders without reading scenarios.
+- Jira and OpenSpec contain competing versions of the same behavior.
+- `tasks.md` records activity but no verification.
+- Active changes remain based on specifications that have since moved.
+- Archive becomes a cleanup chore disconnected from acceptance.
+
+Any one occurrence may have a reasonable explanation.  When a pattern repeats, revise the working
+agreement, training, or scope.
+
+## Capstone: establish a team workflow
+
+Use a proposed commercial truck search change to test the operating model across the Spring Boot
+and Angular repositories.  The goal is not the largest possible artifact set.  Could the team
+defend the amount of specification, transfer the work between people, and recover the final
+decision later?
+
+1. Name the business owner, technical owner, change author, and implementation reviewer.
+2. Record the business goal, affected behavior, non-goals, and accepted baseline.
+3. Classify the change by uncertainty, reversibility, blast radius, and contract impact.
+4. Choose the OpenSpec artifacts required by that classification and record any exception.
+5. Review the delta scenarios before implementation begins.
+6. Record the backend-owned contract boundary and the generated-client handoff.
+7. Divide `tasks.md` at points where responsibility or evidence passes between team members.
+8. Link the Jira issue, OpenSpec change, commits, pull requests, and verification results.
+9. Complete the verification checkpoint before synchronization or archive.
 
 ## Verification checkpoint
 
-Ask a reviewer in a fresh session to reconstruct the capstone's intent and evidence using repository
-artifacts alone.  The reviewer should be able to identify the business decision, the changed
-behavior, the responsible reviewers, the contract boundary, and the evidence for completion without
-opening the originating chat session.
+Give the completed change to a reviewer who did not participate in its Copilot sessions.  Without
+asking the original author, could that reviewer answer the following questions?
 
-If the reviewer cannot do that, find the missing decision or link before treating the change as a
-team practice success.  The problem may be an underspecified requirement, an unrecorded exception, a
-stale instruction, or a verification step that produced no recoverable evidence.
+- What user-visible behavior changed, and what remained outside scope?
+- Who accepted the behavior and the technical boundary?
+- Which accepted requirements and delta scenarios governed the implementation?
+- Which repository owned the contract, and how was the Angular client produced?
+- What verification evidence supports synchronization and archive?
+- Which unresolved risks or follow-up items remain?
+
+Run the structural checks available in the repository as supporting evidence:
+
+```bash
+openspec status --change add-commercial-truck-search
+openspec validate add-commercial-truck-search --strict
+openspec show add-commercial-truck-search --diff
+```
+
+Then run the focused backend, contract-generation, frontend, and regression checks named in the
+change.  Structural validation could show that OpenSpec can parse the artifacts; it could not show
+that the right people made the missing product decision.
+
+If the reviewer cannot reconstruct the work, repair the smallest broken handoff.  The missing piece
+may be an owner, a scenario, a contract dependency, a verification result, or a link.  If the
+reviewer can reconstruct it but the process felt heavier than the risk justified, revise the
+working agreement before applying it to the next class of change.
 
 ## What you learned
 
-SDD works as an engineering control when the team records intent, assigns human ownership, scales
-the artifacts to the risk, and preserves evidence through synchronization and archive.  It also has
-a cost: someone must review the decisions, maintain the context, and keep the artifacts current.  A
-proportionate workflow makes that cost visible instead of hiding it in repeated rework or fragile
-agent sessions.
+Could a developer who missed the meeting and never saw the chat continue the work without guessing?
+That modest result would make SDD a team practice.  When the test fails, repair the specific handoff
+rather than produce more paperwork.
 
 ## Online references
 
-- [OpenSpec documentation](https://openspec.dev/docs)
-- [GitHub Copilot customization](https://docs.github.com/en/copilot/customizing-copilot)
-- [Atlassian Jira documentation](https://support.atlassian.com/jira-software-cloud/)
+- OpenSpec documentation^[<https://openspec.dev/docs>]
+- GitHub Copilot customization^[<https://docs.github.com/en/copilot/customizing-copilot>]
+- Atlassian Jira documentation^[<https://support.atlassian.com/jira-software-cloud/>]

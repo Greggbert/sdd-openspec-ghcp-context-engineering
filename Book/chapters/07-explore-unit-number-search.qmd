@@ -1,117 +1,287 @@
 # Exploring the Unit-Number Search
 
+A Jira story asks for search by a 15-character unit number.  That sentence may be enough to name
+the feature, but would it be enough to write the first test?  Does “15-character” describe the
+stored value or the text a user may enter?  Would a valid number with no matching truck produce an
+empty result, a `404`, or a message on the page?  Which repository would own each answer?
+
+OpenSpec exploration can keep those questions visible while the team examines the request and the
+two repositories.  The work in this chapter stops before proposal artifacts or code, when the team
+can tell which behavior has evidence and which behavior still needs a decision.
+
 ## Learning objective
 
-Exploration can help resolve business uncertainty before implementation artifacts are created.  By
-the end of this chapter, you should have a decision record that describes what the unit-number
-search may need to do, which questions remain open, and who owns the next answer.
+By the end of this chapter, you should be able to explore the unit-number search without silently
+designing it.  Your output should be a reviewable decision record that separates facts from
+inferences, names unresolved questions, and assigns an owner or next action to each question.
 
-## How exploration supports the objective
+## Treat exploration as investigation
 
-Exploration works best as a thinking step rather than an implementation request.  The agent can
-inspect the repositories, compare existing conventions, and expose questions that a short Jira
-story leaves unstated.  A plausible guess should not become a requirement just because it makes
-the next prompt easier to write.
+What should exploration produce?  Not `proposal.md`, `design.md`, or `tasks.md`.  Those artifacts
+would ask the team to review behavior that may still be in dispute.  The immediate output should be
+a record of what the story states, what the repositories demonstrate, and what neither source can
+decide.
 
-This distinction can matter for a full-stack change.  The backend and frontend will usually need to
-agree on the meaning of a unit number, the shape of a successful result, and the way failures
-appear to the user.  An unresolved decision in one repository may become a contract mismatch in
-the other.
+Consider the cost of skipping that separation.  A backend agent could infer exact matching and
+return `404` for no result, while a frontend agent could infer partial matching and expect an empty
+list.  Each implementation might look reasonable in its own repository.  The generated client and
+the page would still expose the disagreement.
 
-## Start from the Jira story
+Exploration should therefore move from the story to repository evidence, then route unanswered
+questions to an owner.  The reviewed record, rather than the chat transcript, could then become the
+source for the proposal in Chapter 8.
 
-A useful starting point is the request to search by a 15-character unit number.  Read the story as
-a source of stated intent rather than as a complete specification.  Extract the acceptance
-criteria exactly as they are written, then mark any behavior that the story implies but does not
-define.
+## Begin with the thin request
 
-It can help to keep the Jira issue connected to the future OpenSpec work.  The issue provides the
-business context; the proposal and specifications can describe the behavior that the team agrees
-to build.  Preserving that link gives reviewers a way to move from the requested change to the
-artifacts that explain its scope.
+For this exercise, begin with the available statement:
 
-During exploration, ask the agent to inspect the relevant backend and frontend conventions.  The
-goal is not to produce `proposal.md`, `design.md`, or `tasks.md` yet.  The goal is to discover
-which decisions those artifacts will have to record.
+> Users need to search for a commercial truck by its 15-character unit number.
 
-## Questions that shape the behavior
+What can that sentence support on its own?  It names a user goal, an entity, a search field, and a
+length.  Everything else in the table below would need evidence or a decision.
 
-The phrase “search by a 15-character unit number” may leave several implementation-blocking
-questions open:
+A first pass could classify the story this way:
 
-- Does the search require an exact match, or may it return partial matches?
-- Does the system normalize input before searching?  If so, which characters or formats does it
-	accept?
-- What should happen when the input is empty or malformed?
-- What should happen when the input is valid but no unit matches it?
-- What fields belong in the result, and how should the frontend display them?
-- Which errors belong in the API response, and which should become user-visible messages?
-- Which related capabilities are explicitly out of scope for this change?
-
-These questions are better answered with the repository's existing behavior, the business owner's
-decision, or an explicit deferral than with a guess based on the ticket's wording.  A decision
-record can keep the uncertainty visible:
-
-| Question | Decision or status | Owner or next action |
+| Statement | Classification | What it permits |
 |---|---|---|
-| Exact or partial matching? | Open | Confirm with the business owner |
-| Empty and malformed input? | Open | Compare existing validation conventions |
-| Unknown unit number? | Open | Define the API and UI behavior together |
-| Result shape? | Open | Agree on the backend-owned contract |
-| Non-goals? | Open | Record deferred search capabilities |
+| Users search for a commercial truck | Stated intent | Scope a truck-search capability |
+| Search uses a unit number | Stated intent | Investigate that field across both repositories |
+| The unit number has 15 characters | Stated constraint | Ask where and how length is validated |
+| Matching is exact | Unstated | Raise a question; do not write a requirement |
+| Lowercase input is accepted | Unstated | Inspect normalization behavior, then ask if needed |
+| No match returns `404` | Unstated | Compare API conventions without selecting one |
 
-The table can be useful even before it contains many answers.  It keeps an unanswered question
-visible instead of allowing it to disappear into generated code, and it gives the eventual
-proposal a clearer boundary.
+The last three rows might sound reasonable, but the story does not support them.  Repository
+precedent could make one of them a sensible option; only review could turn that option into accepted
+behavior.
 
-## Compare exploration in both IDEs
+Keep the Jira identifier and its exact wording with the exploration record.  That link could later
+let reviewers trace an OpenSpec proposal back to its business source without asking the issue to
+carry details it never contained.
 
-Running the exploration workflow in VS Code and IntelliJ IDEA can provide a useful comparison.  The
-model may use different wording, organize its findings differently, or notice different repository
-details in each environment.  That variation is not necessarily a problem.  The decisions that
-affect the change still need one agreed record.
+## Establish the exploration boundary
 
-Compare the results for coverage rather than prose.  Did both explorations identify the same
-implementation-blocking questions?  Did either one infer behavior that the Jira story does not
-state?  Did either one miss a repository convention that the other found?  Resolve those
-differences with evidence or mark them for an owner.  A response that sounds more confident is not
-by itself a reason to choose its answer.
+Before opening Copilot Chat, decide what the agent may inspect and what it should leave untouched.
+For the two-repository lab, the useful boundary would include:
+
+- the backend controllers, services, persistence queries, validation, error responses, tests, and
+	reviewed OpenAPI contract;
+- the frontend search forms, generated-client usage, loading and error states, result views, and
+	tests;
+- each repository's `openspec/config.yaml` and relevant Copilot instructions; and
+- the Jira story or a faithful excerpt supplied in the prompt.
+
+A generated TypeScript client may reveal the current API contract, but it should not decide what a
+new endpoint ought to return.  Old chat messages deserve the same caution unless their claims can
+be traced to the story, the current repository baseline, or a recorded team decision.
+
+::: {.callout-warning}
+Exploration can expose a missing decision, but it cannot approve that decision.  When repository
+evidence conflicts with the Jira story, keep the conflict visible and send it to the person who
+owns the behavior.
+:::
+
+## Ask Copilot for evidence, not a solution
+
+Open the backend repository in the IDE, start the OpenSpec exploration workflow, and supply the
+story as quoted source material.  A prompt such as the following could constrain the response:
+
+```markdown
+/opsx:explore We are considering an initial commercial-truck search capability:
+"Users need to search for a commercial truck by its 15-character unit number."
+
+Investigate this request without creating a proposal, specification, design, tasks, or code.
+Inspect the current repository and report:
+
+1. Relevant existing routes, domain fields, validation, error handling, persistence queries,
+	 tests, and OpenAPI conventions.
+2. What the Jira statement explicitly requires.
+3. Candidate behavior suggested by repository evidence, with file references.
+4. Questions the repository cannot answer, including exact versus partial matching,
+	 normalization, malformed input, no-match behavior, response fields, and non-goals.
+5. A decision-record table with columns for question, evidence, status, owner, and next action.
+
+Label every item as Stated, Observed, Inferred, or Open.  Do not convert an inference into a
+requirement.
+```
+
+Why ask for file references?  Without them, “the repository validates identifiers this way” may be
+no more than a fluent guess.  A controller, schema, test, or generated contract gives the reviewer
+something to inspect.  When Copilot cannot cite evidence, the item should remain inferred or open.
+
+Run a corresponding exploration in the frontend repository.  Adjust the first list so the agent
+looks for form controls, validators, generated-client calls, visible states, and interaction tests.
+Keep the same source labels and decision-record columns so the two reports can be compared without
+first rewriting them into a common shape.
+
+## Separate evidence from inference
+
+An exploration response may mix four kinds of material in one polished paragraph.  Give each claim
+one of these labels before using it:
+
+| Label | Meaning | Suitable next use |
+|---|---|---|
+| **Stated** | The Jira story says it directly | Candidate scope or constraint |
+| **Observed** | A cited repository artifact demonstrates it | Evidence for a convention or dependency |
+| **Inferred** | The agent connects stated intent with observed precedent | Option for review, not accepted behavior |
+| **Open** | Neither the story nor repository settles it | Owner decision or explicit deferral |
+
+Suppose the agent finds an existing identifier search that trims whitespace.  The finding would be
+observed behavior for that endpoint.  Applying the same rule to unit numbers would remain an
+inference until the team accepts it.
+
+Check each cited file and ask a few direct questions:
+
+- Does the cited code execute in the current search path, or is it unused or generated?
+- Does a test demonstrate behavior, or merely arrange test data?
+- Does the OpenAPI document describe the implemented contract at the pinned baseline?
+- Does the evidence belong to this repository, or did the agent import a convention from the other
+	project?
+- Did the response answer a business question by choosing the easiest implementation?
+
+If a citation fails one of those checks, change the claim from “Observed” to “Inferred” or “Open.”
+
+## Build one cross-repository question set
+
+The backend and frontend reports will probably overlap without matching exactly.  Merge them by
+question rather than by prose.  The resulting question set might look like this:
+
+| Question | Why implementation depends on it | Likely owner |
+|---|---|---|
+| Must all 15 characters match? | Determines query semantics and UI expectations | Product owner |
+| May input contain spaces, hyphens, or lowercase letters? | Determines normalization and validation | Product owner with backend lead |
+| What happens for empty or malformed input? | Shapes API errors and immediate form feedback | Product owner with API and UI leads |
+| What happens when no truck matches? | Must agree across HTTP response, client behavior, and page state | API and UI leads |
+| Which truck fields appear in a successful result? | Defines the backend-owned response contract | Product owner with backend lead |
+| May more than one truck match? | Determines whether the response is an object or collection | Product owner |
+| Which searches remain out of scope? | Prevents VIN, partial, and multi-field search from entering the change | Product owner |
+
+“Likely owner” should remain a routing suggestion until the team confirms it.  The agent can show
+who appears to own an existing contract or component, but organizational authority may not be
+visible in either repository.
+
+## Turn questions into a decision record
+
+Build the decision record from the merged question set.  Each row should preserve the evidence
+reviewed, the current status, the owner, and the next action; an open cell should not be filled with
+a guess merely to make the table look complete.
+
+```markdown
+| Question | Evidence | Status | Owner | Next action |
+|---|---|---|---|---|
+| Exact or partial match? | Jira gives only field and length | Open | Product owner | Choose match semantics |
+| Normalize input? | Existing endpoint trims input at `path:line` | Inferred option | Product owner + backend lead | Confirm whether precedent applies |
+| Malformed input? | API uses validation response at `path:line` | Candidate convention | Backend lead | Propose error shape after product decision |
+| No matching truck? | Backend and UI precedents differ | Open conflict | API + UI leads | Agree on one cross-repository behavior |
+| Result fields? | Current truck summary type at `path:line` | Inferred option | Product owner | Approve fields or request a smaller projection |
+| VIN search? | Not named in Jira | Deferred non-goal | Product owner | Confirm exclusion from first change |
+```
+
+Replace each `path:line` placeholder with a real repository reference during the lab.  If no
+reference supports a row, mark the evidence as unavailable.
+
+Notice the difference between “Open” and “Deferred non-goal.”  An open question blocks some part of
+the proposed behavior.  A deferred item has an explicit boundary and may be considered in a later
+change.  Calling an unanswered question “out of scope” would hide a decision rather than postpone
+it responsibly.
+
+## Use follow-up prompts to challenge the record
+
+One broad prompt may identify the obvious questions, while short follow-ups can test the weakest
+claims:
+
+```markdown
+Which claims lack a direct repository citation?  Reclassify each one as Inferred or Open.
+
+Trace no-match behavior from the backend response through the generated client to the UI state.
+Where does the current evidence stop?
+
+Which behaviors did you infer only because they would be conventional or easy to implement?  Turn
+them into questions.
+
+What is the smallest set of unresolved decisions that prevents a reviewer from writing observable
+scenarios for this change?
+```
+
+These follow-ups test the report rather than widen the scope.  If the conversation has accumulated
+unsupported assumptions, start a fresh exploration from the verified record instead of treating
+earlier chat as evidence.
+
+## Compare VS Code and IntelliJ IDEA
+
+Run the same bounded prompt in VS Code and IntelliJ IDEA after both environments can discover the
+OpenSpec workflow files.  Exact wording need not match.  Compare whether each response:
+
+- inspected both repository evidence and OpenSpec context;
+- preserved the distinction among stated, observed, inferred, and open material;
+- cited files that actually support its claims;
+- found the same implementation-blocking questions; and
+- avoided creating change artifacts or implementation details.
+
+Differences could point to context discovery rather than model quality.  Did one IDE have the
+correct repository root open?  Could both see the same generated prompt files and instructions?
+Were the same Jira text and repository baseline available?  Check those conditions before judging
+the responses by their prose.
+
+Combine verified findings into one decision record.  Two competing records would leave Chapter 8
+without a stable source, even if each IDE produced useful observations.
+
+## Know when to stop exploring
+
+More exploration does not always produce more certainty.  Repository search cannot answer whether
+the business wants partial matching, and repeated prompts may only produce increasingly polished
+guesses.  Consider the exploration ready for review when:
+
+- every behavior needed for an observable scenario has a decision, named owner, or explicit
+	deferral;
+- every “Observed” claim has a checked repository reference;
+- every inference remains labeled as an option;
+- backend and frontend expectations no longer contradict each other without a recorded owner; and
+- non-goals define what the first change should leave alone.
+
+The record may still contain unanswered questions, provided each one has an owner or an explicit
+deferral.  Once repository evidence runs out, another search may add less than a short conversation
+with the product owner or API lead.
 
 ## Hands-on exercise
 
-You can run the OpenSpec exploration workflow against the unit-number search request.  Start with
-the Jira story, inspect the relevant repository conventions, and record the decisions and open
-questions.  Repeating the exploration in VS Code and IntelliJ IDEA may expose differences worth
-resolving before the findings are combined into one agreed decision record.
+Explore the unit-number search once in each repository and IDE:
 
-Change artifacts can wait during this exercise.  The intended output is the decision record, not an
-early proposal built on assumptions.  Once the behavior is understood well enough to review, the
-next chapter can turn that record into coordinated backend and frontend proposal artifacts.
+1. Copy the Jira wording into a working note without expanding it.
+2. Run the bounded exploration prompt in the backend repository.
+3. Verify each cited route, field, validator, test, error convention, and contract artifact.
+4. Run the corresponding prompt in the frontend repository.
+5. Verify each cited form, client call, visible state, and interaction test.
+6. Merge both reports by question and reclassify unsupported claims.
+7. Ask the listed owners to decide, defer, or reject each unresolved behavior.
+8. Save one agreed decision record for the proposal work in Chapter 8.
+
+Do not create an OpenSpec change during this exercise.  If an open row has neither an owner nor a
+next action, the exploration has located a gap but has not made it actionable.
 
 ## Verification checkpoint
 
-Before leaving exploration, it is worth checking every question that could block implementation.
-Each one should have an answer, an owner, or an explicit deferral.  Also confirm that the record
-distinguishes:
+Before leaving exploration, could a reviewer answer these questions from the record?
 
-- behavior stated by the Jira story;
-- behavior inferred from existing repository conventions; and
-- behavior that still requires a business or technical decision.
+- Which words came directly from the Jira story?
+- Which claims came from checked repository evidence?
+- Which candidate behaviors remain inferences?
+- Who can decide each open product or contract question?
+- Which disagreements cross the backend and frontend boundary?
+- Which capabilities have been explicitly deferred?
+- Which decisions would Chapter 8 use to write observable scenarios?
 
-If those categories are mixed together, more exploration may be needed.  If they are clear, the
-team may have enough information to decide whether to propose the change or continue investigating.
+If those answers require rereading the chat transcript, revise the record.  The durable output of
+exploration should be the reviewed evidence and decisions, not the conversation that happened to
+produce them.
 
 ## What you learned
 
-Exploration can reduce risk when the request names a capability but leaves its observable behavior
-open.  It gives the team a place to resolve cross-repository decisions before those decisions are
-copied into API code, frontend state, and tests.
-
-A well-understood change may move directly to proposal.  An unclear change may need more
-exploration rather than a more elaborate implementation prompt.  The next artifact should record
-agreed behavior and remaining boundaries instead of hiding uncertainty behind confident language.
+For the unit-number search, exploration should leave one cross-repository record whose claims can
+be traced and whose gaps have owners.  Chapter 8 can use accepted rows to propose backend and
+frontend changes; unsupported inferences should remain outside the requirements.
 
 ## Online references
 
-- [OpenSpec skills reference](https://openspec.dev/docs/skills)
-- [GitHub Copilot prompt engineering](https://docs.github.com/en/copilot/concepts/prompt-engineering)
+- [OpenSpec skills reference](https://openspec.dev/docs/skills)^[<https://openspec.dev/docs/skills>]
+- [GitHub Copilot prompt engineering](https://docs.github.com/en/copilot/concepts/prompt-engineering)^[<https://docs.github.com/en/copilot/concepts/prompt-engineering>]

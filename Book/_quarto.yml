@@ -5,7 +5,7 @@ book:
   title: "Spec-Driven Development with OpenSpec and GitHub Copilot"
   subtitle: "A Practical Guide for Java and Angular Developers"
   author: "Gregg Obst"
-  date: "2026-09-20"
+  date: "2026-09-21"
   date-format: "MM/DD/YYYY"
   output-file: "Spec-Driven_Development_with_OpenSpec_and_GitHub_Copilot"
   chapters:

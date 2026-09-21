@@ -1,181 +1,322 @@
 # Coordinating Parallel Changes
 
+Consider two developers working from the same accepted truck-search specification.  One opens
+`add-license-plate-search`; the other opens `revise-vin-search`.  Each change has its own proposal,
+delta specifications, design, tasks, branch, and worktree.  Assume that both pass their focused
+tests.
+
+Reviewed alone, either change could look complete.  Read together, they might assign different
+meanings to the same request, generated client method, or Angular control.  The License Plate
+change could replace a single VIN field with a search-mode control, while the VIN change could
+revise the accepted VIN length rule around the original field.  Git would not have to report a
+conflict for those designs to be incompatible.
+
+OpenSpec lets each proposal develop without immediately rewriting the accepted specification.  That
+isolation supports parallel work; compatibility still requires a comparison of the proposed
+behavior.  The team would need to settle shared decisions and recheck any proposal that outlives the
+baseline from which it began.
+
 ## Learning objective
 
-By the end of this chapter, you should be able to manage concurrent changes without treating
-isolated folders or branches as proof that the changes are compatible.  You should have a way to
-compare active deltas with the same accepted baseline, expose semantic overlap, and choose an
-archive order that can preserve both business decisions.
+By the end of this chapter, you should be able to coordinate concurrent OpenSpec changes without
+treating separate folders, branches, or worktrees as evidence of compatibility.  You should also
+be able to find semantic overlap, record a resolution in the active artifacts, and choose a
+synchronization or archive order that could preserve both business goals.
 
-## Isolation is not compatibility
+## Separate isolation from coordination
 
-Parallel work tends to create two separate coordination problems.  Git can isolate edits to files,
-and OpenSpec can isolate proposed intent in separate change folders.  Neither mechanism, by itself,
-shows that the changes can be accepted together.
+Three mechanisms may appear in a parallel workflow, but each answers a different question:
 
-Two changes can pass their own reviews and tests while making incompatible decisions about the
-same behavior.  They may add different values to one search contract, define different meanings
-for a shared request parameter, or ask the frontend to expose two controls that the backend cannot
-represent together.  The conflict is semantic even when the files do not conflict textually.
+| Mechanism | Question it can answer | Question it cannot answer |
+|---|---|---|
+| OpenSpec change folder | What behavior does this proposal intend to add, modify, or remove? | Would another active proposal make the behavior contradictory? |
+| Git branch | Which commits belong to this line of work? | Do two branches express compatible product decisions? |
+| Git worktree | Can each branch have its own working directory? | Which shared contract should become accepted behavior? |
 
-It helps to keep the mechanisms distinct:
+Suppose the branches edit different files.  License Plate search could add a controller method,
+while the VIN change could revise a shared request type.  Git might merge both edits cleanly even
+though the controller sends a request the revised type can no longer represent.  Suppose instead
+that both branches edit the same OpenAPI file.  Git might report a textual conflict, but resolving
+the lines would not decide whether one endpoint should accept mutually exclusive parameters or
+separate operations.
 
-- An OpenSpec change folder isolates a proposal, its requirements, design, and tasks from other
-	proposals.
-- A Git branch isolates a line of commits from another line of commits.
-- A worktree gives a branch its own working directory so developers or agents can work in parallel.
+Begin the coordination review above the file level: **Can both sets of requirements be true in one
+accepted system?**
 
-These mechanisms can reduce accidental edits.  They do not, on their own, answer whether the
-proposals describe one coherent product behavior.  Comparing each proposal with the accepted
-specification and with the other active changes can answer that question more directly.
+::: {.callout-warning}
+## A clean merge is weak evidence
 
-## A pair of truck-search changes
+A clean Git merge could show only that the edited lines did not collide.  Passing tests on each
+branch could show only that each implementation satisfies the assumptions available on that
+branch.  Neither result would compare the two proposed meanings.
+:::
 
-Consider two active changes in the truck-search system:
+## Establish one comparison point
 
-- one adds License Plate search; and
-- another modifies VIN-related behavior.
+Parallel changes become harder to reason about when each participant uses a different baseline.  Before
+comparing proposals, name the accepted commit and main specifications from which both changes will
+be reviewed.  That snapshot need not freeze the repository, but it would give reviewers one answer
+to "accepted before these changes."
 
-The changes have different business goals, so separate proposals make sense at first.  Each
-proposal should describe its own input rules, result behavior, and non-goals.  The separation lets
-reviewers discuss one decision without mixing it with the other.
+For the exercise, use these two active changes:
 
-The proposals would still benefit from a shared-surface review.  Compare them against the latest
-accepted specifications and inspect whether both changes affect:
+| Change | Business goal | Intended delta |
+|---|---|---|
+| `add-license-plate-search` | Let a user find a truck by license plate and jurisdiction | Add another search mode while preserving unit-number and VIN search |
+| `revise-vin-search` | Change the accepted VIN input rule | Modify VIN validation and request behavior without changing other modes |
 
-- the backend search contract;
-- the generated Angular client;
-- the control that selects or submits a search mode;
-- shared validation and error behavior; and
-- regression tests for the search modes that already work.
+The business goals could coexist.  Their designs might not.  Both changes may touch the search-mode
+selector, shared request shape, OpenAPI operation, generated Angular client, validation messages,
+and regression suite.  Different goals do not provide enough evidence to treat the changes as
+independent.
 
-The purpose of this comparison need not be to reject parallel work.  It can instead surface
-decisions that may need to be made once.  For example, if both proposals change the shared search
-request, the team may need to agree on a request shape and mode-selection rule before either change
-becomes the new baseline.  A frontend proposal that invents a client shape independently of the
-backend proposal may already be behind the source of truth.
+Start by checking that both artifacts are structurally readable:
 
-## Compare deltas before archive
+```bash
+openspec status --change add-license-plate-search
+openspec show add-license-plate-search --diff
+openspec validate add-license-plate-search --strict
 
-One useful way to review each active change is twice: first against the accepted baseline, then
-against the other active changes.  The first comparison asks what the change adds, modifies, or
-preserves.  The second asks whether another proposal adds, modifies, or removes the same behavior.
+openspec status --change revise-vin-search
+openspec show revise-vin-search --diff
+openspec validate revise-vin-search --strict
+```
 
-Start with the behavioral requirements, not the file list.  For each requirement, record:
+Strict validation could reject malformed deltas.  It would not decide whether the two valid deltas
+contradict each other, so the next review should compare meaning rather than repeat validation.
 
-- the accepted behavior it assumes;
-- the behavior it changes or adds;
-- the shared contract or UI surface it touches; and
-- the evidence that will show the behavior works.
+## Read each delta in two directions
 
-Then compare the records.  Look for more than identical words.  These are overlap signals:
+Avoid reading either proposal as a self-contained story.  Read it first against the accepted
+specification and then sideways against every other active change that touches the same capability.
 
-- both changes alter the same endpoint or generated client method;
-- both changes define a different validation rule for the same input;
-- both changes change how the UI selects a search mode;
-- one change assumes a result shape that the other changes; or
-- a regression test in one change would fail after the other change is synchronized.
+The baseline comparison could ask:
 
-When a comparison finds overlap, return to the requirements and scenarios.  Resolving the
-disagreement through implementation order alone could make the behavior accidental.  The team
-could combine the changes, revise one proposal, or keep both with an explicit compatibility
-decision.
-The choice belongs in the active artifacts so a reviewer can recover it without the originating
-chat session.
+- Which accepted requirement does this change assume?
+- Which behavior would it add, modify, remove, or rename?
+- Which existing scenarios must remain true?
+- Which contract, generated artifact, UI state, or test carries that behavior?
 
-## Coordinate the contract boundary
+The sideways comparison could then ask:
 
-The backend owns the OpenAPI contract in this book's two-repository lab.  That ownership suggests a
-practical order for the parallel changes: agree on the backend behavior, review the resulting
-contract, then regenerate the Angular client before completing frontend work.
+- Do both changes alter the same requirement or observable outcome?
+- Does one proposal depend on a request or response shape that the other would revise?
+- Do the proposals give different meanings to the same empty, invalid, or no-match state?
+- Would a scenario from one change fail after the other became the baseline?
 
-This order does not mean that frontend work has to wait for every backend task.  A frontend
-developer can prepare tests or UI structure against a reviewed proposal.  The generated client
-would still need to come from the accepted backend contract.  A hand-written client type may hide
-an unresolved contract decision rather than solve it.
+A compact worksheet may keep this review grounded:
 
-Keep the following questions visible while the changes are active:
+| Surface | Accepted baseline | License Plate delta | VIN delta | Decision needed? |
+|---|---|---|---|---|
+| Search mode | Unit Number or VIN | Add License Plate | Preserve existing modes | Could the mode model represent all three? |
+| Request contract | One identifier plus a mode | Add plate and jurisdiction inputs | Revise VIN input constraints | Could invalid parameter combinations be expressed? |
+| Generated client | Current search request | Regenerate for plate fields | Regenerate for VIN rule | Which contract version should generate the client? |
+| Validation | Rules vary by current mode | Add plate and jurisdiction rules | Replace VIN rule | Could validation switch by mode without leaking rules? |
+| Regression behavior | Unit Number and VIN pass | Preserve both modes | Preserve Unit Number | Which VIN scenarios would be replaced rather than preserved? |
 
-- Can the contract represent License Plate and VIN searches without ambiguous combinations?
-- Which input rules belong to each mode, and where are they enforced?
-- Does the shared UI expose the modes consistently with the contract?
-- Which existing unit-number and VIN scenarios must remain unchanged?
-- Which generated files and frontend tests must be regenerated or revised after synchronization?
+The coordination work would sit in the last column.  "Both touch `SearchComponent`" would describe
+file overlap.  "License Plate assumes fixed-length VIN while the VIN delta replaces that rule"
+would identify a behavioral decision that reviewers could settle.
 
-An answer that applies to both proposals belongs in the shared specification or in an explicit
-coordination decision.  An answer that applies to only one capability belongs in that change's
-requirements.  Keeping those scopes separate helps prevent a local assumption from becoming an
-accidental rule for every search mode.
+## Ask Copilot to report overlap, not resolve it
 
-## Reconcile and archive
+An exploration pass could help assemble the comparison without granting an agent authority to pick
+the winning behavior.  A prompt such as this would keep the task bounded:
 
-Archive order can matter because synchronization changes the accepted baseline.  The first
-archived change becomes the comparison point for the next one.  In many cases, choosing the order
-from dependency makes more sense than choosing it from which developer finished first.
+```markdown
+/opsx:explore
 
-When the other change depends on a shared contract or prerequisite behavior, it usually makes sense
-to archive the change that establishes it first.  If the changes are independent at the contract
-level, either order may work, but the second change still needs a fresh comparison against the
-updated baseline.
+Compare the active changes `add-license-plate-search` and `revise-vin-search` with the same accepted
+truck-search specifications.
 
-After the first change is synchronized and archived:
+For each change, report:
+- requirements and scenarios added, modified, removed, or assumed unchanged;
+- shared API, generated-client, UI, validation, and test surfaces;
+- assumptions that would become stale if the other change were accepted first; and
+- product or contract decisions that the artifacts do not resolve.
 
-1. Re-read the second change against the latest main specifications.
-2. Replace stale assumptions in its requirements, design, and tasks.
-3. Recheck its API and generated-client impact against the accepted contract.
-4. Re-run the overlap review and record any decision that changed.
-5. Apply, verify, synchronize, and archive only after the revised change is coherent.
+Do not edit artifacts or application code.  Do not choose a winner from implementation order.  Distinguish
+textual overlap from behavioral overlap.
+```
 
-Avoid silently rewriting the second change to fit the first.  If the first change
-changed a shared decision, update the second artifact so the new behavior remains reviewable.  If
-the goals are no longer compatible, keep the second change open and ask for a product decision
-rather than preserving two contradictory rules in the main specification.
+The resulting report should point to the exact requirements and scenarios in disagreement.  If it
+only lists files, the prompt has not yet reached the decision boundary.  A follow-up could ask what
+observable behavior would differ after both deltas were applied.
+
+## Recognize the forms of semantic overlap
+
+Some conflicts would announce themselves through the same requirement name.  Others might hide
+behind different language or different repositories.  The following patterns deserve a closer
+comparison:
+
+- Both deltas modify the identity or meaning of one accepted requirement.
+- One delta adds behavior under a condition that the other delta removes.
+- Two deltas assign different validation rules to the same input or mode.
+- One proposal assumes a response shape, enum, or status code that the other would replace.
+- The backend proposal changes a contract while the frontend proposal invents a local substitute.
+- A preservation claim in one proposal conflicts with a modification in the other.
+- Both changes pass alone, but the scenarios require mutually exclusive UI or API states.
+
+Consider the word "preserve."  The License Plate proposal might say that VIN behavior remains
+unchanged, while `revise-vin-search` exists specifically to change it.  The two business goals need
+not conflict, but the preservation boundary has become stale.  Revising that sentence could be as
+important as reconciling the request type because it changes what License Plate regression tests
+should prove.
+
+## Choose a coordination response
+
+Finding overlap does not automatically require one large change.  Choose the response that keeps
+the business decision easiest to review:
+
+| Response | When it may fit | Artifact consequence |
+|---|---|---|
+| Keep both changes separate | The goals remain independently releasable after one shared decision | Revise each affected proposal, delta, design, and task list to record the decision |
+| Establish a prerequisite | One change must define a contract or behavior before the other can be coherent | Record the dependency and review the dependent change against the new baseline |
+| Combine the changes | Their scenarios cannot describe a complete outcome independently | Replace the two partial plans with one reviewed scope before more implementation |
+| Pause one change | Product owners have not settled incompatible behavior | Keep the unresolved change active rather than encoding a decision through merge order |
+
+For this exercise, suppose reviewers choose a prerequisite rather than combining the changes.  The
+VIN rule should become accepted first because the License Plate proposal promises to preserve VIN
+behavior and must test against the revised rule.  License Plate remains a separate business
+capability, but its preservation boundary and generated-client tasks now depend on the VIN change.
+
+That choice should appear in both active artifacts.  The VIN design could identify the shared
+request contract it establishes.  The License Plate proposal could replace its stale "VIN remains
+unchanged" assumption with the specific revised VIN behavior it must preserve.  Its tasks could
+also defer final client generation until the reviewed backend contract contains both the accepted
+VIN rule and proposed plate fields.
+
+::: {.callout-note}
+## Record the decision before moving code
+
+A new reviewer should be able to recover the dependency from `proposal.md`, delta specifications,
+`design.md`, and `tasks.md` alone.  If the answer depends on the originating chat transcript, the
+coordination decision has not reached the durable artifacts.
+:::
+
+## Coordinate the backend-owned contract
+
+In this book's two-repository lab, the backend owns the OpenAPI contract and the Angular client is
+generated from it.  That ownership suggests a coordination point even when implementation proceeds
+in parallel.
+
+Frontend work could begin against reviewed scenarios and a proposed contract.  Tests for the new
+mode control, empty states, or validation transitions need not wait for every backend task.  Final
+client integration, however, should use a client generated from the contract the backend actually
+publishes.  A hand-written TypeScript request type could make both branches compile while hiding
+the unresolved contract.
+
+Before either change closes, reviewers could ask:
+
+- Can one request represent Unit Number, VIN, and License Plate without ambiguous combinations?
+- Which layer rejects a plate without jurisdiction or a VIN that violates the revised rule?
+- Does the OpenAPI document express the same modes and constraints as the backend behavior?
+- Has the Angular client been regenerated from that reviewed document?
+- Do frontend states distinguish invalid input, no match, and request failure as specified?
+
+Answers shared by both changes may belong in the accepted search specification or a recorded
+contract decision.  Answers unique to License Plate should remain in its delta.  This division
+could keep one proposal from silently redefining every search mode.
+
+## Use worktrees without confusing their role
+
+Separate worktrees may let a developer or agent keep both branches available at once:
+
+```bash
+git worktree add ../truck-search-license-plate -b feature/license-plate
+git worktree add ../truck-search-vin -b feature/revise-vin
+git worktree list
+```
+
+Each directory could have its own application code and OpenSpec change.  Before creating them,
+check the repository's branch names and destination paths; the example names may not fit an
+existing checkout.
+
+Keep the accepted-baseline commit, change names, contract owner, dependency decision, and
+verification evidence in a place the team can recover outside those directories.  Without that
+shared coordination record, two worktrees could merely let incompatible assumptions develop
+faster.
+
+## Reconcile before synchronization or archive
+
+Archive order may matter when the first archived change updates the main specifications that the
+second change originally assumed.  Finishing first would be a weak ordering rule; a dependency or
+shared contract would offer a stronger reason.
+
+Before accepting the VIN prerequisite, compare its delta with the main specification and inspect
+the proposed result.  After synchronization or archive updates the accepted baseline, return to
+the License Plate change before applying or closing it:
+
+1. Re-read its proposal and delta specifications against the updated main specs.
+2. Replace preservation claims or scenarios that still describe the old VIN rule.
+3. Revisit design decisions that depend on the shared request or response contract.
+4. Reopen any completed task whose evidence came from the earlier baseline.
+5. Run strict validation and the affected VIN regression tests again.
+6. Apply, verify, and archive License Plate only after its artifacts describe the combined system.
+
+If the team uses `/opsx:sync` to merge a reviewed delta into the main specifications while keeping
+the change active, the same comparison would still apply.  Synchronization changes the baseline
+used by neighboring work; it does not prove that neighboring deltas remain coherent.  Before
+accepting the sync, inspect the main-spec diff and keep the change active until its implementation
+and evidence are ready.
+
+Silently rewriting License Plate code to accommodate the new VIN rule would leave its active
+artifacts stale.  Another reviewer could not tell whether the behavior was intentional or merely
+the result of whichever branch merged last.  Revising the proposal, scenarios, design, and tasks
+would turn that implementation adjustment back into a reviewable decision.
 
 ## Hands-on exercise
 
-Create two active changes for the prepared truck-search repositories: one for License Plate search
-and one for a VIN-related behavior change.
+Create two active changes in the prepared truck-search repositories: one for License Plate search
+and one for a revision to VIN behavior.
 
-1. Write the business goal, affected behavior, non-goals, and scenarios for each change.
-2. Inspect both changes against the same accepted specifications.
-3. Mark every shared backend contract, generated-client, UI, and regression-test surface.
-4. Identify one semantic overlap and record the decision that resolves it.
-5. Choose an archive order based on the dependency between the two changes.
-6. Synchronize the first change, then revise the second against the new baseline.
-7. Apply and verify the second change without removing either business goal.
+1. Give each change a distinct business goal, scope, non-goals, and preservation boundary.
+2. Record the accepted commit and main specifications used as their common baseline.
+3. Validate both changes, then compare each delta with the baseline and with the other delta.
+4. Complete the overlap worksheet for requirements, API contract, generated client, UI,
+	validation, and regression tests.
+5. Identify one semantic conflict that a clean Git merge would not settle.
+6. Choose whether to keep, order, combine, or pause the changes, and record the reason in the
+	affected artifacts.
+7. Accept the prerequisite change, then revise the remaining change against the new baseline.
+8. Apply and verify the remaining change without losing either reviewed business goal.
 
-At each step, compare the artifact with the implementation and tests.  If a conflict appears only
-after the first change is archived, that is a sign that the second change may have become stale.  A
-code patch that leaves the active artifact describing the old contract will make the discrepancy
-harder to review.
+At each step, ask which artifact would let a reviewer recover the decision.  A conflict discovered
+only after the first archive may indicate that the surviving change has become stale; it need not
+mean that parallel work itself was a mistake.
 
 ## Verification checkpoint
 
-One useful checkpoint is to validate the active artifacts before implementation, then validate the
-final main specifications after synchronization.  Run the regression tests for existing search
-modes as well as the tests for the two reconciled changes.  Include contract generation and
-frontend tests when the shared API or client changed.
+Check whether the final accepted specifications describe all search modes without contradictory
+input, validation, or result rules.  Verify the artifacts and implementation from that question
+outward:
 
-The work is ready to close when the evidence supports all of the following:
+```bash
+openspec validate --all
+git diff -- openspec/specs openspec/changes
+```
 
-- each active change has a distinct business purpose and an explicit scope;
-- shared requirements have one agreed interpretation;
-- the accepted specifications contain no contradictory search rules;
-- the generated client reflects the reviewed backend contract;
-- the UI and validation match the selected search behavior; and
-- affected new and regression scenarios have evidence from tests.
+Then run the focused backend, contract-generation, frontend, and regression checks configured for
+the prepared repositories.  The evidence should support these conclusions:
 
-If the second change still refers to the pre-archive baseline, keep it active.  Update the stale
-artifact, implementation, or test, then repeat the focused verification.  Isolation makes the work
-possible; comparison and synchronization are what can make the result coherent.
+- Each change retained a distinct, reviewed business purpose.
+- Shared requirements now have one interpretation.
+- The accepted specifications contain the reconciled VIN and License Plate behavior.
+- The generated Angular client came from the reviewed backend contract.
+- Unit Number, VIN, and License Plate scenarios pass at the affected boundaries.
+- No active artifact still assumes the pre-coordination baseline.
+
+If the final item fails, keep that change active.  Updating the stale artifact and repeating the
+focused checks would cost less than archiving a contradiction that the next change must untangle.
 
 ## What you learned
 
-Parallel changes are independent proposals, but they do not necessarily become independent
-realities.  Git branches and worktrees protect concurrent edits, while OpenSpec records the
-decisions each change intends to make.  The team still needs to compare those decisions against one
-accepted baseline, coordinate shared contracts, and re-review any change that becomes stale after
-synchronization.
+Separate change folders, branches, and worktrees can isolate activity.  A common baseline and a
+sideways delta review can then expose incompatible intent.  Once overlap appears, record the shared
+decision, order changes by dependency, and recheck the surviving proposal after the baseline moves.
+
+Choose that coordination point before merge repair.  Once Git reports the textual conflict, it may
+be too late to recover the unrecorded product decision from the changed lines alone.
 
 ## Online references
 

@@ -1,0 +1,1 @@
+Create a more substantial edit to this chapter that will do a better job at introducing to the reader to the the idea of Making spec-driven development a Team Practice with OpenSpec.  Use two ASCII space characters after sentence-ending punctuation (. ? !) when another sentence follows in the same paragraph.  Avoid using declarative sentences. 

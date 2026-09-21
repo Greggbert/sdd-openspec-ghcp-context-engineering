@@ -1,115 +1,399 @@
 # Adding VIN Search to a Brownfield System
 
-Adding VIN search to an existing application creates a tempting trap: reverse-engineer every
-old decision before writing the new specification.  A delta specification gives you a narrower
-starting point.  It records the new VIN behavior, identifies the existing behavior that must
-remain intact, and gives both repositories a reviewed target for implementation.
+Suppose the unit-number search from the earlier chapters has shipped.  The backend endpoint,
+OpenAPI document, generated Angular client, form validation, and result states now work together.
+Then a product owner asks for one more way to find a truck: “Could users search by VIN too?”
+
+The request sounds small, but it leaves product decisions hidden inside the word “too.”  Will VIN
+use the current operation or a separate one?  How will a user choose the search mode?  Which
+unit-number behaviors must survive unchanged?  If a coding agent answers from nearby code, its
+implementation may turn local precedent into product policy before anyone reviews the choice.
+
+How might OpenSpec keep those decisions visible?  Describe the requested difference instead of
+reconstructing every choice behind the application.  The resulting delta can define VIN behavior,
+while the proposal and verification plan can protect the accepted unit-number path.
 
 ## Learning objective
 
-By the end of this chapter, you can propose an additive VIN-search change without reconstructing a
-complete specification for the existing applications.  You can also trace the change from the
-OpenSpec artifacts through the backend contract, the Angular client, and the verification evidence.
+By the end of this chapter, you should be able to propose an additive VIN-search change in a
+brownfield system without pretending that the whole system was specified from the beginning.  You
+should also be able to trace that change through OpenSpec artifacts, the backend-owned API
+contract, the generated Angular client, and regression evidence for the behavior already in use.
 
-## Start with the accepted behavior
+## Why brownfield work changes the question
 
-The unit-number search is already accepted.  Use that behavior as the boundary for the new work,
-not as an invitation to rewrite the entire system's history.
+Greenfield design often begins with “What should this system do?”  Brownfield work tends to begin
+with a less comfortable question: “What does this system already do that users or other software
+might depend on?”
 
-The delta should answer two questions:
-Adding VIN search to an existing application can create a tempting trap: reverse-engineering every
-old decision before writing the new specification.  A delta specification offers a narrower
-starting point.  It can record the new VIN behavior, identify the existing behavior that must
-remain intact, and give both repositories a reviewed target for implementation.
-This distinction controls the scope of the proposal.  The delta describes the VIN capability and
-its required interactions.  It does not restate every accepted unit-number requirement.  It does,
-By the end of this chapter, you should be able to propose an additive VIN-search change without
-reconstructing a complete specification for the existing applications.  You should also be able
-to trace the change from the OpenSpec artifacts through the backend contract, the Angular client,
-and the verification evidence.
-## Define the search modes
+The answer may be scattered across several sources:
 
-The unit-number search is already accepted.  That behavior can serve as the boundary for the new
-work, rather than an invitation to rewrite the entire system's history.
-decisions, but they are not the same requirement.  One describes the value accepted by the search;
-the other describes how the user reaches that validation path.
-it.  Do not assume that two search modes share every response, message, or validation rule simply
-because they appear on the same screen.  Record the reuse explicitly, and state any mode-specific
-behavior in the delta.
+- accepted OpenSpec requirements;
+- controller and service behavior;
+- an OpenAPI document consumed by another repository;
+- generated client code;
+- frontend validation and visible states; and
+- tests that preserve cases no one thought to document elsewhere.
 
-The resulting requirements should make the additive boundary visible:
+Do not give those sources equal authority by default.  Start with accepted specifications and
+reviewed contracts.  Use code and tests to find dependencies, contradictions, and behavior that
+may need a decision.  Then let the delta describe the requested change without claiming to explain
+the full history of truck search.
 
-- VIN search accepts a full 17-character VIN.
-The delta should help answer two questions:
-- Existing unit-number behavior remains unchanged unless the delta says otherwise.
-The new capability has a specific input rule: VIN search accepts a full 17-character VIN.  The
-proposal also needs to define how a user selects unit-number or VIN mode.  These are related
-decisions, but they are not the same requirement.  One describes the value accepted by the search;
-the other describes how the user reaches that validation path.
-## Evolve the backend contract
+::: {.callout-warning}
+## Existing code is evidence, not automatic intent
 
-Implement the backend change as an additive extension.  Unit-number consumers should continue to
-receive the behavior they already depend on while the backend adds the VIN path.
+A current behavior may be intentional, accidental, or obsolete.  Treat repository exploration as
+evidence for review rather than silently converting every code path into a requirement.
+:::
 
-The OpenAPI document is part of this change, not an afterthought.  Update it to describe the
-reviewed contract, then inspect the document before using it to drive the frontend client.  This
-VIN search accepts a full 17-character VIN.
-Users can select unit-number or VIN search mode.
-Existing unit-number behavior remains unchanged unless the delta says otherwise.
-Shared result or error behavior is reused only where the accepted specification allows it.
-behavior.  A passing VIN test alone cannot show that the additive change stayed additive.  The
-regression tests are the evidence that existing consumers still have their accepted path.
+## Establish the baseline before describing the delta
 
-## Evolve the Angular client
-The backend change can be implemented as an additive extension.  Unit-number consumers should
-continue to receive the behavior they already depend on while the backend adds the VIN path.
-generated client should reflect the reviewed OpenAPI document rather than a manually recreated
-The OpenAPI document is part of this change rather than an afterthought.  It should describe the
-reviewed contract, and the document is worth inspecting before it drives the frontend client.  That
-inspection gives the two repositories a shared boundary: the backend owns the contract, and the
-frontend consumes that reviewed contract.
-- a control for selecting unit-number or VIN mode; and
-Regression tests around preserved unit-number behavior belong alongside tests for the new VIN
-behavior.  A passing VIN test alone would not show that the additive change stayed additive.  The
-regression tests provide evidence that existing consumers still have their accepted path.
-mode-specific logic.  Component tests can cover the visible control and its state.  End-to-end
-tests can cover the user path through the application and the resulting search behavior.
-After the backend contract is updated and inspected, the TypeScript client can be regenerated.  The
-generated client should reflect the reviewed OpenAPI document rather than a manually recreated
-version of the contract.
-Propose, apply, verify, and archive VIN search across both repositories.  Keep the order visible in
-The Angular application then needs two pieces of behavior:
+Because unit-number search is already accepted, begin there.  Read the current main specification,
+then trace one successful search and one failure or no-match path through each repository.  A short
+baseline table may keep the investigation bounded:
 
-Those boundaries are best tested at the levels that own them.  Unit tests can cover validation rules
-and mode-specific logic.  Component tests can cover the visible control and its state.  End-to-end
-tests can cover the user path through the application and the resulting search behavior.
-4. Regenerate the Angular client and implement mode-specific validation.
-5. Run the backend, frontend, and end-to-end tests that cover the new and preserved behavior.
-For the exercise, propose, apply, verify, and archive VIN search across both repositories.  The order
-could remain visible in the change record:
-At each step, compare the implementation with the relevant requirement instead of treating a
-At each step, compare the implementation with the relevant requirement rather than treating a
-completed task as proof.  The two repositories should describe the same change, and neither should
-silently change the accepted unit-number behavior.
+| Question | Likely source | What to record |
+|---|---|---|
+| How does a user choose and submit unit-number search? | Angular specification, component, and tests | Current control, validation, and visible states |
+| What request does the client send? | Generated client and OpenAPI document | Operation, parameter shape, and response types |
+| How does the backend distinguish invalid input, no match, and failure? | API specification and focused tests | Observable statuses and response bodies |
+| Which behavior has already been accepted? | Main OpenSpec specifications | Requirement names and scenarios that should survive |
+
+Keep the table small enough to support the VIN decision.  When exploration reaches unrelated
+persistence rules or deployment topology, ask whether the detail could change observable VIN
+behavior.  Leave it outside the change when the answer is no.
+
+The baseline may uncover contradictions.  Perhaps the main specification describes one no-match
+response while the implementation returns another.  Would the VIN proposal be the right place to
+resolve that discrepancy?  Only if the team deliberately expands the scope.  Otherwise, record the
+mismatch as separate work and avoid copying it into the new VIN requirement.
+
+## Decide whether VIN search is additive
+
+An `ADDED` delta would fit when VIN introduces another search path while the accepted unit-number
+path remains valid.  A `MODIFIED` delta would fit if the request changes the meaning of an existing
+requirement, such as replacing a unit-number-only input with a single identifier field whose rules
+now vary by mode.
+
+Do not infer the delta operation from the screen layout.  One form could expose two independent
+capabilities, while two controls could call a single revised API operation.  Choose `ADDED` or
+`MODIFIED` from the observable contract and the identity of the accepted requirement.
+
+For this chapter, assume the reviewed direction is additive:
+
+- a VIN search accepts a full 17-character VIN;
+- a user can choose unit-number or VIN mode;
+- the existing unit-number path keeps its accepted behavior; and
+- result and error behavior may be shared only where the accepted specifications say so.
+
+Those assumptions should remain visible in the proposal.  If the product owner has not decided
+case normalization, whitespace handling, disallowed VIN characters, no-match behavior, or the
+fields shown in a result, use open questions rather than letting Copilot infer answers.
+
+## Explore the extension points
+
+Once the baseline is clear, exploration can focus on the places where VIN behavior might join the
+system.  In the backend repository, inspect the accepted search requirement, HTTP boundary, search
+service, persistence query, OpenAPI generation, and focused tests.  In the frontend repository,
+inspect the mode control, form state, generated client boundary, result rendering, and component or
+browser tests.
+
+Frame the exploration prompt around decisions and boundaries:
+
+```markdown
+/opsx:explore
+
+We need to add VIN search while preserving the accepted unit-number search.
+
+Please trace the current unit-number path through this repository and report:
+- the accepted requirements and scenarios that constrain the change;
+- the nearest extension points for a VIN path;
+- assumptions in code or tests that only permit unit-number search;
+- generated files or external contracts that should not be edited by hand; and
+- unresolved product decisions that would change observable behavior.
+
+Do not modify files or convert current implementation details into requirements.
+```
+
+A shared opening prompt may work in both repositories.  Follow it with backend questions about the
+API contract and query behavior, then frontend questions about mode selection, validation,
+generated types, and visible states.
+
+The result should be a decision record, not a dump of matching filenames.  For example:
+
+| Topic | Status | Decision or question |
+|---|---|---|
+| VIN length | Accepted for this exercise | Require exactly 17 characters |
+| Search mode | Accepted for this exercise | Let the user choose unit number or VIN |
+| Unit-number behavior | Preservation boundary | Keep accepted scenarios unchanged |
+| VIN normalization | Open | Decide whether case or surrounding whitespace is normalized |
+| VIN no-match response | Open until reviewed | Reuse existing behavior only if the contract permits it |
+| Client generation | Existing constraint | Regenerate from the reviewed backend OpenAPI document |
+
+## Coordinate one product change across two repositories
+
+The earlier lab chapters established a separate OpenSpec root in each repository.  Continue that
+model here with one active backend change and one active frontend change.  Give the backend change
+ownership of VIN API behavior and contract publication; give the frontend change ownership of mode
+selection, input feedback, and rendering.
+
+OpenSpec now also documents beta stores for planning one change across several repositories.^[See
+the [OpenSpec Stores User Guide](https://github.com/Fission-AI/OpenSpec/blob/main/docs/stores-beta/user-guide.md)
+at <https://github.com/Fission-AI/OpenSpec/blob/main/docs/stores-beta/user-guide.md>.]  A team using
+that model could keep the shared artifacts in a store and expose them to both code repositories.
+The ownership and contract questions in this chapter would still apply, even though the artifact
+layout would differ.
+
+Possible change names might be:
+
+```text
+commercial-truck-search-api/
+`-- openspec/changes/add-vin-search-api/
+
+commercial-truck-search-ui/
+`-- openspec/changes/add-vin-search-ui/
+```
+
+A shared work-item identifier could connect the changes.  Their proposals should also name the
+handoff directly: the frontend client generation waits for a reviewed backend OpenAPI document.
+That dependency may slow parallel work, but it reduces the chance that the repositories invent
+different VIN contracts.
+
+The backend proposal could define this boundary:
+
+```markdown
+# Change: Add VIN search API
+
+## Why
+
+Users need to locate a truck when a VIN is available instead of a unit number.
+
+## What Changes
+
+- Add API behavior for search by a full 17-character VIN.
+- Publish the reviewed VIN request and response behavior in OpenAPI.
+- Preserve accepted unit-number search behavior.
+
+## Non-Goals
+
+- Combined VIN and unit-number queries
+- Partial VIN search
+- Changes to accepted unit-number validation or responses
+
+## Dependencies
+
+- The frontend change may regenerate its client after review of the updated OpenAPI document.
+```
+
+The frontend proposal could remain narrower:
+
+```markdown
+# Change: Add VIN search mode
+
+## Why
+
+Users need to choose VIN when that is the identifier available for a truck.
+
+## What Changes
+
+- Add a control for choosing unit-number or VIN search.
+- Apply the reviewed validation rule for the selected mode.
+- Send VIN searches through the generated API client.
+- Preserve the accepted unit-number interaction.
+
+## Non-Goals
+
+- Handwritten API request or response types
+- Simultaneous search by both identifiers
+- Changes to accepted result fields unless separately reviewed
+```
+
+Notice what these proposals do not decide.  Neither chooses an Angular component structure, Java
+method name, database index, or generated-client class.  Those choices may belong in `design.md`
+after the team agrees on behavior.
+
+## Write deltas that expose the additive boundary
+
+The backend delta should make VIN behavior testable without copying the complete unit-number
+specification.  With unresolved details still visible, it might begin like this:
+
+```markdown
+## ADDED Requirements
+
+### Requirement: Search by VIN
+
+The API SHALL accept a full 17-character VIN and return the reviewed search outcome.
+
+#### Scenario: VIN has the required length
+
+- **WHEN** a client searches with a VIN containing exactly 17 characters
+- **THEN** the API evaluates the VIN according to the reviewed search rules
+
+#### Scenario: VIN has the wrong length
+
+- **WHEN** a client searches with a VIN containing fewer or more than 17 characters
+- **THEN** the API returns the reviewed validation response
+
+#### Scenario: No truck matches the VIN
+
+- **WHEN** a client searches with a valid VIN that matches no truck
+- **THEN** the API returns [the reviewed no-match response]
+```
+
+Do not add a second copy of the accepted unit-number requirement merely to say that it remains in
+force.  Keep preservation visible in the proposal's non-goals, implementation tasks, and regression
+evidence.  If VIN work changes the accepted unit-number contract after all, revise the proposal and
+write a complete `MODIFIED` requirement for that behavior.
+
+The frontend delta might separate mode selection from mode-specific validation:
+
+```markdown
+## ADDED Requirements
+
+### Requirement: Select a search mode
+
+The interface SHALL let the user choose unit-number or VIN search mode.
+
+#### Scenario: User selects VIN mode
+
+- **WHEN** the user selects VIN mode
+- **THEN** the interface applies the reviewed VIN input and validation behavior
+
+#### Scenario: User returns to unit-number mode
+
+- **WHEN** the user selects unit-number mode
+- **THEN** the interface applies the accepted unit-number behavior
+
+### Requirement: Validate a VIN search
+
+The interface SHALL accept a full 17-character VIN for submission.
+
+#### Scenario: VIN is not 17 characters
+
+- **WHEN** the user attempts to submit a VIN with fewer or more than 17 characters
+- **THEN** the interface prevents submission and shows the reviewed validation feedback
+```
+
+Would switching modes clear the input, retain it, or revalidate it?  Would the visible label and
+accessible name change with the selected mode?  Would a VIN result show the same fields as a
+unit-number result?  Each answer could affect a user-visible scenario, so unanswered cases should
+remain open rather than falling into component code by accident.
+
+## Design the contract handoff
+
+The backend should continue to own the wire contract.  After implementing the reviewed VIN API
+behavior, generate or update the OpenAPI document and compare it with the delta before publishing
+it to the frontend repository.
+
+At minimum, inspect:
+
+- how the operation distinguishes VIN from unit-number search;
+- whether the VIN constraint appears in the request schema;
+- which success, no-match, validation, and failure responses are documented; and
+- whether existing unit-number schemas or operations changed unexpectedly.
+
+Only then should the frontend regenerate its TypeScript client.  Editing generated code by hand
+might make a local build pass, but the next generation would erase the fix and conceal disagreement
+with the backend contract.
+
+This sequence need not block all frontend work.  The team could implement the mode control and
+local validation against the reviewed frontend delta while waiting for the contract.  Integration
+through the generated client, however, should wait until the backend-owned document has passed
+review.
+
+## Apply the change in dependency order
+
+A task list can make that partial parallelism visible:
+
+1. Add backend scenarios for valid VIN, invalid length, match, and the reviewed no-match behavior.
+2. Implement the VIN path without changing accepted unit-number behavior.
+3. Generate and inspect the OpenAPI document, including a diff of existing operations.
+4. Add the frontend mode control and mode-specific validation.
+5. Regenerate the Angular client from the reviewed OpenAPI document.
+6. Connect VIN submission and result handling through the generated client.
+7. Run focused backend, frontend, and browser checks for VIN and unit-number paths.
+
+At each step, compare the implementation with the relevant requirement.  Treat a checked task as a
+work record, not proof that the resulting behavior matches the delta.
+
+Copilot may suggest consolidating both search modes behind one helper or component state model.
+Before accepting the refactor, check whether the abstraction preserves each mode's validation and
+error rules.  Two explicit paths may be easier to verify when the only gain would be less repeated
+code.
+
+## Verify both the addition and the preservation claim
+
+How would the team know that the change remained additive?  Pair each new-path check with evidence
+from the accepted path at the boundary most likely to regress.
+
+| Claim | Focused evidence |
+|---|---|
+| A full 17-character VIN can be submitted | Backend boundary test and frontend validation test |
+| A VIN with the wrong length is rejected | API validation test and component feedback test |
+| A matching VIN reaches the expected result state | Backend search test and browser-to-backend test |
+| A valid VIN with no match follows the reviewed contract | API and frontend empty-state tests |
+| A user can change modes without stale validation | Component interaction test |
+| Existing unit-number behavior remains available | Existing backend, component, and integrated regression tests |
+| The repositories share one wire contract | Reviewed OpenAPI diff and regenerated-client diff |
+
+Run the narrow tests first.  If a VIN validation test fails, repair that boundary and rerun the
+same test before broadening the suite.  Once the focused checks pass, run the repository-configured
+test suites and the integrated path.
+
+Also inspect the diff, especially generated artifacts and existing unit-number files.  An
+unexpected change to a unit-number response type may reveal scope drift even when mocks allow both
+repositories to pass independently.
+
+::: {.callout-note}
+## Preservation needs named evidence
+
+“Unit-number search still works” would be difficult to review without scenarios and test output.
+Name the accepted paths that matter, then retain the commands or CI runs that exercised them.
+:::
+
+## Hands-on exercise
+
+Use the two lab repositories to propose, apply, verify, and archive VIN search.  Keep a compact
+change record that lets another reviewer follow the work without replaying the chat:
+
+```text
+Product change: add-vin-search
+Backend change: add-vin-search-api
+Frontend change: add-vin-search-ui
+Preserved capability: unit-number-search
+Contract handoff: <OpenAPI artifact or commit>
+Focused VIN evidence: <commands and results>
+Unit-number regression evidence: <commands and results>
+Cross-repository evidence: <browser test or recorded run>
+Open questions: <owners and blocking status>
+```
+
+Before applying either change, ask another reviewer to trace one VIN scenario from proposal to task
+and one unit-number scenario from accepted specification to regression evidence.  Any broken trace
+would suggest that the change is not ready for implementation.
+
 ## Verification checkpoint
 
-A change is generally ready to close when every ADDED requirement works and accepted unit-number
-behavior remains unchanged.  The evidence should cover the full 17-character VIN rule, mode
-selection, mode-specific validation, the backend contract, and the frontend path.  It should also
-include the regression tests for unit-number consumers.
+The pair of changes may be ready to archive when every reviewed VIN scenario has implementation and
+test evidence, both OpenSpec changes pass strict validation, and the integrated path uses the
+generated client from the reviewed contract.  The OpenAPI diff should contain the intended VIN
+extension without unexplained changes to existing unit-number behavior.
 
-If a test or review finds a contradiction, the change should stay open.  Update the delta or the
-implementation at the boundary where the behavior is wrong, then repeat the focused verification.
-The new VIN path working by itself would not be enough reason to archive the change.
+If verification exposes an unanswered product question, keep the changes open.  Revise the delta
+when the intended behavior was incomplete, or repair the implementation when it departed from the
+reviewed behavior.  Archiving should wait until both repositories describe the same feature and the
+preservation claim has evidence.
 
 ## What you learned
-A brownfield specification can grow one reviewed change at a time.  An additive delta can limit the
-new behavior, preserve accepted behavior explicitly, and give the backend and Angular frontend a
-shared contract to verify.
-shared contract to verify.
+
+Specify the VIN difference without rewriting the application's history.  Keep unchanged
+unit-number requirements in the accepted specification, then protect them through explicit scope,
+contract review, and regression evidence.
 
 ## Online references
 
-- [OpenSpec concepts](https://openspec.dev/docs/concepts)
-- [OpenAPI Specification](https://spec.openapis.org/oas/latest.html)
-- [Playwright test assertions](https://playwright.dev/docs/test-assertions)
+- [OpenSpec overview](https://github.com/Fission-AI/OpenSpec/blob/main/docs/overview.md)^[<https://github.com/Fission-AI/OpenSpec/blob/main/docs/overview.md>]
+- [OpenSpec guidance for existing projects](https://github.com/Fission-AI/OpenSpec/blob/main/docs/existing-projects.md)^[<https://github.com/Fission-AI/OpenSpec/blob/main/docs/existing-projects.md>]
+- [OpenAPI Specification](https://spec.openapis.org/oas/latest.html)^[<https://spec.openapis.org/oas/latest.html>]
+- [Playwright test assertions](https://playwright.dev/docs/test-assertions)^[<https://playwright.dev/docs/test-assertions>]

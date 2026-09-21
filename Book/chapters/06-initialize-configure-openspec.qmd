@@ -1,71 +1,321 @@
-
 # Initialize and Configure OpenSpec
+
+Running `openspec init` takes little time.  The harder part is deciding what the generated setup
+needs to teach an agent about the repository.
+
+Initialization places the OpenSpec project beside the code it describes and installs workflow
+files for the selected AI tool.  Configuration supplies the repository context used by those
+workflows.  Keeping these steps separate distinguishes generated OpenSpec guidance from rules the
+team owns.
 
 ## Learning objective
 
-This chapter walks through installing OpenSpec 1.13.1 and configuring both repositories with
-project context that the team can review and maintain in version control.
+By the end of this chapter, you will be able to initialize OpenSpec for GitHub Copilot, explain
+which files the CLI generates, and configure each lab repository with concise planning context.
+You will also review the resulting diff and decide whether the repository is ready for the
+exploration workflow in Chapter 7.
+
+## Begin at the repository root
+
+Chapter 5 established a clean baseline for `commercial-truck-search-api` and
+`commercial-truck-search-ui`.  Because initialization writes files into the current project, that
+baseline provides the comparison point for the changes that follow.  Running the command from a
+parent directory or the wrong terminal risks initializing the wrong folder.
+
+Before changing either repository, inspect the working directory and Git state:
+
+```bash
+pwd
+git status --short
+```
+
+Does the path identify the root of one lab repository?  Does an empty `git status --short` result
+match the baseline from Chapter 5?  If either answer is no, stop before running initialization.
+
+## Separate installation from initialization
+
+Install the OpenSpec CLI once on the machine, then initialize each repository separately.  The
+global installation can support both lab repositories, but each repository needs its own OpenSpec
+project and Copilot integration files.
+
+For the book's pinned version, install the package and check the executable:
+
+```bash
+npm install -g @fission-ai/openspec@1.13.1
+openspec --version
+```
+
+The second command needs to report `1.13.1` for the exercises in this book.  If another version
+appears, resolve the mismatch before generating files because CLI versions can install different
+workflow content.  The installation appendix covers operating-system-specific installation and
+PATH checks.
+
+::: {.callout-note}
+## A profile is not a technology stack
+
+The `core` profile selects the standard OpenSpec workflows, such as explore, propose, apply,
+update, sync, and archive.  It does not describe Java, Spring Boot, Angular, or the test tools in a
+repository.  Put those project facts in `openspec/config.yaml` after initialization.
+:::
 
 ## What initialization adds
 
-When you initialize a repository, OpenSpec generates GitHub Copilot integration files from a
-selected profile.  These files can keep repository-specific constraints close to the code they
-govern and make the configuration visible in version control.  That makes them a reasonable
-place to start, although the generated profile may still need repository-specific review.
+From a repository root, the following command selects GitHub Copilot without opening the
+interactive tool picker:
 
-## Install and inspect the CLI
+```bash
+openspec init --tools github-copilot --profile core
+```
 
-You can install the pinned OpenSpec package with npm.  It is worth checking that the CLI reports
-version 1.13.1 and inspecting the available commands before initializing either repository.
+OpenSpec creates an `openspec/` directory and installs Copilot workflow files under `.github/`.
+The workflow count depends on the selected profile and OpenSpec version, so review the command
+summary rather than assuming a fixed count.
 
-It helps to keep two maintenance actions separate:
+A newly initialized repository resembles this simplified tree:
 
-- Upgrade the package when the team changes the OpenSpec CLI version.
-- Run `openspec update` when the team needs to refresh repository integrations from the installed
-	package.
+```text
+repository-root/
+|-- .github/
+|   |-- prompts/
+|   `-- skills/
+|-- openspec/
+|   |-- config.yaml
+|   |-- specs/
+|   `-- changes/
+|       `-- archive/
+`-- ...
+```
+
+The directories have different jobs:
+
+| Path | Intended role | Review question |
+|---|---|---|
+| `openspec/config.yaml` | Repository context, artifact rules, and operation guidance | Does this describe this repository rather than the whole product? |
+| `openspec/specs/` | Accepted behavior after changes have been archived or synchronized | Is it empty for this new baseline? |
+| `openspec/changes/` | Proposed work that has not yet entered the accepted specifications | Is it empty before Chapter 8? |
+| `.github/skills/` | OpenSpec workflows GitHub Copilot may select as skills | Did initialization install the expected workflow set? |
+| `.github/prompts/` | Prompt files exposed by supported Copilot IDE integrations | Does the IDE discover them after a restart? |
+
+Do not use initialization to invent accepted product behavior.  Empty `specs/` and `changes/`
+directories are the expected result for these lab repositories.  Later chapters add content
+through reviewed changes.
+
+## Configure context that can affect every change
+
+OpenSpec reads `openspec/config.yaml` when a workflow asks the CLI for artifact or operation
+instructions.  The `context` field reaches proposal, specification, design, task, apply, and
+archive work.  Reserve it for facts that belong in every one of those prompts.
+
+Useful context answers questions that source inspection alone may not settle:
+
+- Which repository boundary does this project own?
+- Which contract does it publish or consume?
+- Which verification commands should planned work include?
+- Which generated files should an agent avoid editing by hand?
+- Which architectural or product constraints should shape every change?
+
+Avoid turning `config.yaml` into a second README.  File locations that an agent can discover,
+temporary implementation details, and lengthy style guides consume context without improving a
+plan.  Prefer a short repository-specific rule to a page of general advice.
 
 ## Configure the backend repository
 
-In the backend repository, you can initialize GitHub Copilot support with the profile that covers
-Java, Spring Boot, Maven, JPA, H2, testing, and OpenAPI ownership.  Before committing the
-generated files, review them to see whether the repository-specific rules describe the backend
-rather than the frontend.
+Use the backend OpenSpec project to describe the boundary owned by
+`commercial-truck-search-api`.  Its context identifies the service stack, the OpenAPI ownership
+rule, and the checks required before a task is complete.
+
+After initialization, revise `openspec/config.yaml` toward a compact form such as this:
+
+```yaml
+schema: spec-driven
+
+context: |
+  Repository: commercial-truck-search-api
+  Tech stack: Java 21, Spring Boot 4.1.1, Maven, Spring Data JPA, and H2.
+  This repository owns API behavior and the reviewed OpenAPI contract.
+  Backend changes should preserve the existing controller, service, and persistence boundaries.
+
+rules:
+  specs:
+    - Describe observable API behavior without prescribing Java implementation details.
+    - Include scenarios for validation, successful results, no match, and relevant errors.
+  tasks:
+    - Include automated tests and OpenAPI publication when a contract changes.
+
+operations:
+  apply:
+    guidance:
+      - Run the repository's Maven tests before marking implementation tasks complete.
+```
+
+Treat this example as a starting point, not verified repository configuration.  Confirm every
+version, command, and ownership statement against the Chapter 5 baseline before committing it.  If
+the repository uses a Maven wrapper, name that checked-in command rather than a machine-wide Maven
+executable.
+
+Notice what the example leaves out.  Frontend rendering rules do not belong here, and the future
+unit-number endpoint has not yet been specified.  Configuration can establish planning boundaries
+without deciding the behavior of a change that the team has not explored.
 
 ## Configure the frontend repository
 
-In the frontend repository, you can initialize GitHub Copilot support with the profile that
-covers Angular, the generated client, Vitest, component tests, and Playwright.  Backend
-implementation rules generally belong in the backend repository.  The frontend consumes the
-backend contract, but it does not own the backend implementation.
+The frontend project needs different context because it owns user interaction and consumes the
+generated TypeScript client.  Copying the backend configuration would give Copilot the wrong
+ownership model even though both repositories support the same product.
+
+A starting configuration could look like this:
+
+```yaml
+schema: spec-driven
+
+context: |
+  Repository: commercial-truck-search-ui
+  Tech stack: Angular 21, TypeScript, Vitest, component tests, and Playwright.
+  This repository owns user interaction and consumes a generated TypeScript API client.
+  Do not edit generated client files by hand or redefine the backend wire contract here.
+
+rules:
+  specs:
+    - Describe user-visible behavior, including loading, empty, validation, and error states.
+    - Refer to the backend contract as a dependency rather than duplicating its schema.
+  tasks:
+    - Include the appropriate unit, component, or browser test for each behavior change.
+
+operations:
+  apply:
+    guidance:
+      - Run the repository's configured frontend tests before marking tasks complete.
+```
+
+This configuration should not make the generated client a source of product decisions.  The
+backend owns the OpenAPI contract, while the frontend can record how it uses that contract and how
+the browser should respond to each state.  If a frontend proposal needs a response field that the
+contract does not provide, the missing field should return to the backend change for review.
+
+## Understand generated files and team-owned context
+
+The workflow files under `.github/` come from the installed OpenSpec package.  Review and commit
+them, but avoid hand-editing generated instructions.  A later `openspec update` could replace or
+conflict with local edits.
+
+The repository context in `openspec/config.yaml` carries a different responsibility.  OpenSpec
+creates the file, but the team supplies and reviews the facts inside it.  Divide ownership this
+way:
+
+| Material | Primary source | Maintenance action |
+|---|---|---|
+| Workflow instructions and prompt files | Installed OpenSpec package | Refresh with `openspec update` |
+| Workflow selection and delivery preference | OpenSpec profile on the developer machine | Change the profile, then update each repository |
+| Repository planning context and rules | Repository team | Edit and review `openspec/config.yaml` |
+| Accepted behavior and active changes | Product and engineering review | Change through the OpenSpec workflow |
+
+This distinction prevents two common mistakes: placing repository architecture in generated
+prompt files and expecting a global profile to describe a particular codebase.
+
+## Review initialization as a code change
+
+Initialization deserves the same diff review as any other repository-wide tool addition.  Because
+plain `git diff` omits untracked files, stage the generated files before reviewing their content:
+
+```bash
+git status --short
+git add openspec '.github/skills/openspec-*' '.github/prompts/opsx-*.prompt.md'
+git diff --cached -- openspec '.github/skills/openspec-*' '.github/prompts/opsx-*.prompt.md'
+```
+
+During review, ask:
+
+1. Did OpenSpec write into the intended repository root?
+2. Does `openspec/config.yaml` name only facts that apply to this repository?
+3. Do backend rules stay out of the frontend project, and vice versa?
+4. Are accepted specifications and active changes still empty at this stage?
+5. Did initialization overwrite an existing team-owned Copilot file?
+6. Can another developer understand which files come from OpenSpec and which context the team must maintain?
+
+Re-running `openspec init` refreshes files in an initialized project, but still review the diff.
+When an installed CLI or profile changes, use the direct maintenance command:
+
+```bash
+openspec update
+```
+
+The update command refreshes configured workflow files from the installed CLI.  Review those
+changes before committing them, especially when the team changes the pinned OpenSpec version.
+
+## Verify the initialized repositories
+
+Run the following checks from each repository root:
+
+```bash
+openspec --version
+openspec doctor
+openspec list --specs
+openspec list
+git status --short
+```
+
+At this point in the lab, expect version `1.13.1`, a health report with the intended OpenSpec root,
+no accepted specifications, and no active changes.  The Git output should list only the
+initialization and configuration files you intend to commit.
+
+`openspec validate --all` checks discovered changes and specifications, but an empty project has no
+such artifacts yet.  A successful empty validation confirms only that OpenSpec found no invalid
+item.  It does not verify the accuracy of the repository context; reviewers must do that.
+
+Restart VS Code or IntelliJ IDEA after initialization so the IDE can discover newly installed
+Copilot prompt files.  Then confirm that the expected OpenSpec workflows appear in Copilot Chat.
+If the terminal commands work but the chat entries do not appear, investigate IDE discovery before
+changing the OpenSpec project structure.
 
 ## Hands-on exercise: initialize both repositories
 
-You can use the parallel VS Code and IntelliJ IDEA instructions to initialize and configure both
-repositories.  Performing the same repository operations in each IDE may help distinguish an IDE
-integration problem from an OpenSpec configuration problem.
+Work through the same sequence once for `commercial-truck-search-api` and once for
+`commercial-truck-search-ui`:
 
-## Verification checkpoint: inspect the result
+1. Confirm the repository root and clean baseline.
+2. Verify that the CLI reports version `1.13.1`.
+3. Run `openspec init --tools github-copilot --profile core`.
+4. Inspect the generated tree and command summary.
+5. Edit `openspec/config.yaml` with the repository's own context, artifact rules, and apply guidance.
+6. Stage only the generated OpenSpec files and review them with `git diff --cached`.
+7. Run the verification commands and restart the IDE.
+8. Commit each repository's initialization separately so later feature changes have a clean boundary.
 
-For a newly initialized repository, consider running the version, status, validation, and health
-checks that apply.  These checks should let you confirm that:
+Compare the two `config.yaml` files before committing.  Their shared schema and workflow look
+similar, but their ownership statements, testing guidance, and generated-code boundaries are not
+interchangeable.
 
-- the CLI reports OpenSpec 1.13.1;
-- each repository has the expected generated integration files;
-- validation accepts the generated configuration; and
-- the health check reports a usable initialization.
+## Verification checkpoint
 
-Reviewing the generated diff before committing can show what initialization added.  The
-repository instructions can then remain the team-owned description of local constraints.
+Before moving to exploration, could you answer each question from repository evidence?
+
+- Which OpenSpec version generated the workflow files?
+- Which GitHub Copilot skills and prompt files did initialization add?
+- Which facts in `config.yaml` will reach every planned change?
+- Which artifact rules apply only to specifications or tasks?
+- Which repository owns the OpenAPI contract?
+- Which repository owns user-visible behavior and consumes the generated client?
+- Does `openspec doctor` resolve the intended root?
+- Are `openspec/specs/` and `openspec/changes/` still free of invented feature behavior?
+
+If an answer remains uncertain, revise the configuration or record the open question before asking
+Copilot to explore the unit-number search.  A workflow can follow the context it receives, but it
+cannot repair an ownership rule the repository never stated.
 
 ## What you learned
 
-OpenSpec generates the integration files, while the team can retain ownership of the
-repository-specific constraints and their review.  When the CLI version changes, the team can
-upgrade the package.  When it needs to refresh integrations from the installed version, it can run
-`openspec update`.
+Initialization can establish the OpenSpec directory structure and install GitHub Copilot workflow
+files.  Configuration can then tell those workflows what the repository owns, which constraints
+should shape its artifacts, and how implementation work should be checked.
+
+With separate backend and frontend contexts under version control, Chapter 7 can begin exploration
+without asking one repository to speak for the other.
 
 ## Online references
 
-- [OpenSpec installation](https://openspec.dev/docs/installation)
-- [OpenSpec CLI reference](https://openspec.dev/docs/cli)
-- [OpenSpec supported tools](https://openspec.dev/docs/supported-tools)
+- [OpenSpec installation](https://openspec.dev/docs/installation)^[<https://openspec.dev/docs/installation>]
+- [Set up an OpenSpec project](https://openspec.dev/docs/setup)^[<https://openspec.dev/docs/setup>]
+- [OpenSpec project configuration](https://openspec.dev/docs/project-config)^[<https://openspec.dev/docs/project-config>]
+- [OpenSpec profiles](https://openspec.dev/docs/profiles)^[<https://openspec.dev/docs/profiles>]
+- [OpenSpec CLI reference](https://openspec.dev/docs/cli)^[<https://openspec.dev/docs/cli>]
+- [OpenSpec supported tools](https://openspec.dev/docs/supported-tools)^[<https://openspec.dev/docs/supported-tools>]

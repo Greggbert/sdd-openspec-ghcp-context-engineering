@@ -1,48 +1,289 @@
 # Engineering Context for GitHub Copilot
 
+Suppose you ask Copilot to add unit-number search to a Spring Boot service and its Angular client.  You could attach the Jira story, both repositories, an architecture guide, several production logs, the OpenAPI document, and every test under `src`.  Copilot would receive plenty of information, but the relevant constraints would be harder to find.
+
+A smaller package might work better: the active OpenSpec change, the existing search endpoint, the generated-client boundary, and the commands that verify each repository.  Let the agent search outward when those sources expose a gap.  This approach treats context as a budget to allocate rather than a pile to maximize.
+
 ## Learning objective
 
-Explore how a bounded context package might help GitHub Copilot recover the right constraints across sessions in VS Code and IntelliJ IDEA.
+Build a bounded context package that preserves intent across a long-running change without crowding the selected model's context window.  Decide what belongs in repository instructions, OpenSpec artifacts, a chat session, or a Markdown handoff, then carry that package between VS Code, IntelliJ IDEA, and GitHub Copilot CLI.
 
-## How context engineering supports SDD
+## Context engineering in an SDD workflow
 
-- Store stable repository facts in repository instructions.
-- Store repeatable workflows in prompt files and Agent Skills.
-- Store change-specific intent in OpenSpec artifacts.
-- Consider keeping transient exploration in chat until the team accepts it as part of the project context.
+Context engineering asks a practical question: what information should the model receive for this decision, in what form, and for how long?  Prompt wording still matters, but the prompt forms only one part of the request.  Copilot may also receive system instructions, repository customizations, conversation history, editor state, explicit file references, tool definitions, and tool output.  VS Code documents this assembly process in its [context guide](https://code.visualstudio.com/docs/agents/concepts/context)^[<https://code.visualstudio.com/docs/agents/concepts/context>].
 
-## Context limits and failure modes
+That larger definition fits SDD well.  Instead of asking a chat transcript to remember the change, give each kind of information an owner:
 
-- Examine how context-window competition, stale context, accidental omission, and conflicting instructions can affect Copilot's output.
-- Consider the difference between adding more context and providing better-scoped context.
-- Trace how duplicated rules can drift when they live in multiple files.
+| Information | Suggested owner | Expected lifetime |
+|---|---|---|
+| Java, Angular, naming, and validation conventions | Repository or path-specific instructions | Many changes |
+| Accepted business behavior | `openspec/specs/` | Until a later archived change modifies it |
+| Proposed behavior and technical choices | Active OpenSpec `proposal.md`, delta specs, and `design.md` | Life of the change, then archive |
+| Remaining implementation work | Active OpenSpec `tasks.md` | Life of the change |
+| Reusable multi-step procedure | Agent Skill | Many sessions when invoked |
+| Current hypothesis, recent evidence, and next action | Focused chat or reviewed handoff file | Hours or days |
 
-## Repository instructions
+Put facts that a future developer will need in an accepted spec, architecture record, or repository instruction.  Keep implementation-specific facts in the active change or handoff.  Evidence from one failed-test investigation can remain in chat unless the investigation must survive a session boundary.
 
-- Describe the stack, architecture, testing requirements, and generated-code constraints.
-- Consider how backend rules might be separated from frontend rules.
-- Compare how VS Code and IntelliJ IDEA discover and use repository instructions.
+This separation may feel slower than pasting everything into one prompt.  It usually asks for more judgment at the beginning.  In return, each new session can recover intent from named artifacts rather than from a transcript whose useful parts have become hard to distinguish from abandoned ideas.
 
-## Prompt files and Agent Skills
+## Treat the context window as shared space
 
-- Consider which reusable commands belong in prompt files.
-- Consider which multi-step domain workflows belong in Agent Skills.
-- Examine how generated OpenSpec integrations work and when `openspec update` might be appropriate.
+A context window limits how much information a model can process in one request.  Your current prompt does not get the whole window.  System instructions, custom instructions, chat history, attached files, source snippets, tool schemas, terminal output, and space reserved for the response all compete for it.
+
+More context can therefore make an answer worse.  An obsolete design note might conflict with the accepted delta spec.  A large log could push an earlier decision toward compaction.  A folder attachment might bury the one validation rule that the implementation must preserve.  Even relevant information has a cost when the model must repeatedly process it.
+
+Evaluate each candidate source with four questions:
+
+1. Does it affect the next decision or the requested output?
+2. Is it more authoritative than another source already present?
+3. Is it current, or could it describe behavior the team has replaced?
+4. Could Copilot retrieve it later with a focused search instead of receiving it now?
+
+Attach the source when the first three answers support it and retrieval would add avoidable uncertainty.  Leave it discoverable when only a small part might become relevant.  Remove or label it when its authority or freshness remains unclear.
+
+::: {.callout-warning}
+## A large context window does not resolve contradictions
+
+A model with room for both an old design and a new specification still has to choose between them.  State which source wins, remove the stale source, or revise the artifacts before implementation.
+:::
+
+### Start with the smallest authoritative package
+
+For the unit-number search change, an initial implementation request might include:
+
+- The active OpenSpec proposal, delta spec, design, and tasks.
+- The current controller or route that owns nearby search behavior.
+- The OpenAPI contract and the frontend service that consumes the generated client.
+- The narrow backend and frontend test commands.
+
+Avoid attaching every controller, component, test, and generated client file.  Ask the agent to inspect the named starting points and search for adjacent code before editing.  VS Code's semantic index can find relevant snippets without sending the entire workspace to every model request, while IntelliJ IDEA and Copilot CLI can use their own file references and agent tools to expand the working set as evidence requires.
+
+A bounded request might read:
+
+``` text
+Implement the next unchecked task in the active add-unit-number-search change.
+Treat its delta spec as the behavioral authority and design.md as the technical
+boundary.  Start with the existing truck search endpoint and generated Angular
+client.  Search for adjacent tests before editing.  Do not change generated files.
+Run the narrow backend or frontend test named in tasks.md, then report the
+scenario covered by the result.
+```
+
+Notice what this prompt does not repeat.  It points to durable context instead of copying the requirements, architecture rules, and task list into chat.  A correction to an artifact can then affect the next request without leaving a second version embedded in the transcript.
+
+## Choose a model with the task and window in mind
+
+The selected model affects more than tone or coding style.  Models may differ in context-window size, reasoning behavior, latency, supported inputs, and token price.  VS Code's context-window control reports the capacity available for the selected model, while Copilot CLI's `/model` picker may offer a default or long-context tier for models that support one.  GitHub's [model comparison](https://docs.github.com/en/copilot/reference/ai-models/model-comparison)^[<https://docs.github.com/en/copilot/reference/ai-models/model-comparison>] changes as models enter and leave Copilot, so avoid encoding a permanent list of model names or limits in repository instructions.
+
+A routine one-file edit rarely needs the largest available window.  A faster model with focused context may finish at lower cost.  An architecture review that compares both repositories, a contract, and competing designs may justify stronger reasoning and a larger window.  Compare the total work required, including retries, rather than price or window size in isolation.
+
+Before beginning a long task, select the model, context tier, reasoning effort, and tools you expect to use.  Changing them later may alter available capacity, price, response behavior, or prompt-cache reuse.  In VS Code and IntelliJ IDEA, use the model picker in the chat panel.  In Copilot CLI, use `/model`; the picker can expose long-context options where the selected model supports them.
+
+Keep two cautions in view:
+
+- A larger window may postpone compaction, but it may also invite an unfocused session and cost more per token.
+- A stronger reasoning model may complete a hard task with fewer retries, while the same model may waste credits on mechanical edits.
+
+Use representative work from your repository to compare quality, retries, latency, and credit use.  Recheck those results as Copilot's model catalog and pricing change.
+
+## Expect long conversations to be compacted
+
+Conversation history cannot grow inside a fixed model window forever.  As a session approaches its limit, Copilot can replace older turns with a shorter summary.  That process, called context compaction, frees room for new prompts and tool results.  It does not preserve every earlier sentence.
+
+VS Code automatically compacts a conversation when its context window fills.  You can inspect usage through the context-window control or run `/compact` before the limit, with guidance such as:
+
+``` text
+/compact Retain the accepted API contract, rejected persistence approaches,
+failing test evidence, files changed, and the next unchecked OpenSpec task.
+```
+
+Copilot CLI also compacts automatically.  Its current documentation describes background compaction as beginning near 80 percent of the token limit, with a dynamic threshold when static instructions and tool definitions already occupy much of the window.  Use `/context` to inspect the window, `/compact` to request a focused summary, and `/session checkpoints` to inspect summaries created during the session.  See the [Copilot CLI context guidance](https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli/overview#context-management)^[<https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli/overview#context-management>].
+
+Do not treat automatic compaction as lossless memory.  A summary may omit the reason an approach was rejected, the exact output of a failing test, or a small constraint mentioned many turns earlier.  The chance of omission grows when the session mixes unrelated work.
+
+Protect the state that must survive before compaction occurs:
+
+- Start a new session when the task changes.
+- Compact manually at a stable checkpoint rather than waiting for a crowded window.
+- Tell the compactor what must survive.
+- Move accepted facts into the artifact that owns them.
+- Save a reviewed handoff before closing or switching tools.
+
+IntelliJ IDEA exposes chat history, file references, working sets, and plan handoff features, but its controls may not match VS Code or the CLI release for release.  Keep durable context in repository files rather than depending on a client-specific transcript feature.
+
+## Carry the working state forward in Markdown
+
+A chat summary belongs to the chat system.  A Markdown handoff belongs to the project and can be reviewed, diffed, attached to another session, or read from another client.  Use one when an investigation or implementation will cross a session, model, developer, or IDE boundary.
+
+Ask Copilot to draft the handoff, then verify every line against the repository and the active change.  A useful file might look like this:
+
+``` markdown
+# Unit-number search handoff
+
+Updated: 2026-09-21
+Change: `add-unit-number-search`
+
+## Current objective
+
+Complete the backend search task without changing the accepted API contract.
+
+## Sources of truth
+
+- Behavior: `openspec/changes/add-unit-number-search/specs/vehicle-search/spec.md`
+- Technical choices: `openspec/changes/add-unit-number-search/design.md`
+- Remaining work: `openspec/changes/add-unit-number-search/tasks.md`
+
+## Confirmed decisions
+
+- Unit-number matching uses the rule stated in the delta spec.
+- The backend owns the OpenAPI document.
+- The Angular client remains generated code.
+
+## Evidence
+
+- `TruckSearchControllerTest` passes for the existing search path.
+- The new no-match test fails because the repository query is not implemented.
+
+## Rejected or superseded approaches
+
+- Do not edit the generated TypeScript client by hand.
+- Do not introduce a second search endpoint.
+
+## Next action
+
+Implement the repository query, run the focused backend test, and update the
+matching checkbox in `tasks.md` only after the test passes.
+
+## Open questions
+
+- None for the current task.
+```
+
+Keep this file short.  Link to specifications and source files instead of duplicating them.  Record evidence with enough detail to reproduce it, and distinguish confirmed decisions from hypotheses.  Delete the handoff when it no longer helps, or update it when the next developer would otherwise follow stale instructions.
+
+A team might store the file at `docs/handoffs/<change-name>.md`, in a ticket-specific notes directory, or in another reviewed location outside generated output.  Agree on one convention.  If a handoff contains a lasting business rule, move that rule into the OpenSpec specification rather than allowing the handoff to become a shadow source of truth.
+
+To start the next session, reference the handoff and the active change:
+
+``` text
+Read docs/handoffs/add-unit-number-search.md and the linked OpenSpec artifacts.
+Verify that the handoff still matches the working tree and current test results.
+Then perform only the Next action.  Stop and report any contradiction before
+editing code.
+```
+
+That verification clause matters.  A durable file can carry context forward, but durability also lets mistakes persist.
+
+## Use each Copilot client deliberately
+
+The same repository artifacts can support all three clients, while the attachment and inspection controls differ.
+
+### VS Code
+
+VS Code can infer context from the active editor, selection, diagnostics, Git state, and workspace index.  Use `#` mentions or **Add Context** when a file, folder, symbol, issue, pull request, terminal result, or URL must be considered.  Attach a known source explicitly when omission would change the result; let workspace search discover ordinary neighboring code.
+
+The context-window control can show current token use and the selected model's capacity.  Use `/compact` for a focused summary, `/fork` when exploring an alternative that should inherit the current history, and a new session for unrelated work.  Check the response's references when you need to confirm which instructions and files informed it.
+
+Repository-wide rules may live in `.github/copilot-instructions.md` or `AGENTS.md`.  Path-specific `.instructions.md` files can apply only to Java, TypeScript, tests, or selected folders.  Keep always-on instructions short because they enter many requests.  VS Code's [custom-instructions guide](https://code.visualstudio.com/docs/agent-customization/custom-instructions)^[<https://code.visualstudio.com/docs/agent-customization/custom-instructions>] describes the current discovery rules.
+
+Prompt files can still encode reusable requests for VS Code's local agent, but current VS Code documentation marks them as deprecated for Agent Host sessions and recommends migration to Agent Skills.  Prefer a skill for a reusable, multi-step workflow that should load only when relevant.  Avoid moving change-specific requirements into a skill merely to make them reusable.
+
+### IntelliJ IDEA and other JetBrains IDEs
+
+Copilot Chat in IntelliJ IDEA can use the open file or selected code as implicit context.  Drag a file into the prompt, or right-click it and choose **GitHub Copilot > Reference File in Chat**, when the file must be part of the request.  In edit mode, keep the working set limited to files the change may modify.
+
+Use plan mode for a cross-cutting change, review the plan, and choose **Open in Editor** when you want the plan as Markdown.  Save a reviewed version in the repository when it should outlive the conversation.  The [Copilot Chat guide for JetBrains IDEs](https://docs.github.com/en/copilot/how-tos/chat-with-copilot/chat-in-ide?tool=jetbrains)^[<https://docs.github.com/en/copilot/how-tos/chat-with-copilot/chat-in-ide?tool=jetbrains>] covers file references, edit working sets, plan mode, and model selection.
+
+Repository instructions can give VS Code, JetBrains IDEs, Copilot CLI, and GitHub-hosted Copilot features a shared baseline, subject to each client's current support.  Inspect the response references instead of assuming an instruction file loaded.  Avoid placing client-specific button sequences in repository-wide coding rules.
+
+### GitHub Copilot CLI
+
+Start Copilot CLI from the narrowest directory that owns the task.  Add a file with `@relative/path`, inspect context use with `/context`, and check model and token statistics with `/usage`.  Use `/new` when changing topics and `/compact <focus>` when the current task should continue with less history.
+
+The CLI can resume sessions, but a resumed transcript still carries its earlier assumptions and compacted summaries.  A checked-in handoff and OpenSpec change may provide a cleaner restart than an old conversation.  Use `/share file` when you need a Markdown export of the session, then distill the useful facts rather than treating the full transcript as project documentation.
+
+Use `/instructions` to inspect discovered instruction files.  Keep `@file` references focused, and consider subagents for isolated exploration because each subagent has a separate context window and can return a concise result to the main session.  The [Copilot CLI command reference](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference)^[<https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference>] documents these commands and the current model options.
+
+## Understand caching without confusing it with memory
+
+Prompt caching may let a model provider reuse an unchanged prefix from a previous request.  That prefix can include stable system instructions, tool definitions, custom instructions, and earlier conversation content.  When supported by the provider and model, reuse may lower latency and the cost assigned to cached input tokens.
+
+Caching does not enlarge the context window.  It does not guarantee that Copilot will recall an omitted fact.  It also does not replace compaction or a handoff file.  The same tokens may remain part of the model request even when the provider can process them at a lower cached-input rate.
+
+GitHub's current token-based pricing converts input, output, cache-read, and, for some models, cache-write tokens into GitHub AI Credits.  The rates vary by model, and one AI credit represents $0.01 USD under that billing model.  Some annual plans may still use legacy request-based billing, so check the plan that applies to your account.  See [Models and pricing for GitHub Copilot](https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing)^[<https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing>].
+
+To improve cache reuse without weakening the request, choose the model, reasoning effort, context tier, instructions, and tool set before the session begins.  Keep stable instructions stable.  Avoid repeatedly replacing large attachments or changing the tool catalog between turns without a task-related reason.  Forking an existing VS Code session may preserve the earlier prompt prefix better than reconstructing it in a new chat.
+
+Do not optimize a cache-hit percentage at the expense of correctness.  A changed specification should invalidate the old context.  A required MCP tool should remain available even if its schema changes the prompt prefix.  VS Code's [Cache Explorer](https://code.visualstudio.com/docs/agents/agent-troubleshooting/cache-explorer)^[<https://code.visualstudio.com/docs/agents/agent-troubleshooting/cache-explorer>] can show where consecutive requests first diverge, but the documentation cautions that this comparison does not prove how the provider processed or billed the request.
+
+## Reduce context waste before it reaches the model
+
+Several small practices can keep the useful signal easier to recover:
+
+- Give each session one change or investigation.
+- Attach a precise file or symbol before attaching a folder or codebase.
+- Exclude generated output, dependencies, build directories, and noisy logs from search when they should not be discovered.
+- Keep tool catalogs narrow; every tool definition and result may consume context.
+- Run deterministic bulk work in a script or build tool, then return the concise result instead of many repetitive tool calls.
+- Use a subagent for independent research and ask for a sourced summary.
+- Ask Copilot to name the files, instructions, assumptions, and test evidence behind a recommendation.
+- Correct the owning artifact when a rule changes rather than repeating the correction in later prompts.
+- Start a fresh session when the accumulated history costs more than rebuilding a small context package.
+
+MCP servers can supply current data from issue trackers, documentation systems, or internal services.  Add one when the task needs information that the repository cannot contain or should not duplicate.  Limit enabled servers and tools to the current job; a large catalog consumes context before any tool runs and gives the agent more choices to evaluate.
+
+The same restraint applies to custom instructions.  A linter can enforce formatting without spending context tokens on a prose rule.  Source code can reveal an ordinary framework convention.  Reserve instructions for non-obvious constraints, commands, boundaries, and exceptions that Copilot would otherwise have to rediscover or might infer incorrectly.
 
 ## Hands-on exercise
 
-Try breaking one oversized Copilot prompt into stable instructions, reusable workflow guidance, and change-specific artifacts.
+Take one oversized prompt from your work or use the unit-number search example.  Break it into these layers:
+
+1. Move stable repository facts into `.github/copilot-instructions.md` or a path-specific instruction file.
+2. Move accepted and proposed behavior into the appropriate OpenSpec artifacts.
+3. Keep the current objective and evidence in a focused session.
+4. Attach only the files needed to begin, then let the agent search for adjacent code.
+5. Ask Copilot to draft a Markdown handoff using the template in this chapter.
+6. Review the handoff against the working tree, test output, and active OpenSpec change.
+7. Start a fresh session in another client and reference only the handoff and its linked artifacts.
+
+Ask the new session to state the current objective, authoritative sources, next action, and unresolved questions before editing.  If it cannot recover those facts without the old transcript, revise the durable artifacts or handoff rather than pasting the transcript into the new session.
+
+For a second pass, compare a focused and an overloaded run of the same bounded task.  Record the selected model, context use, tool calls, AI credits, retries, and verification result.  One run will not establish a universal rule, but it may expose noisy sources or missing instructions in your repository.
 
 ## Verification checkpoint
 
-Open a fresh session in each IDE.  Check whether the repository can reproduce the required constraints without the earlier transcript.
+Before handing implementation to Copilot, ask:
+
+- Does the session have one bounded objective and an observable completion condition?
+- Can every attached source affect the next decision?
+- Does each rule have one named owner, with stale or conflicting copies removed?
+- Could the selected model hold the required context with room for tools and output?
+- Have accepted decisions moved out of chat and into a durable artifact?
+- Would automatic compaction be allowed to omit anything that has not been saved?
+- Can another client recover the objective from the repository without the old transcript?
+- Did you inspect references, tests, and usage rather than infer that context was applied?
+
+An uncertain answer may call for a smaller task, a better artifact, or a new session.  Adding the whole repository rarely resolves that uncertainty.
 
 ## What you learned
 
-Decide which durable context source is smallest and most suitable for each kind of information.
+Treat context as a bounded input to each model request.  Keep stable rules in repository instructions, proposed behavior in OpenSpec, reusable procedures in skills, and short-lived evidence in a focused session.  Before a session boundary, move verified working state into a reviewed Markdown handoff.
+
+Model choice changes the available window, behavior, and price.  Compaction summarizes rather than preserving every detail, and caching reduces processing cost rather than creating memory.  Give Copilot the smallest current, authoritative package from which it can complete and verify the next task.
 
 ## Online references
 
-- [GitHub Copilot customization](https://docs.github.com/en/copilot/customizing-copilot)
+- [VS Code context engineering guide](https://code.visualstudio.com/docs/agents/guides/context-engineering-guide)
+- [VS Code context concepts](https://code.visualstudio.com/docs/agents/concepts/context)
+- [VS Code session and compaction management](https://code.visualstudio.com/docs/agents/run/sessions/manage-sessions)
+- [VS Code AI credit optimization](https://code.visualstudio.com/docs/agents/guides/optimize-usage)
+- [VS Code prompt-cache diagnostics](https://code.visualstudio.com/docs/agents/agent-troubleshooting/cache-explorer)
+- [GitHub Copilot Chat in JetBrains IDEs](https://docs.github.com/en/copilot/how-tos/chat-with-copilot/chat-in-ide?tool=jetbrains)
+- [GitHub Copilot CLI best practices](https://docs.github.com/en/copilot/how-tos/copilot-cli/cli-best-practices)
+- [GitHub Copilot CLI command reference](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference)
+- [GitHub Copilot model comparison](https://docs.github.com/en/copilot/reference/ai-models/model-comparison)
+- [GitHub Copilot models and pricing](https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing)
+- [GitHub Copilot repository custom instructions](https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions)
 - [OpenSpec supported tools](https://openspec.dev/docs/supported-tools)
 - [OpenSpec skills reference](https://openspec.dev/docs/skills)

@@ -181,6 +181,7 @@ Do not use these constructions.  Replace them with plain, direct language.
 - Formulaic "Challenges and Future Outlook" sections.  Integrate real constraints into the relevant discussion.
 - Outline-like bold-header bullet lists.  Avoid lists where every item is a label followed by a sentence that restates the label.
 - Em dash overuse.  Use commas, colons, and periods instead.
+- Overly declarative sounding sentences.
 
 ### Voice and Specificity
 - Use active voice.

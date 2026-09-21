@@ -1,100 +1,325 @@
 # Writing Requirements an Agent Can Test
 
+Imagine giving Copilot this Jira story:
+
+> Let users search for a truck by its 15-character unit number.
+
+What could the agent reasonably infer?  It might accept only letters and digits, trim spaces, ignore
+case, return one truck, return several trucks, or treat no match as an error.  Each choice could lead
+to coherent code and green tests.  None of those tests could tell the team whether the agent chose
+the intended behavior.
+
+Use OpenSpec to expose those choices before they disappear into implementation.  Record reviewed
+behavior in a requirement, make that behavior observable through scenarios, and use a delta to show
+how the proposal would change the accepted specification.  Then ask the agent to work from that
+bounded target rather than from the Jira sentence alone.
+
 ## Learning objective
 
-Write observable requirements and scenarios that constrain implementation without prescribing its
-REST endpoints, database queries, or Angular components.
+Write and maintain OpenSpec requirements whose scenarios could guide implementation, review, and
+verification without prescribing REST endpoints, database queries, or Angular components.
 
-## How SDD supports the objective
+## Start with the decisions hidden in the story
 
-An agent can turn an underspecified Jira story into a plausible implementation quickly.  That
-speed can make an unanswered question expensive: the agent might choose a validation rule, a
-matching strategy, or an error response before anyone notices the decision.
+Before asking an agent to draft a specification, mark every phrase that permits more than one
+reasonable interpretation.  For the running example, try questions such as these:
 
-One way to handle that risk is to move those decisions into a reviewable specification before
-implementation begins.  The requirements can describe behavior, the scenarios can make that
-behavior observable, and the design can record the technical choices needed to implement it.
-OpenSpec keeps those concerns in separate artifacts, which gives the agent something more stable
-than a chat transcript to work from.
+- Does `15-character` count leading or trailing spaces?
+- Which characters may appear?
+- Does `exact` include case?
+- Could more than one truck share the same unit number?
+- How should the system distinguish missing input, invalid input, and no match?
+- Which result fields may the user or client observe?
 
-The specification does not replace judgment.  When the team has not decided what should happen,
-it can be better to preserve that question for review than to hide an agent's guess in code.
+Do not turn unanswered questions into confident requirements.  Record an owner or a deliberate
+deferral instead.  An agent can draft alternatives, inspect existing behavior, and find related
+tests, but the team still has to choose product behavior.
 
-## From acceptance criteria to requirements
+A small decision table can keep that boundary visible:
 
-The running example starts with a Jira request for exact search by a 15-character truck
-unit number.  That sentence identifies the capability, but it does not describe every behavior
-that implementation and verification need.  Before creating the change, ask which inputs are
-valid, what happens when the input is missing or invalid, what a match returns, and what the user
-sees when no record matches.
+| Question | Status | Decision or next action |
+|---|---|---|
+| Required length? | Settled | Exactly 15 characters |
+| Match rule? | Settled | Exact match |
+| Allowed character set? | Open | Confirm with the system owner |
+| No-match response? | Open | Reconcile API and UI expectations |
 
-Once a decision is settled, turn it into a normative requirement.  `SHALL` or `MUST` can mark
-behavior that is required, while definitions can narrow terms that might otherwise invite
-different interpretations.  For example, the specification needs a shared meaning for
-`15 characters`, `exact match`, `missing`, and `invalid`.
+Do not implement from this table yet.  The open rows could still change validation, response
+handling, and tests, so preserve them as questions until someone with authority resolves them.
 
-Keep the requirement at the business-behavior level.  It might state that a valid unit number
-returns matching vehicles without requiring a particular controller method, SQL predicate,
-repository class, or Angular component.  Those choices can live in `design.md` and in the
-implementation tasks.
+::: {.callout-warning}
+## A testable sentence can still encode a guess
 
-## Scenario design
+"The system SHALL return 404 when no truck matches" can be tested, but testability does not make the
+choice correct.  Ask where the behavior came from before asking whether a test could prove it.
+:::
 
-Given/When/Then scenarios offer one way to turn a requirement into an observable check:
+## Write the requirement as a behavioral contract
 
-- `Given` establishes the relevant state and input.
-- `When` names the user or system action.
-- `Then` states the result that a reviewer, test, or running system can observe.
+Once the decisions have owners and answers, write the proposed difference in the active change's
+capability spec.  For a change named `add-unit-number-search`, the file might live here:
 
-For the unit-number search, scenarios might cover valid input, invalid input, a matching record,
-and no matching record.  A boundary scenario is most useful when the boundary represents required
-behavior, such as the difference between a 15-character value and a value that exceeds the
-allowed length.
+``` text
+openspec/changes/add-unit-number-search/
+`-- specs/
+	`-- vehicle-search/
+		`-- spec.md
+```
 
-It is useful to keep the scenarios independent of implementation.  A scenario can require that
-an invalid value is rejected without prescribing whether validation occurs in a controller,
-service, or Angular form.  That separation gives the team room to change the technical design
-without silently changing the agreed behavior.
+OpenSpec delta specs group requirements under `ADDED`, `MODIFIED`, `REMOVED`, or `RENAMED` sections.
+Each requirement needs at least one `#### Scenario:` block for validation to accept its structure,
+as described by the [OpenSpec CLI reference](https://openspec.dev/docs/cli)[^03-testable-requirements-1].
 
-## Tests can prove the wrong thing
+[^03-testable-requirements-1]: <https://openspec.dev/docs/cli>
 
-Green tests provide evidence that an assertion passed.  They do not, by themselves, show that the
-assertion came from an accepted requirement.  An agent might write a test around an unsupported
-assumption, make the implementation satisfy that test, and report success while the product
-behavior remains wrong.
+Suppose an agent converts only the two settled rows into a delta.  Its first draft might pass a
+structural check while still exposing gaps for review:
 
-Before applying the change, trace each scenario to an observable result.  During implementation,
-record which code and test provide that evidence.  If a test has no corresponding scenario, ask
-whether it protects a real requirement or merely reflects an implementation detail.  If a
-scenario has no evidence, the change may not be ready to verify.
+``` markdown
+## ADDED Requirements
+
+### Requirement: Search by unit number
+
+The system SHALL allow a user to search for trucks by an exact 15-character
+unit number.
+
+#### Scenario: Matching unit number
+
+- **GIVEN** a truck exists with unit number `TRUCK-000001234`
+- **WHEN** the user searches for `TRUCK-000001234`
+- **THEN** the system returns that truck
+```
+
+Read the requirement as a contract rather than a design sketch.  Test its boundary by replacing a
+Spring Boot controller with another delivery mechanism or changing the persistence layer.  Keep
+the wording in the spec when those substitutions would leave the promised behavior unchanged.
+
+Next, test the wording against the decision table.  The word `exact` still leaves case handling
+unclear, and `15-character` still leaves whitespace handling unclear.  The missing no-match
+scenario correctly reflects an open decision, but it also blocks implementation of that path.
+Treat the draft as structurally recognizable and behaviorally incomplete.
+
+## Give each scenario one job
+
+Treat a scenario as a small experiment against the requirement.  Establish only the state needed
+for the behavior, perform one action, and name an observable result.  Avoid turning the scenario
+into a transcript of controller calls, SQL execution, or component state changes.
+
+Use each clause to answer a different question:
+
+| Clause | Ask | Avoid |
+|---|---|---|
+| `GIVEN` | What state or input matters before the action? | Setup unrelated to the behavior |
+| `WHEN` | What does the user or system do? | A chain of implementation steps |
+| `THEN` | What could a test or reviewer observe? | Private methods or internal data structures |
+
+Compare these two scenarios:
+
+``` markdown
+#### Scenario: Search executes the repository query
+
+- **GIVEN** the controller receives a unit-number parameter
+- **WHEN** the service calls `findByUnitNumber`
+- **THEN** the repository executes an equality predicate
+```
+
+``` markdown
+#### Scenario: Matching unit number
+
+- **GIVEN** a truck exists with unit number `TRUCK-000001234`
+- **WHEN** the user searches for `TRUCK-000001234`
+- **THEN** the system returns that truck
+```
+
+Prefer the second version when a repository rename or a move away from Spring Data should leave the
+behavior unchanged.  It describes the result rather than the route taken to produce it.  Put the
+endpoint shape, repository strategy, and Angular component boundaries in `design.md` when they need
+review.
+
+### Cover decisions, not every imaginable input
+
+Build a scenario matrix from settled rules rather than from a generic checklist.  For unit-number
+search, the matrix might begin like this:
+
+| Decision boundary | Example | Observable result | Ready? |
+|---|---|---|---|
+| Exactly 15 characters | `TRUCK-000001234` | Search proceeds | Yes |
+| Fewer than 15 characters | `TRUCK-00001234` | Input is rejected | Only if rejection behavior is settled |
+| More than 15 characters | `TRUCK-0000001234` | Input is rejected | Only if rejection behavior is settled |
+| Existing exact value | Known unit number | Matching truck is returned | Yes |
+| Unknown exact value | Unknown unit number | Agreed empty result appears | Only after the no-match decision |
+
+Combine rows that produce the same behavior for the same reason.  Give a boundary its own scenario
+when it changes the contract or exposes a known risk.  Leave framework checks and repeated
+implementation details to lower-level tests rather than promoting them to product requirements.
+
+Avoid equating scenario count with confidence.  A dozen examples cannot repair an undefined term,
+and one carefully chosen boundary may constrain an agent better than several happy-path variations.
+
+## Let the agent draft without letting it decide
+
+Give Copilot the source decisions, the capability boundary, and a prohibition against filling gaps.
+A prompt for the first draft might look like this:
+
+``` text
+Draft the delta spec for add-unit-number-search from the attached decision
+table. Use ADDED requirements and Given/When/Then scenarios. Describe only
+observable behavior. Do not choose answers for open rows; list them after the
+draft as blockers. Do not name endpoints, classes, database queries, or Angular
+components.
+```
+
+Then review the output by tracing every normative word back to a source.  Where did `SHALL`,
+`exact`, `invalid`, `one`, or `all` come from?  If the source material does not support the word,
+remove it or return the question to its owner.
+
+Try asking the agent to challenge its own draft:
+
+``` text
+For each requirement and scenario, identify:
+1. a term with more than one plausible interpretation;
+2. an observable result that a test could assert;
+3. an implementation detail that should move to design.md; and
+4. an assumption not supported by the decision table.
+Do not rewrite the spec yet.
+```
+
+Do not treat that review as a replacement for a product owner, API owner, or developer.  Use it to
+make ambiguities easier to see, then return each decision to the responsible person.
+
+## Validate structure, then review meaning
+
+Run OpenSpec validation before handing the change to implementation:
+
+``` bash
+openspec validate add-unit-number-search --strict
+```
+
+The validator can catch structural faults such as a requirement without a scenario.  It cannot
+decide whether `exact match` means case-sensitive matching, whether an unknown unit number should
+produce an empty result, or whether the scenario reflects the Jira request.  Treat a clean command
+as evidence that OpenSpec could parse the artifact, not as approval of its product meaning.
+
+Use `show` when the parsed change needs inspection:
+
+``` bash
+openspec show add-unit-number-search --json --deltas-only
+```
+
+Compare the parsed output with every intended requirement and scenario.  If a heading level or
+section name prevents OpenSpec from recognizing one, fix the Markdown structure before continuing.
+Then return to human review for ambiguity, scope, and unsupported assumptions.
+
+## Connect scenarios to implementation evidence
+
+Before apply begins, create a lightweight trace from each scenario to the evidence you expect.  The
+links may live in `tasks.md`, a pull-request checklist, or the team's existing test plan; avoid
+duplicating the requirement text in all three places.
+
+| Specification item | Expected evidence | Status |
+|---|---|---|
+| Matching unit number scenario | Automated search result test | Ready for a backend test task |
+| No-match behavior | None until the team decides the result | Blocked |
+| Invalid-length boundary | No scenario defines the rejection yet | Return to the delta spec |
+
+Use this trace before implementation, not as a report written after the code.  Resolve the blocked
+and missing rows in the artifact that owns each decision.  During apply, ask the agent to report
+evidence against scenario names rather than merely reporting that "all tests pass."  Keep any
+scenario with no test or other observation visible as a verification gap.
+
+## Maintain the requirement when behavior changes
+
+Suppose a reviewed change resolves the earlier questions and the accepted specification now covers
+exact 15-character matching and no-match behavior.  Later, another change would allow leading and
+trailing spaces around user input.  Avoid appending a second, partly contradictory requirement.
+Use `MODIFIED` to restate the complete changed requirement and every scenario that should survive.
+
+``` markdown
+## MODIFIED Requirements
+
+### Requirement: Search by unit number
+
+The system SHALL ignore leading and trailing spaces around a search value and
+match the remaining value against an exact 15-character unit number.
+
+#### Scenario: Matching value surrounded by spaces
+
+- **GIVEN** a truck exists with unit number `TRUCK-000001234`
+- **WHEN** the user searches for `  TRUCK-000001234  `
+- **THEN** the system returns that truck
+
+#### Scenario: Matching unit number without surrounding spaces
+
+- **GIVEN** a truck exists with unit number `TRUCK-000001234`
+- **WHEN** the user searches for `TRUCK-000001234`
+- **THEN** the system returns that truck
+
+#### Scenario: No matching unit number
+
+- **GIVEN** no truck has unit number `TRUCK-000009999`
+- **WHEN** the user searches for `TRUCK-000009999`
+- **THEN** the system returns no matching trucks
+```
+
+Restate the complete block because archive needs enough information to replace the accepted
+requirement without dropping scenarios that should remain.  Match the existing requirement header
+exactly, then inspect the proposed difference with:
+
+``` bash
+openspec show trim-unit-number-search --diff
+```
+
+Read that diff as a behavioral review.  Confirm that the new wording changes only whitespace
+handling, that earlier scenarios remain, and that no implementation choice entered the contract.
+Resolve any discrepancy before archive updates the accepted spec.
+
+Once the implementation and evidence satisfy the reviewed delta, archive can merge the change into
+`openspec/specs/`.  The next agent can then read the current behavior without reconstructing it from
+old chats, Jira comments, or test names.  Keep the archived change when the team needs the proposal,
+design discussion, and task history that explain how the requirement changed.
 
 ## Hands-on exercise
 
-Rewrite the 15-character unit-number story as OpenSpec requirements and Given/When/Then scenarios.
-Separate the behavior from the technical design.  Record unresolved questions rather than
-choosing answers silently, then review the result with a partner before implementation.
+Turn the unit-number Jira story into a reviewable OpenSpec delta:
+
+1. Mark every ambiguous term in the story.
+2. Create a decision table with `Settled`, `Open`, or `Deferred` for each question.
+3. Draft one requirement using only settled decisions.
+4. Add scenarios for the agreed match, no-match, and validation boundaries.
+5. Ask an agent to find unsupported assumptions and implementation details.
+6. Run `openspec validate <change-name> --strict`.
+7. Map each scenario to expected test or runtime evidence.
+
+Swap drafts with a partner.  Could each of you derive the same observable behavior without agreeing
+on controller names, query methods, or component structure?  Where your interpretations differ,
+revise the requirement or return the question to the decision table.
 
 ## Verification checkpoint
 
-For each requirement, it helps to check four things:
+Before calling the requirement ready, ask:
 
-- The language has one interpretation.
-- The behavior can be observed without reading the implementation.
-- The requirement stays within the change's scope.
-- At least one meaningful scenario provides evidence for it.
+- Can every normative term be traced to an accepted decision?
+- Could a reviewer observe each scenario's result without reading private implementation details?
+- Does every requirement have at least one scenario that OpenSpec recognizes?
+- Do the scenarios cover the boundaries the team chose, rather than boundaries the agent invented?
+- Could the planned evidence fail when the specified behavior is wrong?
+- Would a future `MODIFIED` delta replace the requirement without losing behavior that should remain?
 
-Then inspect the scenarios as a set.  Together, they can cover the settled valid, invalid, match,
-and no-match behavior without adding technical choices that the requirements do not need.
+If one answer remains uncertain, keep the uncertainty visible.  A short blocker costs less than a
+precise implementation of the wrong rule.
 
 ## What you learned
 
-A requirement describes behavior the system must provide.  A scenario makes one behavior concrete
-and testable.  A design choice explains how the team plans to implement it.  A test provides
-evidence that an implemented behavior produced an expected result.  Keeping those roles distinct
-can give the agent a bounded target and give the team a way to review whether the target was met.
+Begin with decisions, not normative prose.  Turn settled behavior into a requirement, use scenarios
+as observable examples, and let OpenSpec expose the proposed difference from the accepted baseline.
+Validate the structure, review the meaning, and trace each scenario to evidence before apply.
+
+When behavior changes, revise the requirement through a complete delta and inspect what archive
+would carry forward.  That maintenance step gives later agents a current contract rather than a
+pile of tests whose original intent must be guessed.
 
 ## Online references
 
-- [OpenSpec documentation](https://openspec.dev/docs)
-- [Spring Boot testing reference](https://docs.spring.io/spring-boot/reference/testing/index.html)
-- [Angular testing guide](https://angular.dev/guide/testing)
+- [OpenSpec quickstart](https://openspec.dev/docs/quickstart)
+- [OpenSpec CLI reference](https://openspec.dev/docs/cli)
+- [OpenSpec `spec-driven` schema](https://openspec.dev/docs/schemas/spec-driven)

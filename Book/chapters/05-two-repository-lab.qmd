@@ -1,30 +1,140 @@
 # Preparing the Two-Repository Lab
 
 The exercises in Part II use two prepared repositories: `commercial-truck-search-api` and
-`commercial-truck-search-ui`.  The backend owns the OpenAPI contract, and OpenAPI Generator
-produces the TypeScript Angular client consumed by the frontend.  Before asking an agent to change
-behavior, you may want to establish a baseline for both repositories.  That gives you a way to
-distinguish an environment problem from a specification or implementation defect.
+`commercial-truck-search-ui`.  Although they support one product, each repository will keep its
+own `openspec/` folder, accepted specifications, active changes, and archive.
+
+A backend change and a frontend change may support the same user capability without making the
+same decisions.  In this lab, the backend owns API behavior and the OpenAPI contract.  The
+frontend owns the user's interaction with that contract and consumes a generated TypeScript
+Angular client.  This arrangement keeps each specification beside the code that can enforce and
+test it.
 
 ## Learning objective
 
-By the end of this chapter, you should be able to clone, inspect, build, test, and run both
-repositories.  You will also have a record of the tool versions, application ports, and clean
-commits that can help you repeat the later exercises.
+By the end of this chapter, you should be able to explain why each repository has a separate
+OpenSpec project, trace a full-stack change across the contract boundary, and establish a working
+baseline for both repositories.  Your baseline should record the tool versions, application ports,
+verification commands, and clean commits needed to repeat the later exercises.
 
-## How the lab supports the objective
+## One product, two specification histories
 
-- You can use the prepared repositories to keep the exercises focused on SDD rather than project
-  scaffolding.
-- You can keep an independent OpenSpec history beside each codebase.
-- The backend can remain the API owner while the frontend client is generated from that contract.
+After initialization in the next chapter, the repositories should have parallel OpenSpec
+structures.  A simplified view might look like this:
+
+```text
+commercial-truck-search-api/
+|-- openspec/
+|   |-- specs/
+|   `-- changes/
+|       `-- archive/
+|-- src/
+`-- ...
+
+commercial-truck-search-ui/
+|-- openspec/
+|   |-- specs/
+|   `-- changes/
+|       `-- archive/
+|-- src/
+`-- ...
+```
+
+The matching folder names do not imply shared contents.  In the backend repository,
+`openspec/specs/` may describe accepted API behavior such as valid search input, response shapes,
+and error semantics.  In the frontend repository, the same path may describe accepted user
+behavior such as form validation, loading feedback, result presentation, and empty or error
+states.
+
+Each `openspec/changes/` directory can hold work for its repository.  A backend change may include
+tasks for a controller, service, persistence query, tests, and OpenAPI publication.  Its frontend
+counterpart may include tasks for a form, generated-client integration, view states, and browser
+tests.  Neither change needs to carry the other's implementation plan.
+
+Two change folders can drift in names, assumptions, or timing.  Explicit ownership and a recorded
+dependency can expose that drift without copying the same requirement into both repositories.
+
+## Let the contract cross the boundary
+
+For the later unit-number search, the work might move through the repositories in this order:
+
+1. Explore the user capability across both repositories.
+2. Create linked backend and frontend OpenSpec changes.
+3. Let the backend change define the observable API behavior and OpenAPI contract.
+4. Let the frontend change define the user interaction and record its contract dependency.
+5. Implement and test the backend, then publish the reviewed OpenAPI document.
+6. Generate the TypeScript client, then implement and test the frontend behavior.
+
+This order leaves one owner for the wire contract while allowing both proposals to be reviewed
+before implementation.  The frontend specification can define the user experience and record its
+dependency without restating endpoint fields by hand.  If the frontend needs a field or error
+response that the contract does not provide, the team can revise the backend change before client
+generation.
+
+The relationship may be easier to remember as a dependency:
+
+```text
+linked OpenSpec changes
+  |
+  v
+backend implementation and reviewed OpenAPI contract
+  |
+  v
+generated TypeScript Angular client
+  |
+  v
+frontend implementation
+```
+
+Frontend exploration may expose a missing API decision before implementation begins.  The team can
+then resolve that decision in the backend change and regenerate the client instead of editing
+generated TypeScript or creating a competing frontend definition.
+
+## Decide where a statement belongs
+
+When a requirement touches both repositories, ask which codebase can verify and enforce it.  The
+answer may prevent a shared idea from becoming two independent rules.
+
+| Statement | OpenSpec owner | Reason |
+|---|---|---|
+| Which unit-number inputs the API accepts | Backend | The API validates the request boundary |
+| Which status and body represent no match | Backend | The OpenAPI contract exposes this behavior |
+| When the search control becomes available | Frontend | The UI owns the interaction |
+| What the user sees while a request runs | Frontend | The UI renders this state |
+| Which response fields the generated client exposes | Backend | The backend publishes the schema |
+| How response fields appear on the page | Frontend | The UI owns presentation |
+
+Some scenarios may need evidence in both repositories.  Invalid input, for example, could have a
+backend scenario for API enforcement and a frontend scenario for immediate feedback.  Each
+scenario can use the agreed meaning of valid input while describing behavior that its own
+repository can test.
+
+::: {.callout-warning}
+## Avoid a third source of truth
+
+A cross-repository planning note can link the two changes and record their order.  It should not
+become another specification of request fields, response codes, or UI behavior.  Put each lasting
+rule in the OpenSpec project that owns it, and let the OpenAPI document carry the wire contract.
+:::
+
+## Start from a known baseline
+
+Separate histories help only when you can tell what each change introduced.  Before initializing
+OpenSpec or asking Copilot to implement a feature, establish a baseline in both repositories.  A
+failed build at this point may indicate a toolchain or checkout problem.  The same failure after a
+change may indicate a regression.  Without the baseline, the two explanations can be difficult to
+separate.
 
 ## Backend baseline
 
-It may help to inspect the backend before changing it.  Check the versions and tools in use: Java
-21, Spring Boot 4.1.1, Maven, Spring Data JPA, and H2.  Locate the existing test conventions and
-application boundaries.  Also check whether truck search has been implemented.  Later chapters
-use its absence as the starting condition for the first feature.
+Inspect the backend before changing it.  Check the versions and tools in use: Java 21, Spring Boot
+4.1.1, Maven, Spring Data JPA, and H2.  Locate the existing test conventions, application
+boundaries, and OpenAPI source.  Also check whether truck search has been implemented.  Later
+chapters use its absence as the starting condition for the first feature.
+
+Record the command that builds the service, the command that runs its tests, and the port used when
+it starts.  Capture the current commit ID and check the working tree.  These details will give the
+backend OpenSpec tasks concrete verification targets in later chapters.
 
 ## Frontend baseline
 
@@ -33,31 +143,69 @@ Vitest, component-test, Playwright, and generated-client boundaries.  Record the
 and frontend ports from the prepared repositories.  The two applications may not use the same
 defaults in every environment.
 
+Find how the generated client enters the application and where its generated files live.  Treat
+that location as output rather than as the source of API decisions.  Record the frontend build,
+unit-test, and browser-test commands, along with the current commit ID and working-tree state.
+
+Keep the two baselines together in your lab notes, but record their commits and verification
+results separately.  A passing frontend test cannot establish that the backend contract is
+correct.  A passing backend test cannot show that the browser renders the intended state.
+
 ## VS Code and IntelliJ IDEA setup
 
 Open both repositories in VS Code or IntelliJ IDEA.  Check that GitHub Copilot Chat is available in
-the IDE you plan to use, then record which terminal, task runner, and project view you used for
-each command.  The commands and files remain the same, although each IDE exposes them differently.
-Keeping that difference visible can help separate an IDE problem from a repository problem.
+the IDE you plan to use.  A multi-root workspace may make both repositories visible at once, while
+separate windows may make the active repository boundary harder to miss.  Either arrangement can
+work if you check which repository owns the current chat context, terminal, and OpenSpec command.
+
+Record which terminal, task runner, and project view you used for each command.  The repository
+commands and files should remain the same even when each IDE exposes them differently.  Keeping
+that difference visible may help separate an IDE integration problem from a repository problem.
 
 ## Hands-on exercise
 
-Clone `commercial-truck-search-api` and `commercial-truck-search-ui`.  Build, test, and run both
-starter repositories without making a feature change.  You can leave OpenSpec uninitialized in
-this chapter; the next chapter uses the clean baseline to show what initialization adds.
+Clone `commercial-truck-search-api` and `commercial-truck-search-ui`, then work through each
+repository separately:
+
+1. Confirm the expected tool versions.
+2. Inspect the source, tests, and generated-client or OpenAPI boundary.
+3. Run the repository's build and existing tests.
+4. Start the application and confirm its local port.
+5. Record the commit ID and verify that the working tree remains clean.
+
+Next, sketch where the future unit-number search statements from the ownership table would belong.
+Do not create a proposal or implementation yet.  The purpose of the sketch is to check whether you
+can identify the backend-owned contract decisions and the frontend-owned interaction decisions
+before OpenSpec creates either repository structure.
+
+You can leave OpenSpec uninitialized in this chapter.  Chapter 6 uses the clean baselines to show
+what initialization adds to each repository.
 
 ## Verification checkpoint
 
-Record the baseline commands that succeed, along with the tool versions, known application ports,
-and commit IDs.  Before moving on, check that both repositories have passing existing tests and a
-clean working tree.  Those commits can serve as reset points for the later exercises.
+Before moving on, check that your notes answer these questions:
+
+- Which repository owns the OpenAPI contract?
+- Which repository will generate and consume the TypeScript client?
+- Where will accepted backend behavior and accepted frontend behavior live after initialization?
+- Which command builds and tests each repository?
+- Which ports and tool versions did you observe?
+- Which clean commit can serve as a reset point in each repository?
+
+Both repositories should build, their existing tests should pass, and their working trees should
+remain clean.  If one check fails, record the failure as a baseline issue before an agent changes
+code.  That record may keep an environment problem from being misread as an OpenSpec or
+implementation defect.
 
 ## What you learned
 
-A known baseline gives later failures a reference point.  If a starter repository does not build or
-its existing tests do not pass, fix or record that environment problem before an agent implements
-a feature.  That leaves the next chapter free to focus on configuring OpenSpec rather than
-debugging an unexamined starting state.
+The two repositories need coordination, but they do not need a shared implementation
+specification.  The backend OpenSpec project can govern the wire contract, and the frontend
+OpenSpec project can govern the interaction built on it.  The reviewed OpenAPI document connects
+them.
+
+With separate clean baselines recorded, Chapter 6 can initialize OpenSpec once for the backend's
+constraints and once for the frontend's.
 
 ## Online references
 
