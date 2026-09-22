@@ -1,0 +1,7 @@
+# Environment Setup and Troubleshooting
+
+{{< include installing-updating-openspec.qmd >}}
+
+{{< include a-lab-setup.qmd >}}
+
+{{< include troubleshooting-openspec.qmd >}}

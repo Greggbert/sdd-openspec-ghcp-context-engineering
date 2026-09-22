@@ -1,0 +1,7 @@
+# Workshop Resources
+
+{{< include b-prompt-workbook.qmd >}}
+
+{{< include c-artifact-checklists.qmd >}}
+
+{{< include d-instructor-guide.qmd >}}

@@ -1,48 +1,48 @@
-# Installing and Updating OpenSpec
+## Installing and Updating OpenSpec
 
-## Scope
+### Scope
 
 This appendix is intended to cover tested OpenSpec 1.13.1 installation and maintenance procedures for Windows 11 and macOS.  The operating-system differences should remain visible rather than being folded into one generic command sequence.
 
-## Before installation
+### Before installation
 
 - Readers should first confirm that Node.js 24.19.0 and npm are available.
 - The appendix should describe global npm package locations and the way PATH affects command discovery.
 - Teams may want to decide whether to pin OpenSpec 1.13.1 or allow controlled upgrades.
 
-## Install OpenSpec 1.13.1
+### Install OpenSpec 1.13.1
 
 - Windows 11 and macOS should have separate terminal instructions.
 - After installation, readers can verify the executable and its version.
 - The tested baseline should include the expected command output.
 
-## Inspect the installed version
+### Inspect the installed version
 
 - The appendix can show the OpenSpec version command.
 - It can also show how npm reports local and global package versions.
 - The CLI package version should be distinguished from repository-generated integration files.
 
-## Upgrade OpenSpec
+### Upgrade OpenSpec
 
 - Before changing the team baseline, readers should check the release notes.
 - The global npm package can then be upgraded.
 - The new version should be verified before any repositories are changed.
 
-## Update an existing repository
+### Update an existing repository
 
 - An existing repository can be updated with `openspec update`, using the intended profile and GitHub Copilot integration.
 - Before committing, readers should review changed instructions, prompt files, and Agent Skills.
 - Slash-command discovery should be retested in VS Code and IntelliJ IDEA.
 - The appendix should explain when `--force` may be appropriate and what needs review afterward.
 
-## Verification checklist
+### Verification checklist
 
 - From a new terminal, the expected CLI version should run.
 - Both repositories should report healthy OpenSpec roots.
 - Generated GitHub Copilot files should match the selected profile.
 - Existing project-owned configuration and artifacts should remain intact.
 
-## Online references
+### Online references
 
 - [OpenSpec installation](https://openspec.dev/docs/installation)
 - [OpenSpec CLI reference](https://openspec.dev/docs/cli)

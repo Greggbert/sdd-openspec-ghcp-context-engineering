@@ -1,0 +1,9 @@
+# OpenSpec Reference
+
+{{< include appendix-a.qmd >}}
+
+{{< include appendix-b.qmd >}}
+
+{{< include appendix-c.qmd >}}
+
+{{< include appendix-d.qmd >}}

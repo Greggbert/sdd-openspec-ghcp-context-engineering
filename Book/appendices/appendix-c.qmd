@@ -1,17 +1,17 @@
-# OpenSpec `schema.yaml` and Template Reference
+## OpenSpec `schema.yaml` and Template Reference
 
-OpenSpec uses Schemas to configure how an OpenSpec workflow executes. This appendix can help when you need to read or change an OpenSpec workflow. It covers the fields in `schema.yaml`, the dependency rules between artifacts, and the way templates become generated change files.
+OpenSpec uses Schemas to configure how an OpenSpec workflow executes.  This section can help when you need to read or change an OpenSpec workflow.  It covers the fields in `schema.yaml`, the dependency rules between artifacts, and the way templates become generated change files.
 
-## Schema fields
+### Schema fields
 
-An OpenSpec schema defines a planning workflow in YAML. It names the workflow, lists the artifacts it produces, and describes the handoff from planning to implementation. In the built-in `spec-driven` schema, the default sequence is explicit: `proposal` leads to `specs` and `design`, and `tasks` depends on both before implementation can begin.
+An OpenSpec schema defines a planning workflow in YAML.  It names the workflow, lists the artifacts it produces, and describes the handoff from planning to implementation.  In the built-in `spec-driven` schema, the default sequence is explicit: `proposal` leads to `specs` and `design`, and `tasks` depends on both before implementation can begin.
 
 The top-level fields are:
 
 | Field | Type | Required? | Effect |
 |-----------------|-----------------|--------------------:|-----------------|
-| `name` | string | Yes | Names the schema. OpenSpec uses the schema directory as the lookup key, even if this value differs. |
-| `version` | positive integer | Yes | Records the schema revision. It does not change OpenSpec behavior by itself. |
+| `name` | string | Yes | Names the schema.  OpenSpec uses the schema directory as the lookup key, even if this value differs. |
+| `version` | positive integer | Yes | Records the schema revision.  It does not change OpenSpec behavior by itself. |
 | `description` | string | No | Describes the workflow when schemas are listed. |
 | `artifacts` | non-empty list | Yes | Declares the planning artifacts and their dependencies. |
 | `apply` | mapping | No | Defines what must be complete before implementation starts and, optionally, which task file tracks progress. |
@@ -20,18 +20,18 @@ Each entry in `artifacts` defines one document or one set of documents:
 
 | Field | Type | Required? | Effect |
 |-----------------|-----------------|--------------------:|-----------------|
-| `id` | unique string | Yes | Identifies the artifact. Other artifacts and `apply` use this value in `requires`. |
-| `generates` | relative path or glob | Yes | Tells OpenSpec where the artifact is written inside the change folder. For example, `specs/**/*.md` can produce one spec per capability. |
+| `id` | unique string | Yes | Identifies the artifact.  Other artifacts and `apply` use this value in `requires`. |
+| `generates` | relative path or glob | Yes | Tells OpenSpec where the artifact is written inside the change folder.  For example, `specs/**/*.md` can produce one spec per capability. |
 | `description` | string | Yes | Labels the artifact in the guidance given to the agent. |
 | `template` | relative path | Yes | Selects the Markdown template under the schema's `templates/` directory. |
 | `instruction` | string | No | Gives the agent artifact-specific guidance, such as whether the document explains why, what, or how. |
-| `requires` | list of artifact IDs | No | Makes this artifact wait until the named artifacts are complete. The default is an empty list. |
+| `requires` | list of artifact IDs | No | Makes this artifact wait until the named artifacts are complete.  The default is an empty list. |
 
-It is useful to treat `requires` as a dependency graph rather than a suggested reading order. OpenSpec marks an artifact ready only after every dependency is complete. It rejects missing IDs, duplicate IDs, and dependency cycles. When several artifacts are ready at once, their order in `artifacts` determines which one OpenSpec returns first.
+It is useful to treat `requires` as a dependency graph rather than a suggested reading order.  OpenSpec marks an artifact ready only after every dependency is complete.  It rejects missing IDs, duplicate IDs, and dependency cycles.  When several artifacts are ready at once, their order in `artifacts` determines which one OpenSpec returns first.
 
-The `generates` value is relative to the active change directory. `proposal.md` therefore produces `openspec/changes/<change-name>/proposal.md`, while `specs/**/*.md` matches Markdown files below that change's `specs/` directory. Completion is structural: OpenSpec checks that the expected file exists, or that a glob matches at least one file. The check does not evaluate the document's content.
+The `generates` value is relative to the active change directory.  `proposal.md` therefore produces `openspec/changes/<change-name>/proposal.md`, while `specs/**/*.md` matches Markdown files below that change's `specs/` directory.  Completion is structural: OpenSpec checks that the expected file exists, or that a glob matches at least one file.  The check does not evaluate the document's content.
 
-The optional `apply` block controls the planning-to-implementation handoff. Its `requires` field names the artifacts that must exist before apply is ready. Its `tracks` field points to a relative Markdown file in the change directory, normally `tasks.md`. OpenSpec uses task checkboxes in that file to report whether work is blocked, ready, or complete. An optional `instruction` replaces the built-in guidance sent to the implementation agent.
+The optional `apply` block controls the planning-to-implementation handoff.  Its `requires` field names the artifacts that must exist before apply is ready.  Its `tracks` field points to a relative Markdown file in the change directory, normally `tasks.md`.  OpenSpec uses task checkboxes in that file to report whether work is blocked, ready, or complete.  An optional `instruction` replaces the built-in guidance sent to the implementation agent.
 
 The default workflow has this essential shape:
 
@@ -70,11 +70,11 @@ apply:
   tracks: tasks.md
 ```
 
-The example omits the longer agent instructions. The fields serve different purposes: `description` labels the artifact, `template` supplies its output shape, and `instruction` explains what the agent should produce. A changed dependency changes the workflow; a changed template changes the starting structure of every new artifact created from it.
+The example omits the longer agent instructions.  The fields serve different purposes: `description` labels the artifact, `template` supplies its output shape, and `instruction` explains what the agent should produce.  A changed dependency changes the workflow; a changed template changes the starting structure of every new artifact created from it.
 
-## Template structure
+### Template structure
 
-A schema directory contains `schema.yaml` and a `templates/` directory. OpenSpec resolves the `template` value in each artifact entry relative to that directory:
+A schema directory contains `schema.yaml` and a `templates/` directory.  OpenSpec resolves the `template` value in each artifact entry relative to that directory:
 
 ``` text
 openspec/schemas/spec-driven/
@@ -86,7 +86,7 @@ openspec/schemas/spec-driven/
     └── tasks.md
 ```
 
-Templates are Markdown skeletons rather than files copied into the change directory. OpenSpec gives the selected template to the agent as its expected output format. The agent fills that structure and writes the result at the path named by `generates`.
+Templates are Markdown skeletons rather than files copied into the change directory.  OpenSpec gives the selected template to the agent as its expected output format.  The agent fills that structure and writes the result at the path named by `generates`.
 
 In the default schema, the mapping is:
 
@@ -97,6 +97,6 @@ In the default schema, the mapping is:
 | `design` | `design.md` | `design.md` | Explains how the change will be implemented, including decisions, risks, and trade-offs. |
 | `tasks` | `tasks.md` | `tasks.md` | Breaks the implementation into ordered, checkable work items. |
 
-The `specs` entry is the exception to the one-file pattern. It allows a change to produce one delta specification for each capability named by the proposal. The proposal establishes the reason and scope, the spec files define behavior, the design records the technical approach, and the task list turns the plan into work the apply phase can track. Keeping these roles separate helps prevent implementation details from replacing requirements.
+The `specs` entry is the exception to the one-file pattern.  It allows a change to produce one delta specification for each capability named by the proposal.  The proposal establishes the reason and scope, the spec files define behavior, the design records the technical approach, and the task list turns the plan into work the apply phase can track.  Keeping these roles separate helps prevent implementation details from replacing requirements.
 
-When a team needs different documents or a different sequence, it can create a project schema under `openspec/schemas/<name>/`, edit `schema.yaml` and the matching templates, and run `openspec schema validate <name>` before using it. Forking the built-in `spec-driven` schema copies its schema definition, templates, and instructions into a project-owned directory. A custom template changes the structure of future artifacts; a schema dependency changes which artifacts can be drafted and when. Built-in schemas ship with OpenSpec, so forking one before editing it is preferable to modifying the package copy.
+When a team needs different documents or a different sequence, it can create a project schema under `openspec/schemas/<name>/`, edit `schema.yaml` and the matching templates, and run `openspec schema validate <name>` before using it.  Forking the built-in `spec-driven` schema copies its schema definition, templates, and instructions into a project-owned directory.  A custom template changes the structure of future artifacts; a schema dependency changes which artifacts can be drafted and when.  Built-in schemas ship with OpenSpec, so forking one before editing it is preferable to modifying the package copy.

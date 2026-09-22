@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.30">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>13&nbsp; Modifying Accepted Behavior – Spec-Driven Development with OpenSpec and GitHub Copilot</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/14-revise-in-flight-change.html" rel="next">
+<link href="../chapters/12-add-vin-search.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-b6a8276bf55561bdbc268162d41bd1f7.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-5ccb035bea26c1e21f80f44cf7c27909.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/13-modify-accepted-behavior.html">Part IV: Change Under Pressure</a></li><li class="breadcrumb-item"><a href="../chapters/13-modify-accepted-behavior.html"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Modifying Accepted Behavior</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">Spec-Driven Development with OpenSpec and GitHub Copilot</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Part I: Why Durable Intent Matters</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01-durable-intent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">From Chat Sessions to Durable Intent</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/02-openspec-operating-model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">The OpenSpec Operating Model</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/03-testable-requirements.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Writing Requirements an Agent Can Test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/04-context-engineering-copilot.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Engineering Context for GitHub Copilot</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Part II: Establishing the Greenfield Baseline</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/05-two-repository-lab.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Preparing the Two-Repository Lab</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/06-initialize-configure-openspec.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Initialize and Configure OpenSpec</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/07-explore-unit-number-search.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Exploring the Unit-Number Search</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08-propose-full-stack-change.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Proposing the First Full-Stack Change</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Part III: Applying and Evolving the Specification</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09-apply-spring-boot.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Applying the Spring Boot Change</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10-apply-angular.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Applying the Angular Change</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11-verify-sync-archive.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Verifying, Synchronizing, and Archiving</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12-add-vin-search.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Adding VIN Search to a Brownfield System</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Part IV: Change Under Pressure</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13-modify-accepted-behavior.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Modifying Accepted Behavior</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14-revise-in-flight-change.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Revising an In-Flight Change</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/15-parallel-changes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Coordinating Parallel Changes</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/16-team-practice.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Making SDD a Team Practice</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../summary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Summary</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/a-environment-setup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Environment Setup and Troubleshooting</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/b-openspec-reference.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">OpenSpec Reference</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/c-workshop-resources.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Workshop Resources</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#learning-objective" id="toc-learning-objective" class="nav-link active" data-scroll-target="#learning-objective"><span class="header-section-number">13.1</span> Learning objective</a></li>
+  <li><a href="#recognize-a-replacement" id="toc-recognize-a-replacement" class="nav-link" data-scroll-target="#recognize-a-replacement"><span class="header-section-number">13.2</span> Recognize a replacement</a></li>
+  <li><a href="#recover-the-accepted-baseline" id="toc-recover-the-accepted-baseline" class="nav-link" data-scroll-target="#recover-the-accepted-baseline"><span class="header-section-number">13.3</span> Recover the accepted baseline</a></li>
+  <li><a href="#separate-the-request-from-its-unanswered-questions" id="toc-separate-the-request-from-its-unanswered-questions" class="nav-link" data-scroll-target="#separate-the-request-from-its-unanswered-questions"><span class="header-section-number">13.4</span> Separate the request from its unanswered questions</a></li>
+  <li><a href="#write-the-proposal-around-the-behavioral-change" id="toc-write-the-proposal-around-the-behavioral-change" class="nav-link" data-scroll-target="#write-the-proposal-around-the-behavioral-change"><span class="header-section-number">13.5</span> Write the proposal around the behavioral change</a></li>
+  <li><a href="#replace-the-complete-requirement" id="toc-replace-the-complete-requirement" class="nav-link" data-scroll-target="#replace-the-complete-requirement"><span class="header-section-number">13.6</span> Replace the complete requirement</a></li>
+  <li><a href="#inspect-the-delta-before-implementation" id="toc-inspect-the-delta-before-implementation" class="nav-link" data-scroll-target="#inspect-the-delta-before-implementation"><span class="header-section-number">13.7</span> Inspect the delta before implementation</a></li>
+  <li><a href="#trace-one-rule-through-two-repositories" id="toc-trace-one-rule-through-two-repositories" class="nav-link" data-scroll-target="#trace-one-rule-through-two-repositories"><span class="header-section-number">13.8</span> Trace one rule through two repositories</a></li>
+  <li><a href="#apply-in-an-order-that-preserves-evidence" id="toc-apply-in-an-order-that-preserves-evidence" class="nav-link" data-scroll-target="#apply-in-an-order-that-preserves-evidence"><span class="header-section-number">13.9</span> Apply in an order that preserves evidence</a></li>
+  <li><a href="#verify-the-replacement-before-archive" id="toc-verify-the-replacement-before-archive" class="nav-link" data-scroll-target="#verify-the-replacement-before-archive"><span class="header-section-number">13.10</span> Verify the replacement before archive</a></li>
+  <li><a href="#hands-on-exercise" id="toc-hands-on-exercise" class="nav-link" data-scroll-target="#hands-on-exercise"><span class="header-section-number">13.11</span> Hands-on exercise</a></li>
+  <li><a href="#verification-checkpoint" id="toc-verification-checkpoint" class="nav-link" data-scroll-target="#verification-checkpoint"><span class="header-section-number">13.12</span> Verification checkpoint</a></li>
+  <li><a href="#what-you-learned" id="toc-what-you-learned" class="nav-link" data-scroll-target="#what-you-learned"><span class="header-section-number">13.13</span> What you learned</a></li>
+  <li><a href="#online-references" id="toc-online-references" class="nav-link" data-scroll-target="#online-references"><span class="header-section-number">13.14</span> Online references</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/13-modify-accepted-behavior.html">Part IV: Change Under Pressure</a></li><li class="breadcrumb-item"><a href="../chapters/13-modify-accepted-behavior.html"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Modifying Accepted Behavior</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Modifying Accepted Behavior</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>The unit-number search from the earlier chapters has already passed review, reached both repositories, and entered the accepted OpenSpec specification. Now suppose a product owner asks for a smaller limit: “Could unit numbers have a maximum of 10 characters instead of requiring 15?”</p>
+<p>That request may look like a one-line validation edit. Adding a second requirement, however, would leave two current rules for the same input: one requiring 15 characters and another allowing no more than 10. Developers, reviewers, and later Copilot sessions would have to guess which one wins.</p>
+<p>OpenSpec treats this situation as a modification. The change would identify the accepted requirement, provide its complete replacement, and preserve every scenario that should remain part of that requirement. After archive, the main specification should describe one current rule, without asking readers to reconstruct precedence from change dates.</p>
+<section id="learning-objective" class="level2" data-number="13.1">
+<h2 data-number="13.1" class="anchored" data-anchor-id="learning-objective"><span class="header-section-number">13.1</span> Learning objective</h2>
+<p>By the end of this chapter, you should be able to decide when a request modifies accepted behavior rather than adding a separate capability. You should also be able to write a complete <code>MODIFIED</code> requirement, trace its consequences through two repositories, and verify that archive would leave one coherent source of truth.</p>
+</section>
+<section id="recognize-a-replacement" class="level2" data-number="13.2">
+<h2 data-number="13.2" class="anchored" data-anchor-id="recognize-a-replacement"><span class="header-section-number">13.2</span> Recognize a replacement</h2>
+<p>Chapter 12 added VIN search without changing the identity of unit-number search. VIN introduced a new way to find a truck, so its requirement could sit beside the accepted unit-number requirement. The request in this chapter behaves differently. A unit number cannot remain both exactly 15 characters and at most 10 characters under the same conditions.</p>
+<p>Before choosing a delta operation, complete this sentence:</p>
+<blockquote class="blockquote">
+<p>After this change, the accepted requirement named <strong>Search by unit number</strong> should …</p>
+</blockquote>
+<p>If the answer begins “still apply, plus users can do something separate,” <code>ADDED</code> may fit. If the answer begins “mean something different,” <code>MODIFIED</code> deserves closer attention. Removing the behavior entirely may call for <code>REMOVED</code>, while changing only its identity may call for <code>RENAMED</code>.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Question</th>
+<th>Likely operation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Will a separate requirement coexist with the accepted one?</td>
+<td><code>ADDED</code></td>
+</tr>
+<tr class="even">
+<td>Will the accepted requirement keep its identity but change meaning?</td>
+<td><code>MODIFIED</code></td>
+</tr>
+<tr class="odd">
+<td>Will the accepted requirement cease to apply?</td>
+<td><code>REMOVED</code></td>
+</tr>
+<tr class="even">
+<td>Will its identity change while its intended behavior remains?</td>
+<td><code>RENAMED</code></td>
+</tr>
+</tbody>
+</table>
+<p>Implementation files cannot settle this choice on their own. Two validators might share a helper even though they implement separate requirements, while one requirement might span an API, generated client, form, and several tests. The operation follows the relationship between accepted and proposed behavior, not the number or shape of files involved.</p>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>A newer sentence does not cancel an older requirement
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Appending “Unit numbers SHALL contain no more than 10 characters” under <code>ADDED Requirements</code> would leave the accepted 15-character rule in force. Neither recency nor proximity supplies replacement semantics. Use <code>MODIFIED</code> when review intends one requirement to supersede its accepted version.</p>
+</div>
+</div>
+</section>
+<section id="recover-the-accepted-baseline" class="level2" data-number="13.3">
+<h2 data-number="13.3" class="anchored" data-anchor-id="recover-the-accepted-baseline"><span class="header-section-number">13.3</span> Recover the accepted baseline</h2>
+<p>Before drafting a replacement, inspect the requirement as it exists under <code>openspec/specs/</code>. Record its heading exactly, along with every scenario nested beneath it. OpenSpec uses that requirement identity when applying the delta, and those scenarios reveal behavior that a short change request might otherwise erase.</p>
+<p>For the lab, the baseline investigation might ask:</p>
+<ul>
+<li>Does the requirement say exactly 15 characters, or no more than 15?</li>
+<li>Does it describe trimming or another form of normalization?</li>
+<li>Which cases cover matching, no match, empty input, and invalid input?</li>
+<li>Do the backend and frontend specifications express the same boundary?</li>
+<li>Which tests provide evidence for each accepted scenario?</li>
+</ul>
+<p>A small baseline table can keep evidence separate from decisions:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Topic</th>
+<th>Accepted source</th>
+<th>Implementation evidence</th>
+<th>Decision needed?</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Length rule</td>
+<td>Main unit-number specification</td>
+<td>Backend and frontend boundary tests</td>
+<td>Yes, replace 15 with the reviewed rule</td>
+</tr>
+<tr class="even">
+<td>Normalization</td>
+<td>Accepted scenarios, if present</td>
+<td>Controller, form, and tests</td>
+<td>Only if the request leaves it unclear</td>
+</tr>
+<tr class="odd">
+<td>Empty input</td>
+<td>Accepted scenarios, if present</td>
+<td>Validation tests</td>
+<td>Only if the new meaning could differ</td>
+</tr>
+<tr class="even">
+<td>Match and no match</td>
+<td>Accepted scenarios</td>
+<td>Service, component, and browser tests</td>
+<td>Usually preserve unless scope says otherwise</td>
+</tr>
+</tbody>
+</table>
+<p>If the specification, code, and tests disagree, record the mismatch as a review finding. Do not choose whichever behavior is easiest to edit. The team may resolve the mismatch inside this change when it affects the revised rule, or record separate work when it does not. Either choice should remain visible in the proposal.</p>
+</section>
+<section id="separate-the-request-from-its-unanswered-questions" class="level2" data-number="13.4">
+<h2 data-number="13.4" class="anchored" data-anchor-id="separate-the-request-from-its-unanswered-questions"><span class="header-section-number">13.4</span> Separate the request from its unanswered questions</h2>
+<p>“Maximum of 10 characters” answers less than it first appears to. Before proposal, the team still needs to decide:</p>
+<ul>
+<li>whether values shorter than 10 characters qualify;</li>
+<li>whether normalization occurs before the length check;</li>
+<li>how the system handles empty and oversized values; and</li>
+<li>whether case handling, matching, and no-match behavior change with the boundary.</li>
+</ul>
+<p>An exploration prompt could make those gaps visible before proposal begins:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>/opsx:explore</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>We are considering changing the accepted unit-number rule from 15 characters to a maximum of 10.</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>Please identify:</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>the accepted requirement and all of its scenarios;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>every backend and frontend boundary that represents the current length rule;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>generated files and contracts affected by the rule;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>behaviors the request does not settle, including normalization and empty input; and</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>tests that provide evidence for behavior likely to remain unchanged.</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>Do not modify files or infer product decisions from the current implementation.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Organize the resulting notes by what changes, what remains, and what still needs a decision:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Category</th>
+<th>Example</th>
+<th>Treatment in the change</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Requested difference</td>
+<td>Replace the 15-character rule with a maximum of 10</td>
+<td>State in the proposal and delta</td>
+</tr>
+<tr class="even">
+<td>Preserved behavior</td>
+<td>A valid value with no match keeps the accepted no-match outcome</td>
+<td>Restate its scenario in the replacement requirement</td>
+</tr>
+<tr class="odd">
+<td>Open decision</td>
+<td>Whether trimming occurs before the length check</td>
+<td>Resolve before apply or mark as blocking</td>
+</tr>
+</tbody>
+</table>
+<p>This separation adds a review step before coding. It also exposes disagreements before the backend and Angular repositories implement different interpretations.</p>
+</section>
+<section id="write-the-proposal-around-the-behavioral-change" class="level2" data-number="13.5">
+<h2 data-number="13.5" class="anchored" data-anchor-id="write-the-proposal-around-the-behavioral-change"><span class="header-section-number">13.5</span> Write the proposal around the behavioral change</h2>
+<p>Once review settles the open questions, the proposal can state both the intended difference and the preservation boundary. For this worked example, suppose the team chooses these exercise assumptions:</p>
+<ul>
+<li>leading and trailing spaces are removed before validation;</li>
+<li>one through 10 remaining characters are valid;</li>
+<li>an empty value remains invalid;</li>
+<li>11 or more remaining characters are invalid;</li>
+<li>matching remains exact; and</li>
+<li>a valid value with no match returns no matching trucks.</li>
+</ul>
+<p>Those are example product decisions, not consequences of the word <code>MODIFIED</code>. Another team might choose different answers and still use the same OpenSpec operation.</p>
+<p>A compact proposal could read:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu"># Change: Reduce the unit-number length limit</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">## Why</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>The business now assigns unit numbers containing between one and 10 characters.  The search still</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>requires exact matching after removing leading and trailing spaces.</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">## What Changes</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Remove leading and trailing spaces before validating the unit number.</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Accept between one and 10 remaining characters.</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Reject empty values and values longer than 10 characters.</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Preserve exact matching and the existing no-match result.</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Publish the revised constraint through the backend-owned OpenAPI contract.</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="fu">## Non-Goals</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Changes to VIN search</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Partial or fuzzy unit-number matching</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>New result fields or response states</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Naming unchanged behavior limits the change. A length edit can invite nearby cleanup or a new matching strategy, but the non-goals and preservation claims give reviewers a boundary for those edits without copying unrelated specifications into the delta.</p>
+</section>
+<section id="replace-the-complete-requirement" class="level2" data-number="13.6">
+<h2 data-number="13.6" class="anchored" data-anchor-id="replace-the-complete-requirement"><span class="header-section-number">13.6</span> Replace the complete requirement</h2>
+<p>A <code>MODIFIED</code> section should contain the whole requirement as it ought to read after archive. It should not contain a patch fragment such as “change 15 to 10,” because that fragment would depend on a reader finding and mentally merging the accepted version.</p>
+<p>Using the exercise assumptions, a backend delta might look like this:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">## MODIFIED Requirements</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">### Requirement: Search by unit number</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>The API SHALL remove leading and trailing spaces from a unit-number search value.  The remaining</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>value SHALL contain between one and 10 characters, and the API SHALL match it exactly against unit</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>numbers.</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Scenario: Matching unit number is at the maximum length</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**GIVEN** a truck has unit number <span class="in">`TRUCK-1234`</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**WHEN** a client searches for <span class="in">`TRUCK-1234`</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**THEN** the API returns that truck</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Scenario: Matching unit number is shorter than the maximum</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**GIVEN** a truck has unit number <span class="in">`TRK-123`</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**WHEN** a client searches for <span class="in">`TRK-123`</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**THEN** the API returns that truck</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Scenario: Matching unit number has surrounding spaces</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**GIVEN** a truck has unit number <span class="in">`TRUCK-1234`</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**WHEN** a client searches for <span class="in">`  TRUCK-1234  `</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**THEN** the API returns that truck</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Scenario: Unit number exceeds the maximum</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**WHEN** a client searches for <span class="in">`TRUCK-12345`</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**THEN** the API rejects the search value as invalid</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Scenario: Unit number is empty</span></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**WHEN** a client searches with a value that is empty after removing surrounding spaces</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**THEN** the API rejects the search value as invalid</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Scenario: No truck matches</span></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**GIVEN** no truck has unit number <span class="in">`TRUCK-9999`</span></span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**WHEN** a client searches for <span class="in">`TRUCK-9999`</span></span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**THEN** the API returns no matching trucks</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This example is complete only under the stated exercise assumptions. Compare it with the actual lab requirement before using it. If that requirement contains another match, failure, or response scenario, carry the scenario forward unless the proposal deliberately changes or removes it.</p>
+<p>The requirement heading deserves special care. If the accepted heading reads <code>Search by unit number</code>, changing it casually to <code>Validate a unit number</code> may prevent a clean identity match or misrepresent the requirement’s scope. Copy the accepted heading, then revise the body and scenarios beneath it.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Complete does not mean duplicated
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Completeness applies to the requirement being replaced. The delta need not copy every requirement in the capability, nor should it repeat unrelated VIN behavior. Include the revised requirement and all scenarios that should survive within that requirement.</p>
+</div>
+</div>
+</section>
+<section id="inspect-the-delta-before-implementation" class="level2" data-number="13.7">
+<h2 data-number="13.7" class="anchored" data-anchor-id="inspect-the-delta-before-implementation"><span class="header-section-number">13.7</span> Inspect the delta before implementation</h2>
+<p>OpenSpec validation can catch malformed delta structure, while a behavioral diff can expose an accidental deletion or an unchanged 15-character clause. Run the repository’s configured checks, then inspect the proposed difference:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">openspec</span> validate reduce-unit-number-limit <span class="at">--strict</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">openspec</span> show reduce-unit-number-limit <span class="at">--diff</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Review the diff against these checks:</p>
+<ul>
+<li>Match the modified heading to the accepted requirement.</li>
+<li>Confirm that archive would replace the 15-character wording rather than retain it beside the new rule.</li>
+<li>Account for every scenario named by the proposal.</li>
+<li>Remove implementation choices, such as Java annotations or Angular validators, from the behavioral specification.</li>
+<li>Confirm that each boundary scenario could fail for the intended reason before implementation.</li>
+</ul>
+<p>A passing structural check cannot answer all of those questions. Human review still needs to judge whether the replacement captures the business decision and whether its preservation claims are credible.</p>
+</section>
+<section id="trace-one-rule-through-two-repositories" class="level2" data-number="13.8">
+<h2 data-number="13.8" class="anchored" data-anchor-id="trace-one-rule-through-two-repositories"><span class="header-section-number">13.8</span> Trace one rule through two repositories</h2>
+<p>The modified requirement may be small, but the old constraint may have crossed several ownership boundaries. Search for the old value and for the concepts that express it. A literal search for <code>15</code> could find noise and miss a named constant, a schema facet, or prose that says “fifteen,” so combine value searches with searches for requirement names, validation messages, and test cases.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Boundary</th>
+<th>What may need review</th>
+<th>What would count as drift?</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Backend request validation</td>
+<td>Length annotation, validator, or request parsing</td>
+<td>API still accepts 11 through 15 characters</td>
+</tr>
+<tr class="even">
+<td>Search behavior</td>
+<td>Service and persistence tests</td>
+<td>Matching changes even though the proposal preserves it</td>
+</tr>
+<tr class="odd">
+<td>OpenAPI document</td>
+<td><code>maxLength</code>, descriptions, and responses</td>
+<td>Published schema still advertises 15</td>
+</tr>
+<tr class="even">
+<td>Generated Angular client</td>
+<td>Regenerated request types or metadata</td>
+<td>Hand edit disappears on regeneration</td>
+</tr>
+<tr class="odd">
+<td>Angular form</td>
+<td>Validators, feedback, and submission state</td>
+<td>UI rejects a valid 10-character value or accepts 11</td>
+</tr>
+<tr class="even">
+<td>Visible text</td>
+<td>Labels, hints, and errors</td>
+<td>User sees the obsolete limit</td>
+</tr>
+<tr class="odd">
+<td>Automated tests</td>
+<td>Boundary and preserved-behavior cases</td>
+<td>Tests prove only the new happy path</td>
+</tr>
+</tbody>
+</table>
+<p>The backend should continue to own the wire contract. After its validation and OpenAPI output reflect the reviewed delta, inspect the contract diff before regenerating the Angular client. Form tests and UI changes may proceed against the reviewed frontend delta, but client integration should wait for the backend-owned contract if generation is the established handoff.</p>
+<p>Avoid editing generated client files as though they owned the rule. A manual fix could make the current branch compile, yet regeneration would restore whatever the OpenAPI document still says. The durable correction belongs in the source contract and generation workflow.</p>
+</section>
+<section id="apply-in-an-order-that-preserves-evidence" class="level2" data-number="13.9">
+<h2 data-number="13.9" class="anchored" data-anchor-id="apply-in-an-order-that-preserves-evidence"><span class="header-section-number">13.9</span> Apply in an order that preserves evidence</h2>
+<p>A task list might keep the dependency visible without prescribing every class or function:</p>
+<ol type="1">
+<li>Add or revise backend tests for 10-character, shorter valid, 11-character, and empty values.</li>
+<li>Update backend validation while preserving accepted match, no-match, and error behavior.</li>
+<li>Generate and review the OpenAPI document for the revised constraint and unrelated drift.</li>
+<li>Regenerate the Angular client from the reviewed contract.</li>
+<li>Update Angular validation, visible feedback, and focused component tests.</li>
+<li>Exercise the integrated path and rerun preserved-behavior tests in both repositories.</li>
+</ol>
+<p>Begin with boundary evidence. A test for exactly 10 characters and another for 11 can show whether the implementation changed the intended edge rather than merely replacing one constant. Tests for matching and no match then check the proposal’s claim that the rest of the search behavior survived.</p>
+<p>During apply, ask Copilot to work from scenario names and report the evidence for each one. A message such as “updated max length everywhere” would reveal little about normalization, generated artifacts, or regression coverage. A scenario-to-test trace gives the reviewer something more specific to inspect.</p>
+</section>
+<section id="verify-the-replacement-before-archive" class="level2" data-number="13.10">
+<h2 data-number="13.10" class="anchored" data-anchor-id="verify-the-replacement-before-archive"><span class="header-section-number">13.10</span> Verify the replacement before archive</h2>
+<p>Verification has two jobs: show that the implementation adopted the new boundary and show that the change preserved everything it claimed not to alter.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Claim</th>
+<th>Focused evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>A normalized 10-character value is accepted</td>
+<td>Backend boundary test and Angular form test</td>
+</tr>
+<tr class="even">
+<td>A normalized value shorter than 10 is accepted</td>
+<td>Backend and frontend validation tests</td>
+</tr>
+<tr class="odd">
+<td>An 11-character value is rejected</td>
+<td>API validation test and visible-feedback test</td>
+</tr>
+<tr class="even">
+<td>Empty input follows the reviewed rule</td>
+<td>Backend and Angular empty-input tests</td>
+</tr>
+<tr class="odd">
+<td>Match and no-match behavior remain intact</td>
+<td>Existing service, component, and integrated tests</td>
+</tr>
+<tr class="even">
+<td>Both repositories share the revised contract</td>
+<td>Reviewed OpenAPI diff and generated-client diff</td>
+</tr>
+<tr class="odd">
+<td>The old rule no longer survives</td>
+<td>Search across specs, code, generated output, tests, and UI text</td>
+</tr>
+</tbody>
+</table>
+<p>Run focused checks first, then the broader repository suites and integrated path. If an 11-character value fails in the UI but reaches the backend through another path, the replacement has not reached every boundary. If all tests pass while the generated schema still reports 15, the repositories still disagree about their contract.</p>
+<p>Before archive, inspect the source-of-truth result that synchronization would produce. Confirm that the main specification would contain one complete unit-number requirement with the 10-character maximum and every preserved scenario. If understanding the current rule still requires an older archived change, the active delta remains incomplete.</p>
+<p>After archive, repeat the obsolete-assumption search against the main specification and generated artifacts. The dated change record may retain the old rule as history; the active source of truth should not present it as current behavior.</p>
+</section>
+<section id="hands-on-exercise" class="level2" data-number="13.11">
+<h2 data-number="13.11" class="anchored" data-anchor-id="hands-on-exercise"><span class="header-section-number">13.11</span> Hands-on exercise</h2>
+<p>Use the two lab repositories to propose, apply, verify, and archive the revised unit-number rule. Keep a compact record that another reviewer could follow without replaying the Copilot chat:</p>
+<pre class="text"><code>Product change: reduce-unit-number-limit
+Accepted requirement: Search by unit number
+Old rule: &lt;exact accepted wording&gt;
+Reviewed replacement: &lt;exact revised wording&gt;
+Preserved scenarios: &lt;scenario names&gt;
+Open questions: &lt;owners and blocking status&gt;
+Backend evidence: &lt;commands and results&gt;
+Contract evidence: &lt;OpenAPI and generated-client diffs&gt;
+Frontend evidence: &lt;commands and results&gt;
+Post-archive search: &lt;obsolete assumptions found or none&gt;</code></pre>
+<p>Pause when exploration exposes an unanswered product decision. Revise the delta after that decision receives review, then resume implementation from the updated scenarios. A code-only choice or a corrective chat message would leave the next agent with the same ambiguity.</p>
+</section>
+<section id="verification-checkpoint" class="level2" data-number="13.12">
+<h2 data-number="13.12" class="anchored" data-anchor-id="verification-checkpoint"><span class="header-section-number">13.12</span> Verification checkpoint</h2>
+<p>The change may be ready to close when the modified heading matches the accepted requirement, the delta supplies its complete replacement, and strict validation passes. Focused tests should cover both sides of the new boundary, while regression evidence should cover the scenarios promised as unchanged. The OpenAPI and generated-client diffs should describe the same maximum, and a search should find no current 15-character assumption outside historical records.</p>
+<p>If one of those checks fails, keep the change open. Update the artifact that owns the discrepancy, repeat the narrow check, and inspect the would-be source of truth again before archive.</p>
+</section>
+<section id="what-you-learned" class="level2" data-number="13.13">
+<h2 data-number="13.13" class="anchored" data-anchor-id="what-you-learned"><span class="header-section-number">13.13</span> What you learned</h2>
+<p><code>MODIFIED</code> means supplying the exact requirement that should exist after archive, not editing only the sentence that changed. Archive can preserve only the scenarios present in that replacement, so an omitted scenario changes the source of truth whether the omission was deliberate or not.</p>
+</section>
+<section id="online-references" class="level2" data-number="13.14">
+<h2 data-number="13.14" class="anchored" data-anchor-id="online-references"><span class="header-section-number">13.14</span> Online references</h2>
+<ul>
+<li><a href="https://github.com/Fission-AI/OpenSpec/blob/main/docs/overview.md">OpenSpec overview</a><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></li>
+<li><a href="https://github.com/Fission-AI/OpenSpec/blob/main/docs/editing-changes.md">OpenSpec editing changes guide</a><a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></li>
+<li><a href="https://jakarta.ee/specifications/bean-validation/">Jakarta Bean Validation specification</a><a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></li>
+<li><a href="https://angular.dev/guide/forms">Angular forms guide</a><a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a></li>
+</ul>
+
+
+</section>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn1"><p><a href="https://github.com/Fission-AI/OpenSpec/blob/main/docs/overview.md" class="uri">https://github.com/Fission-AI/OpenSpec/blob/main/docs/overview.md</a><a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p><a href="https://github.com/Fission-AI/OpenSpec/blob/main/docs/editing-changes.md" class="uri">https://github.com/Fission-AI/OpenSpec/blob/main/docs/editing-changes.md</a><a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p><a href="https://jakarta.ee/specifications/bean-validation/" class="uri">https://jakarta.ee/specifications/bean-validation/</a><a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p><a href="https://angular.dev/guide/forms" class="uri">https://angular.dev/guide/forms</a><a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../chapters/12-add-vin-search.html" class="pagination-link" aria-label="Adding VIN Search to a Brownfield System">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Adding VIN Search to a Brownfield System</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/14-revise-in-flight-change.html" class="pagination-link" aria-label="Revising an In-Flight Change">
+        <span class="nav-page-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Revising an In-Flight Change</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

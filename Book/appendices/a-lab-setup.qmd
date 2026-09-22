@@ -1,6 +1,6 @@
-# Lab Setup
+## Lab Setup
 
-## Required tools
+### Required tools
 
 Plan to have these available for each participant:
 
@@ -15,7 +15,7 @@ Plan to have these available for each participant:
 
 Before the class, check the current OpenSpec installation instructions at <https://openspec.dev/docs/installation>.  Tool versions and package commands can change.
 
-## Prepare the exercise repositories
+### Prepare the exercise repositories
 
 Start by cloning the prepared backend and frontend repositories.  It may help to confirm that each repository builds and passes its tests before initializing OpenSpec.  The backend owns the OpenAPI contract, and OpenAPI Generator produces the TypeScript Angular client used by the frontend.
 
@@ -33,7 +33,7 @@ The backend configuration records Java 21, Spring Boot 4.1.1, Maven, Spring Data
 
 Review the generated configuration.  It can describe stable project facts, but it should not invent database products, deployment platforms, or business rules that the class has not selected.
 
-## Preflight check
+### Preflight check
 
 Before Morning 1, check that:
 

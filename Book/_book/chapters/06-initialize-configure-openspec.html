@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.30">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>6&nbsp; Initialize and Configure OpenSpec – Spec-Driven Development with OpenSpec and GitHub Copilot</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/07-explore-unit-number-search.html" rel="next">
+<link href="../chapters/05-two-repository-lab.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-b6a8276bf55561bdbc268162d41bd1f7.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-5ccb035bea26c1e21f80f44cf7c27909.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/05-two-repository-lab.html">Part II: Establishing the Greenfield Baseline</a></li><li class="breadcrumb-item"><a href="../chapters/06-initialize-configure-openspec.html"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Initialize and Configure OpenSpec</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">Spec-Driven Development with OpenSpec and GitHub Copilot</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Part I: Why Durable Intent Matters</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01-durable-intent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">From Chat Sessions to Durable Intent</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/02-openspec-operating-model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">The OpenSpec Operating Model</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/03-testable-requirements.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Writing Requirements an Agent Can Test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/04-context-engineering-copilot.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Engineering Context for GitHub Copilot</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Part II: Establishing the Greenfield Baseline</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/05-two-repository-lab.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Preparing the Two-Repository Lab</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/06-initialize-configure-openspec.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Initialize and Configure OpenSpec</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/07-explore-unit-number-search.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Exploring the Unit-Number Search</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08-propose-full-stack-change.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Proposing the First Full-Stack Change</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Part III: Applying and Evolving the Specification</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09-apply-spring-boot.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Applying the Spring Boot Change</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10-apply-angular.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Applying the Angular Change</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11-verify-sync-archive.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Verifying, Synchronizing, and Archiving</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12-add-vin-search.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Adding VIN Search to a Brownfield System</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Part IV: Change Under Pressure</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13-modify-accepted-behavior.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Modifying Accepted Behavior</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14-revise-in-flight-change.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Revising an In-Flight Change</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/15-parallel-changes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Coordinating Parallel Changes</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/16-team-practice.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Making SDD a Team Practice</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../summary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Summary</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/a-environment-setup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Environment Setup and Troubleshooting</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/b-openspec-reference.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">OpenSpec Reference</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/c-workshop-resources.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Workshop Resources</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#learning-objective" id="toc-learning-objective" class="nav-link active" data-scroll-target="#learning-objective"><span class="header-section-number">6.1</span> Learning objective</a></li>
+  <li><a href="#begin-at-the-repository-root" id="toc-begin-at-the-repository-root" class="nav-link" data-scroll-target="#begin-at-the-repository-root"><span class="header-section-number">6.2</span> Begin at the repository root</a></li>
+  <li><a href="#separate-installation-from-initialization" id="toc-separate-installation-from-initialization" class="nav-link" data-scroll-target="#separate-installation-from-initialization"><span class="header-section-number">6.3</span> Separate installation from initialization</a></li>
+  <li><a href="#what-initialization-adds" id="toc-what-initialization-adds" class="nav-link" data-scroll-target="#what-initialization-adds"><span class="header-section-number">6.4</span> What initialization adds</a></li>
+  <li><a href="#configure-context-that-can-affect-every-change" id="toc-configure-context-that-can-affect-every-change" class="nav-link" data-scroll-target="#configure-context-that-can-affect-every-change"><span class="header-section-number">6.5</span> Configure context that can affect every change</a></li>
+  <li><a href="#configure-the-backend-repository" id="toc-configure-the-backend-repository" class="nav-link" data-scroll-target="#configure-the-backend-repository"><span class="header-section-number">6.6</span> Configure the backend repository</a></li>
+  <li><a href="#configure-the-frontend-repository" id="toc-configure-the-frontend-repository" class="nav-link" data-scroll-target="#configure-the-frontend-repository"><span class="header-section-number">6.7</span> Configure the frontend repository</a></li>
+  <li><a href="#understand-generated-files-and-team-owned-context" id="toc-understand-generated-files-and-team-owned-context" class="nav-link" data-scroll-target="#understand-generated-files-and-team-owned-context"><span class="header-section-number">6.8</span> Understand generated files and team-owned context</a></li>
+  <li><a href="#review-initialization-as-a-code-change" id="toc-review-initialization-as-a-code-change" class="nav-link" data-scroll-target="#review-initialization-as-a-code-change"><span class="header-section-number">6.9</span> Review initialization as a code change</a></li>
+  <li><a href="#verify-the-initialized-repositories" id="toc-verify-the-initialized-repositories" class="nav-link" data-scroll-target="#verify-the-initialized-repositories"><span class="header-section-number">6.10</span> Verify the initialized repositories</a></li>
+  <li><a href="#hands-on-exercise-initialize-both-repositories" id="toc-hands-on-exercise-initialize-both-repositories" class="nav-link" data-scroll-target="#hands-on-exercise-initialize-both-repositories"><span class="header-section-number">6.11</span> Hands-on exercise: initialize both repositories</a></li>
+  <li><a href="#verification-checkpoint" id="toc-verification-checkpoint" class="nav-link" data-scroll-target="#verification-checkpoint"><span class="header-section-number">6.12</span> Verification checkpoint</a></li>
+  <li><a href="#what-you-learned" id="toc-what-you-learned" class="nav-link" data-scroll-target="#what-you-learned"><span class="header-section-number">6.13</span> What you learned</a></li>
+  <li><a href="#online-references" id="toc-online-references" class="nav-link" data-scroll-target="#online-references"><span class="header-section-number">6.14</span> Online references</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/05-two-repository-lab.html">Part II: Establishing the Greenfield Baseline</a></li><li class="breadcrumb-item"><a href="../chapters/06-initialize-configure-openspec.html"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Initialize and Configure OpenSpec</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Initialize and Configure OpenSpec</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Running <code>openspec init</code> takes little time. The harder part is deciding what the generated setup needs to teach an agent about the repository.</p>
+<p>Initialization places the OpenSpec project beside the code it describes and installs workflow files for the selected AI tool. Configuration supplies the repository context used by those workflows. Keeping these steps separate distinguishes generated OpenSpec guidance from rules the team owns.</p>
+<section id="learning-objective" class="level2" data-number="6.1">
+<h2 data-number="6.1" class="anchored" data-anchor-id="learning-objective"><span class="header-section-number">6.1</span> Learning objective</h2>
+<p>By the end of this chapter, you will be able to initialize OpenSpec for GitHub Copilot, explain which files the CLI generates, and configure each lab repository with concise planning context. You will also review the resulting diff and decide whether the repository is ready for the exploration workflow in Chapter 7.</p>
+</section>
+<section id="begin-at-the-repository-root" class="level2" data-number="6.2">
+<h2 data-number="6.2" class="anchored" data-anchor-id="begin-at-the-repository-root"><span class="header-section-number">6.2</span> Begin at the repository root</h2>
+<p>Chapter 5 established a clean baseline for <code>commercial-truck-search-api</code> and <code>commercial-truck-search-ui</code>. Because initialization writes files into the current project, that baseline provides the comparison point for the changes that follow. Running the command from a parent directory or the wrong terminal risks initializing the wrong folder.</p>
+<p>Before changing either repository, inspect the working directory and Git state:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">pwd</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> status <span class="at">--short</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Does the path identify the root of one lab repository? Does an empty <code>git status --short</code> result match the baseline from Chapter 5? If either answer is no, stop before running initialization.</p>
+</section>
+<section id="separate-installation-from-initialization" class="level2" data-number="6.3">
+<h2 data-number="6.3" class="anchored" data-anchor-id="separate-installation-from-initialization"><span class="header-section-number">6.3</span> Separate installation from initialization</h2>
+<p>Install the OpenSpec CLI once on the machine, then initialize each repository separately. The global installation can support both lab repositories, but each repository needs its own OpenSpec project and Copilot integration files.</p>
+<p>For the book’s pinned version, install the package and check the executable:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> install <span class="at">-g</span> @fission-ai/openspec@1.13.1</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">openspec</span> <span class="at">--version</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The second command needs to report <code>1.13.1</code> for the exercises in this book. If another version appears, resolve the mismatch before generating files because CLI versions can install different workflow content. The installation appendix covers operating-system-specific installation and PATH checks.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>A profile is not a technology stack
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The <code>core</code> profile selects the standard OpenSpec workflows, such as explore, propose, apply, update, sync, and archive. It does not describe Java, Spring Boot, Angular, or the test tools in a repository. Put those project facts in <code>openspec/config.yaml</code> after initialization.</p>
+</div>
+</div>
+</section>
+<section id="what-initialization-adds" class="level2" data-number="6.4">
+<h2 data-number="6.4" class="anchored" data-anchor-id="what-initialization-adds"><span class="header-section-number">6.4</span> What initialization adds</h2>
+<p>From a repository root, the following command selects GitHub Copilot without opening the interactive tool picker:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">openspec</span> init <span class="at">--tools</span> github-copilot <span class="at">--profile</span> core</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>OpenSpec creates an <code>openspec/</code> directory and installs Copilot workflow files under <code>.github/</code>. The workflow count depends on the selected profile and OpenSpec version, so review the command summary rather than assuming a fixed count.</p>
+<p>A newly initialized repository resembles this simplified tree:</p>
+<pre class="text"><code>repository-root/
+|-- .github/
+|   |-- prompts/
+|   `-- skills/
+|-- openspec/
+|   |-- config.yaml
+|   |-- specs/
+|   `-- changes/
+|       `-- archive/
+`-- ...</code></pre>
+<p>The directories have different jobs:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Path</th>
+<th>Intended role</th>
+<th>Review question</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>openspec/config.yaml</code></td>
+<td>Repository context, artifact rules, and operation guidance</td>
+<td>Does this describe this repository rather than the whole product?</td>
+</tr>
+<tr class="even">
+<td><code>openspec/specs/</code></td>
+<td>Accepted behavior after changes have been archived or synchronized</td>
+<td>Is it empty for this new baseline?</td>
+</tr>
+<tr class="odd">
+<td><code>openspec/changes/</code></td>
+<td>Proposed work that has not yet entered the accepted specifications</td>
+<td>Is it empty before Chapter 8?</td>
+</tr>
+<tr class="even">
+<td><code>.github/skills/</code></td>
+<td>OpenSpec workflows GitHub Copilot may select as skills</td>
+<td>Did initialization install the expected workflow set?</td>
+</tr>
+<tr class="odd">
+<td><code>.github/prompts/</code></td>
+<td>Prompt files exposed by supported Copilot IDE integrations</td>
+<td>Does the IDE discover them after a restart?</td>
+</tr>
+</tbody>
+</table>
+<p>Do not use initialization to invent accepted product behavior. Empty <code>specs/</code> and <code>changes/</code> directories are the expected result for these lab repositories. Later chapters add content through reviewed changes.</p>
+</section>
+<section id="configure-context-that-can-affect-every-change" class="level2" data-number="6.5">
+<h2 data-number="6.5" class="anchored" data-anchor-id="configure-context-that-can-affect-every-change"><span class="header-section-number">6.5</span> Configure context that can affect every change</h2>
+<p>OpenSpec reads <code>openspec/config.yaml</code> when a workflow asks the CLI for artifact or operation instructions. The <code>context</code> field reaches proposal, specification, design, task, apply, and archive work. Reserve it for facts that belong in every one of those prompts.</p>
+<p>Useful context answers questions that source inspection alone may not settle:</p>
+<ul>
+<li>Which repository boundary does this project own?</li>
+<li>Which contract does it publish or consume?</li>
+<li>Which verification commands should planned work include?</li>
+<li>Which generated files should an agent avoid editing by hand?</li>
+<li>Which architectural or product constraints should shape every change?</li>
+</ul>
+<p>Avoid turning <code>config.yaml</code> into a second README. File locations that an agent can discover, temporary implementation details, and lengthy style guides consume context without improving a plan. Prefer a short repository-specific rule to a page of general advice.</p>
+</section>
+<section id="configure-the-backend-repository" class="level2" data-number="6.6">
+<h2 data-number="6.6" class="anchored" data-anchor-id="configure-the-backend-repository"><span class="header-section-number">6.6</span> Configure the backend repository</h2>
+<p>Use the backend OpenSpec project to describe the boundary owned by <code>commercial-truck-search-api</code>. Its context identifies the service stack, the OpenAPI ownership rule, and the checks required before a task is complete.</p>
+<p>After initialization, revise <code>openspec/config.yaml</code> toward a compact form such as this:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">schema</span><span class="kw">:</span><span class="at"> spec-driven</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">context</span><span class="kw">: </span><span class="ch">|</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  Repository: commercial-truck-search-api</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  Tech stack: Java 21, Spring Boot 4.1.1, Maven, Spring Data JPA, and H2.</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  This repository owns API behavior and the reviewed OpenAPI contract.</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  Backend changes should preserve the existing controller, service, and persistence boundaries.</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="fu">rules</span><span class="kw">:</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">specs</span><span class="kw">:</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> Describe observable API behavior without prescribing Java implementation details.</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> Include scenarios for validation, successful results, no match, and relevant errors.</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">tasks</span><span class="kw">:</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> Include automated tests and OpenAPI publication when a contract changes.</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="fu">operations</span><span class="kw">:</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">apply</span><span class="kw">:</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">guidance</span><span class="kw">:</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> Run the repository's Maven tests before marking implementation tasks complete.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Treat this example as a starting point, not verified repository configuration. Confirm every version, command, and ownership statement against the Chapter 5 baseline before committing it. If the repository uses a Maven wrapper, name that checked-in command rather than a machine-wide Maven executable.</p>
+<p>Notice what the example leaves out. Frontend rendering rules do not belong here, and the future unit-number endpoint has not yet been specified. Configuration can establish planning boundaries without deciding the behavior of a change that the team has not explored.</p>
+</section>
+<section id="configure-the-frontend-repository" class="level2" data-number="6.7">
+<h2 data-number="6.7" class="anchored" data-anchor-id="configure-the-frontend-repository"><span class="header-section-number">6.7</span> Configure the frontend repository</h2>
+<p>The frontend project needs different context because it owns user interaction and consumes the generated TypeScript client. Copying the backend configuration would give Copilot the wrong ownership model even though both repositories support the same product.</p>
+<p>A starting configuration could look like this:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">schema</span><span class="kw">:</span><span class="at"> spec-driven</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">context</span><span class="kw">: </span><span class="ch">|</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  Repository: commercial-truck-search-ui</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  Tech stack: Angular 21, TypeScript, Vitest, component tests, and Playwright.</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  This repository owns user interaction and consumes a generated TypeScript API client.</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  Do not edit generated client files by hand or redefine the backend wire contract here.</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="fu">rules</span><span class="kw">:</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">specs</span><span class="kw">:</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> Describe user-visible behavior, including loading, empty, validation, and error states.</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> Refer to the backend contract as a dependency rather than duplicating its schema.</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">tasks</span><span class="kw">:</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> Include the appropriate unit, component, or browser test for each behavior change.</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="fu">operations</span><span class="kw">:</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">apply</span><span class="kw">:</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">guidance</span><span class="kw">:</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> Run the repository's configured frontend tests before marking tasks complete.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This configuration should not make the generated client a source of product decisions. The backend owns the OpenAPI contract, while the frontend can record how it uses that contract and how the browser should respond to each state. If a frontend proposal needs a response field that the contract does not provide, the missing field should return to the backend change for review.</p>
+</section>
+<section id="understand-generated-files-and-team-owned-context" class="level2" data-number="6.8">
+<h2 data-number="6.8" class="anchored" data-anchor-id="understand-generated-files-and-team-owned-context"><span class="header-section-number">6.8</span> Understand generated files and team-owned context</h2>
+<p>The workflow files under <code>.github/</code> come from the installed OpenSpec package. Review and commit them, but avoid hand-editing generated instructions. A later <code>openspec update</code> could replace or conflict with local edits.</p>
+<p>The repository context in <code>openspec/config.yaml</code> carries a different responsibility. OpenSpec creates the file, but the team supplies and reviews the facts inside it. Divide ownership this way:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Material</th>
+<th>Primary source</th>
+<th>Maintenance action</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Workflow instructions and prompt files</td>
+<td>Installed OpenSpec package</td>
+<td>Refresh with <code>openspec update</code></td>
+</tr>
+<tr class="even">
+<td>Workflow selection and delivery preference</td>
+<td>OpenSpec profile on the developer machine</td>
+<td>Change the profile, then update each repository</td>
+</tr>
+<tr class="odd">
+<td>Repository planning context and rules</td>
+<td>Repository team</td>
+<td>Edit and review <code>openspec/config.yaml</code></td>
+</tr>
+<tr class="even">
+<td>Accepted behavior and active changes</td>
+<td>Product and engineering review</td>
+<td>Change through the OpenSpec workflow</td>
+</tr>
+</tbody>
+</table>
+<p>This distinction prevents two common mistakes: placing repository architecture in generated prompt files and expecting a global profile to describe a particular codebase.</p>
+</section>
+<section id="review-initialization-as-a-code-change" class="level2" data-number="6.9">
+<h2 data-number="6.9" class="anchored" data-anchor-id="review-initialization-as-a-code-change"><span class="header-section-number">6.9</span> Review initialization as a code change</h2>
+<p>Initialization deserves the same diff review as any other repository-wide tool addition. Because plain <code>git diff</code> omits untracked files, stage the generated files before reviewing their content:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> status <span class="at">--short</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> add openspec <span class="st">'.github/skills/openspec-*'</span> <span class="st">'.github/prompts/opsx-*.prompt.md'</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> diff <span class="at">--cached</span> <span class="at">--</span> openspec <span class="st">'.github/skills/openspec-*'</span> <span class="st">'.github/prompts/opsx-*.prompt.md'</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>During review, ask:</p>
+<ol type="1">
+<li>Did OpenSpec write into the intended repository root?</li>
+<li>Does <code>openspec/config.yaml</code> name only facts that apply to this repository?</li>
+<li>Do backend rules stay out of the frontend project, and vice versa?</li>
+<li>Are accepted specifications and active changes still empty at this stage?</li>
+<li>Did initialization overwrite an existing team-owned Copilot file?</li>
+<li>Can another developer understand which files come from OpenSpec and which context the team must maintain?</li>
+</ol>
+<p>Re-running <code>openspec init</code> refreshes files in an initialized project, but still review the diff. When an installed CLI or profile changes, use the direct maintenance command:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">openspec</span> update</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The update command refreshes configured workflow files from the installed CLI. Review those changes before committing them, especially when the team changes the pinned OpenSpec version.</p>
+</section>
+<section id="verify-the-initialized-repositories" class="level2" data-number="6.10">
+<h2 data-number="6.10" class="anchored" data-anchor-id="verify-the-initialized-repositories"><span class="header-section-number">6.10</span> Verify the initialized repositories</h2>
+<p>Run the following checks from each repository root:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">openspec</span> <span class="at">--version</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">openspec</span> doctor</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ex">openspec</span> list <span class="at">--specs</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="ex">openspec</span> list</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> status <span class="at">--short</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>At this point in the lab, expect version <code>1.13.1</code>, a health report with the intended OpenSpec root, no accepted specifications, and no active changes. The Git output should list only the initialization and configuration files you intend to commit.</p>
+<p><code>openspec validate --all</code> checks discovered changes and specifications, but an empty project has no such artifacts yet. A successful empty validation confirms only that OpenSpec found no invalid item. It does not verify the accuracy of the repository context; reviewers must do that.</p>
+<p>Restart VS Code or IntelliJ IDEA after initialization so the IDE can discover newly installed Copilot prompt files. Then confirm that the expected OpenSpec workflows appear in Copilot Chat. If the terminal commands work but the chat entries do not appear, investigate IDE discovery before changing the OpenSpec project structure.</p>
+</section>
+<section id="hands-on-exercise-initialize-both-repositories" class="level2" data-number="6.11">
+<h2 data-number="6.11" class="anchored" data-anchor-id="hands-on-exercise-initialize-both-repositories"><span class="header-section-number">6.11</span> Hands-on exercise: initialize both repositories</h2>
+<p>Work through the same sequence once for <code>commercial-truck-search-api</code> and once for <code>commercial-truck-search-ui</code>:</p>
+<ol type="1">
+<li>Confirm the repository root and clean baseline.</li>
+<li>Verify that the CLI reports version <code>1.13.1</code>.</li>
+<li>Run <code>openspec init --tools github-copilot --profile core</code>.</li>
+<li>Inspect the generated tree and command summary.</li>
+<li>Edit <code>openspec/config.yaml</code> with the repository’s own context, artifact rules, and apply guidance.</li>
+<li>Stage only the generated OpenSpec files and review them with <code>git diff --cached</code>.</li>
+<li>Run the verification commands and restart the IDE.</li>
+<li>Commit each repository’s initialization separately so later feature changes have a clean boundary.</li>
+</ol>
+<p>Compare the two <code>config.yaml</code> files before committing. Their shared schema and workflow look similar, but their ownership statements, testing guidance, and generated-code boundaries are not interchangeable.</p>
+</section>
+<section id="verification-checkpoint" class="level2" data-number="6.12">
+<h2 data-number="6.12" class="anchored" data-anchor-id="verification-checkpoint"><span class="header-section-number">6.12</span> Verification checkpoint</h2>
+<p>Before moving to exploration, could you answer each question from repository evidence?</p>
+<ul>
+<li>Which OpenSpec version generated the workflow files?</li>
+<li>Which GitHub Copilot skills and prompt files did initialization add?</li>
+<li>Which facts in <code>config.yaml</code> will reach every planned change?</li>
+<li>Which artifact rules apply only to specifications or tasks?</li>
+<li>Which repository owns the OpenAPI contract?</li>
+<li>Which repository owns user-visible behavior and consumes the generated client?</li>
+<li>Does <code>openspec doctor</code> resolve the intended root?</li>
+<li>Are <code>openspec/specs/</code> and <code>openspec/changes/</code> still free of invented feature behavior?</li>
+</ul>
+<p>If an answer remains uncertain, revise the configuration or record the open question before asking Copilot to explore the unit-number search. A workflow can follow the context it receives, but it cannot repair an ownership rule the repository never stated.</p>
+</section>
+<section id="what-you-learned" class="level2" data-number="6.13">
+<h2 data-number="6.13" class="anchored" data-anchor-id="what-you-learned"><span class="header-section-number">6.13</span> What you learned</h2>
+<p>Initialization can establish the OpenSpec directory structure and install GitHub Copilot workflow files. Configuration can then tell those workflows what the repository owns, which constraints should shape its artifacts, and how implementation work should be checked.</p>
+<p>With separate backend and frontend contexts under version control, Chapter 7 can begin exploration without asking one repository to speak for the other.</p>
+</section>
+<section id="online-references" class="level2" data-number="6.14">
+<h2 data-number="6.14" class="anchored" data-anchor-id="online-references"><span class="header-section-number">6.14</span> Online references</h2>
+<ul>
+<li><a href="https://openspec.dev/docs/installation">OpenSpec installation</a><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></li>
+<li><a href="https://openspec.dev/docs/setup">Set up an OpenSpec project</a><a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></li>
+<li><a href="https://openspec.dev/docs/project-config">OpenSpec project configuration</a><a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></li>
+<li><a href="https://openspec.dev/docs/profiles">OpenSpec profiles</a><a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a></li>
+<li><a href="https://openspec.dev/docs/cli">OpenSpec CLI reference</a><a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a></li>
+<li><a href="https://openspec.dev/docs/supported-tools">OpenSpec supported tools</a><a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a></li>
+</ul>
+
+
+</section>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn1"><p><a href="https://openspec.dev/docs/installation" class="uri">https://openspec.dev/docs/installation</a><a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p><a href="https://openspec.dev/docs/setup" class="uri">https://openspec.dev/docs/setup</a><a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p><a href="https://openspec.dev/docs/project-config" class="uri">https://openspec.dev/docs/project-config</a><a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p><a href="https://openspec.dev/docs/profiles" class="uri">https://openspec.dev/docs/profiles</a><a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p><a href="https://openspec.dev/docs/cli" class="uri">https://openspec.dev/docs/cli</a><a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn6"><p><a href="https://openspec.dev/docs/supported-tools" class="uri">https://openspec.dev/docs/supported-tools</a><a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../chapters/05-two-repository-lab.html" class="pagination-link" aria-label="Preparing the Two-Repository Lab">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Preparing the Two-Repository Lab</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/07-explore-unit-number-search.html" class="pagination-link" aria-label="Exploring the Unit-Number Search">
+        <span class="nav-page-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Exploring the Unit-Number Search</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

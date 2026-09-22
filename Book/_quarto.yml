@@ -37,16 +37,9 @@ book:
     - summary.qmd
     - references.qmd
   appendices:
-    - appendices/installing-updating-openspec.qmd
-    - appendices/appendix-a.qmd
-    - appendices/appendix-b.qmd
-    - appendices/appendix-c.qmd
-    - appendices/troubleshooting-openspec.qmd
-    - appendices/appendix-d.qmd
-    - appendices/a-lab-setup.qmd
-    - appendices/b-prompt-workbook.qmd
-    - appendices/c-artifact-checklists.qmd
-    - appendices/d-instructor-guide.qmd
+    - appendices/a-environment-setup.qmd
+    - appendices/b-openspec-reference.qmd
+    - appendices/c-workshop-resources.qmd
 
 bibliography: references.bib
 

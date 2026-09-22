@@ -1,10 +1,10 @@
-# Troubleshooting OpenSpec
+## Troubleshooting OpenSpec
 
-## A diagnostic method
+### A diagnostic method
 
 For each problem, start with the symptom and a likely cause.  Then run the cheapest check that could distinguish between possible causes before choosing a repair.  Keep the command output from that check; it may be more useful than repeating a setup step that could change the evidence.
 
-## Installation failures
+### Installation failures
 
 You might see one of these symptoms:
 
@@ -13,7 +13,7 @@ You might see one of these symptoms:
 - Windows execution policy or macOS permissions prevent the command from running.
 - The installed version differs from the book's 1.13.1 baseline.
 
-## Initialization and update failures
+### Initialization and update failures
 
 Check whether:
 
@@ -22,7 +22,7 @@ Check whether:
 - The selected GitHub Copilot integration or profile is unavailable.
 - Project-owned configuration changed unexpectedly.
 
-## Command discovery failures
+### Command discovery failures
 
 You may be dealing with command discovery when:
 
@@ -31,7 +31,7 @@ You may be dealing with command discovery when:
 - A prompt-file command is being confused with an Agent Skill or terminal CLI command.
 - The IDE appears to be using an earlier version of the generated integration files.
 
-## Artifact and validation failures
+### Artifact and validation failures
 
 The failure may be in artifact or validation handling when:
 
@@ -41,7 +41,7 @@ The failure may be in artifact or validation handling when:
 - A modified requirement does not match the accepted source requirement.
 - Archive or sync encounters overlapping deltas.
 
-## Two-repository failures
+### Two-repository failures
 
 Compare the repositories when:
 
@@ -50,11 +50,11 @@ Compare the repositories when:
 - The OpenAPI document does not match the backend behavior.
 - A test passes against a different backend or port than the one you intended.
 
-## Recovery boundaries
+### Recovery boundaries
 
 Before regeneration, preserve project-owned specs and active changes.  Use version control to inspect generated-file changes.  If an OpenSpec defect remains reproducible, report the version, operating system, minimal repository state, command, and complete output.
 
-## Online references
+### Online references
 
 - [OpenSpec troubleshooting](https://openspec.dev/docs/troubleshooting)
 - [OpenSpec CLI reference](https://openspec.dev/docs/cli)

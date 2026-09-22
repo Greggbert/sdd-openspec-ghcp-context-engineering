@@ -1,31 +1,31 @@
-# Prompt Workbook
+## Prompt Workbook
 
 Use these prompts as starting points.  Replace bracketed decisions with the class's agreed behavior rather than asking the agent to invent them.
 
-## Explore unit-number search
+### Explore unit-number search
 
 > `/opsx:explore` We are considering an initial commercial truck search capability.  Could users search by a 15-character unit number?  Please ask about exact versus partial matching, case handling, invalid input, no-match behavior, and the response shown in the UI.  Hold off on creating change artifacts until those decisions are clear.
 
-## Propose unit-number search
+### Propose unit-number search
 
 > `/opsx:propose add-unit-number-search` Based on the exploration decisions, could you draft the proposal?  Please keep implementation choices out of the behavioral requirements and include scenarios for valid input, invalid input, a match, and no match.
 
-## Add VIN search
+### Add VIN search
 
 > `/opsx:propose add-vin-search-option` Could we add a secondary search mode for a 17-character VIN while preserving unit-number search?  Please ask how users would select the mode and how the two modes should share response behavior.  Represent the new capability as an additive delta.
 
-## Modify unit-number validation
+### Modify unit-number validation
 
 > `/opsx:propose update-unit-number-length` We are considering replacing the current unit-number length rule with a maximum of 10 characters.  Could you identify every scenario that would change and every existing behavior that should remain intact?  Represent the replacement as a modified requirement.
 
-## Update an active filter proposal
+### Update an active filter proposal
 
 > `/opsx:update` Could you revise the active origin-state filter change to include Active Status with values Active and Decommissioned?  Please update the proposal, requirements and scenarios, design, and tasks, and flag any unanswered question about how the filters should combine.
 
-## Review generated artifacts
+### Review generated artifacts
 
 > Could you review this OpenSpec change without editing it?  Please report contradictions, unsupported assumptions, missing edge cases, tasks that do not trace to requirements, and requirements that lack verification tasks.
 
-## Verify before archive
+### Verify before archive
 
 > Could you compare the implemented change with the active delta and task list before archiving?  Please identify unmet scenarios, code outside the approved scope, stale tasks, and tests that do not prove the specified behavior.  Hold off on archiving the change.

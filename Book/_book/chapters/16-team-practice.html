@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.30">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>16&nbsp; Making SDD a Team Practice – Spec-Driven Development with OpenSpec and GitHub Copilot</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../summary.html" rel="next">
+<link href="../chapters/15-parallel-changes.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-b6a8276bf55561bdbc268162d41bd1f7.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-5ccb035bea26c1e21f80f44cf7c27909.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/13-modify-accepted-behavior.html">Part IV: Change Under Pressure</a></li><li class="breadcrumb-item"><a href="../chapters/16-team-practice.html"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Making SDD a Team Practice</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">Spec-Driven Development with OpenSpec and GitHub Copilot</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Part I: Why Durable Intent Matters</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01-durable-intent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">From Chat Sessions to Durable Intent</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/02-openspec-operating-model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">The OpenSpec Operating Model</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/03-testable-requirements.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Writing Requirements an Agent Can Test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/04-context-engineering-copilot.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Engineering Context for GitHub Copilot</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Part II: Establishing the Greenfield Baseline</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/05-two-repository-lab.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Preparing the Two-Repository Lab</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/06-initialize-configure-openspec.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Initialize and Configure OpenSpec</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/07-explore-unit-number-search.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Exploring the Unit-Number Search</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08-propose-full-stack-change.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Proposing the First Full-Stack Change</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Part III: Applying and Evolving the Specification</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09-apply-spring-boot.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Applying the Spring Boot Change</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10-apply-angular.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Applying the Angular Change</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11-verify-sync-archive.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Verifying, Synchronizing, and Archiving</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12-add-vin-search.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Adding VIN Search to a Brownfield System</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Part IV: Change Under Pressure</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13-modify-accepted-behavior.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Modifying Accepted Behavior</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14-revise-in-flight-change.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Revising an In-Flight Change</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/15-parallel-changes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Coordinating Parallel Changes</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/16-team-practice.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Making SDD a Team Practice</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../summary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Summary</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/a-environment-setup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Environment Setup and Troubleshooting</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/b-openspec-reference.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">OpenSpec Reference</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/c-workshop-resources.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Workshop Resources</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#learning-objective" id="toc-learning-objective" class="nav-link active" data-scroll-target="#learning-objective"><span class="header-section-number">16.1</span> Learning objective</a></li>
+  <li><a href="#start-with-the-handoff-problem" id="toc-start-with-the-handoff-problem" class="nav-link" data-scroll-target="#start-with-the-handoff-problem"><span class="header-section-number">16.2</span> Start with the handoff problem</a></li>
+  <li><a href="#agree-on-the-minimum-operating-model" id="toc-agree-on-the-minimum-operating-model" class="nav-link" data-scroll-target="#agree-on-the-minimum-operating-model"><span class="header-section-number">16.3</span> Agree on the minimum operating model</a></li>
+  <li><a href="#give-each-system-one-job" id="toc-give-each-system-one-job" class="nav-link" data-scroll-target="#give-each-system-one-job"><span class="header-section-number">16.4</span> Give each system one job</a></li>
+  <li><a href="#walk-one-change-through-the-team" id="toc-walk-one-change-through-the-team" class="nav-link" data-scroll-target="#walk-one-change-through-the-team"><span class="header-section-number">16.5</span> Walk one change through the team</a>
+  <ul class="collapse">
+  <li><a href="#frame-the-proposal-together" id="toc-frame-the-proposal-together" class="nav-link" data-scroll-target="#frame-the-proposal-together"><span class="header-section-number">16.5.1</span> Frame the proposal together</a></li>
+  <li><a href="#review-behavior-before-design-hardens" id="toc-review-behavior-before-design-hardens" class="nav-link" data-scroll-target="#review-behavior-before-design-hardens"><span class="header-section-number">16.5.2</span> Review behavior before design hardens</a></li>
+  <li><a href="#turn-tasks-into-handoff-points" id="toc-turn-tasks-into-handoff-points" class="nav-link" data-scroll-target="#turn-tasks-into-handoff-points"><span class="header-section-number">16.5.3</span> Turn tasks into handoff points</a></li>
+  <li><a href="#preserve-the-review-result" id="toc-preserve-the-review-result" class="nav-link" data-scroll-target="#preserve-the-review-result"><span class="header-section-number">16.5.4</span> Preserve the review result</a></li>
+  </ul></li>
+  <li><a href="#match-review-ownership-to-the-decision" id="toc-match-review-ownership-to-the-decision" class="nav-link" data-scroll-target="#match-review-ownership-to-the-decision"><span class="header-section-number">16.6</span> Match review ownership to the decision</a></li>
+  <li><a href="#scale-the-workflow-to-the-risk" id="toc-scale-the-workflow-to-the-risk" class="nav-link" data-scroll-target="#scale-the-workflow-to-the-risk"><span class="header-section-number">16.7</span> Scale the workflow to the risk</a></li>
+  <li><a href="#make-copilot-work-from-reviewed-context" id="toc-make-copilot-work-from-reviewed-context" class="nav-link" data-scroll-target="#make-copilot-work-from-reviewed-context"><span class="header-section-number">16.8</span> Make Copilot work from reviewed context</a></li>
+  <li><a href="#introduce-the-practice-in-stages" id="toc-introduce-the-practice-in-stages" class="nav-link" data-scroll-target="#introduce-the-practice-in-stages"><span class="header-section-number">16.9</span> Introduce the practice in stages</a></li>
+  <li><a href="#capstone-establish-a-team-workflow" id="toc-capstone-establish-a-team-workflow" class="nav-link" data-scroll-target="#capstone-establish-a-team-workflow"><span class="header-section-number">16.10</span> Capstone: establish a team workflow</a></li>
+  <li><a href="#verification-checkpoint" id="toc-verification-checkpoint" class="nav-link" data-scroll-target="#verification-checkpoint"><span class="header-section-number">16.11</span> Verification checkpoint</a></li>
+  <li><a href="#what-you-learned" id="toc-what-you-learned" class="nav-link" data-scroll-target="#what-you-learned"><span class="header-section-number">16.12</span> What you learned</a></li>
+  <li><a href="#online-references" id="toc-online-references" class="nav-link" data-scroll-target="#online-references"><span class="header-section-number">16.13</span> Online references</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/13-modify-accepted-behavior.html">Part IV: Change Under Pressure</a></li><li class="breadcrumb-item"><a href="../chapters/16-team-practice.html"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Making SDD a Team Practice</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Making SDD a Team Practice</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>A developer finishes an OpenSpec change, closes the Copilot session, and opens a pull request. The tests pass, the code looks reasonable, and every task has a checkmark. Yet the reviewer still has to ask what behavior changed, who approved it, and whether the Angular client came from the same contract as the Spring Boot implementation.</p>
+<p>What separated this work from a private OpenSpec exercise? Not the number of artifact files. Ask whether another developer could enter after the original session disappeared and make the next correct decision. That person would need the business intent, accepted behavior, technical constraints, and verification evidence without depending on the author’s memory.</p>
+<p>Treat that handoff as the test for team practice. Then agree on which changes deserve a spec, where decisions belong, who reviews them, and what evidence permits the work to move forward. Installing OpenSpec in every repository without that agreement may only create more places to disagree.</p>
+<section id="learning-objective" class="level2" data-number="16.1">
+<h2 data-number="16.1" class="anchored" data-anchor-id="learning-objective"><span class="header-section-number">16.1</span> Learning objective</h2>
+<p>By the end of this chapter, you should be able to introduce a proportionate OpenSpec workflow to a team, define its decision and review boundaries, and test whether the resulting record can support a developer who did not participate in the original Copilot session.</p>
+</section>
+<section id="start-with-the-handoff-problem" class="level2" data-number="16.2">
+<h2 data-number="16.2" class="anchored" data-anchor-id="start-with-the-handoff-problem"><span class="header-section-number">16.2</span> Start with the handoff problem</h2>
+<p>The exercises used one person, two repositories, and a controlled sequence of changes. Now picture the commercial truck search moving through a delivery team. A product owner requests the search mode in Jira. One developer shapes the backend contract, another regenerates the Angular client, and a third reviews validation behavior. Interruptions and parallel work separate those steps.</p>
+<p>Where should the next person look if “commercial truck” means something different in the ticket, delta specification, API schema, and UI test? Let Jira establish priority and ownership. Let the OpenSpec change record the proposed behavior and technical decisions. Let the repository preserve the reviewed result. Keep chat as working space rather than the only place where a decision exists.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>A practical test for shared context
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Ask a reviewer to explain what should change, what should remain unchanged, and how the team will know the work is complete using repository artifacts alone. A “no” points to a handoff problem, even when the implementation passes its tests.</p>
+</div>
+</div>
+</section>
+<section id="agree-on-the-minimum-operating-model" class="level2" data-number="16.3">
+<h2 data-number="16.3" class="anchored" data-anchor-id="agree-on-the-minimum-operating-model"><span class="header-section-number">16.3</span> Agree on the minimum operating model</h2>
+<p>Before asking everyone to create artifacts, settle a few working rules. Which work requires an OpenSpec change? Who may accept behavior? When may implementation begin? What would count as enough verification to synchronize or archive?</p>
+<p>Keep the first agreement short enough to scan during a change. A longer process document may be harder to apply and easier to ignore. Adapt the following example to the repository’s paths and commands:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">## OpenSpec working agreement</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Create a full change for new behavior, contract changes, cross-repository work, and changes to</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    accepted requirements.</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Link the change name from the Jira issue and pull request.</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Obtain behavior review before implementation when the proposal changes a user-visible outcome.</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Obtain technical review before implementation when the delta changes an API, persistence model,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    security boundary, or generated client.</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Keep decisions in OpenSpec artifacts; use chat and meetings to develop them.</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Record focused test commands and results before synchronization or archive.</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Recheck every active change after its accepted baseline moves.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Would every team choose those exact rules? Probably not. Match the approval and evidence burden to the product’s constraints. Keep the boundary explicit so people and agents can see where a lightweight record ends and a reviewed change begins.</p>
+</section>
+<section id="give-each-system-one-job" class="level2" data-number="16.4">
+<h2 data-number="16.4" class="anchored" data-anchor-id="give-each-system-one-job"><span class="header-section-number">16.4</span> Give each system one job</h2>
+<p>Teams often lose intent because the same decision appears in several tools with slightly different wording. Copying the full requirement into Jira, a proposal, a pull request, and a chat prompt may look thorough, but which copy would be corrected after review?</p>
+<p>A clearer division might look like this:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>System or artifact</th>
+<th>Question it should answer</th>
+<th>What it should avoid becoming</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Jira issue</td>
+<td>Why is the work scheduled, who owns it, and what is its status?</td>
+<td>The only source of detailed behavior</td>
+</tr>
+<tr class="even">
+<td><code>proposal.md</code></td>
+<td>What outcome is proposed, what is in scope, and what is excluded?</td>
+<td>A duplicate task board</td>
+</tr>
+<tr class="odd">
+<td>Delta specifications</td>
+<td>Which observable behavior would be added, modified, or removed?</td>
+<td>An implementation diary</td>
+</tr>
+<tr class="even">
+<td><code>design.md</code></td>
+<td>Which technical choices and constraints shape the implementation?</td>
+<td>A restatement of every requirement</td>
+</tr>
+<tr class="odd">
+<td><code>tasks.md</code></td>
+<td>In what order could the team implement and verify the change?</td>
+<td>Evidence that unchecked behavior is acceptable</td>
+</tr>
+<tr class="even">
+<td>Pull request</td>
+<td>What code and artifact revisions are ready for review?</td>
+<td>The first place a product decision appears</td>
+</tr>
+<tr class="odd">
+<td>Tests and verification record</td>
+<td>What evidence supports the reviewed behavior?</td>
+<td>A substitute for deciding what the behavior should be</td>
+</tr>
+</tbody>
+</table>
+<p>Do not eliminate links between tools; make them directional. Point from the Jira issue to the OpenSpec change for behavior. Point from the pull request to both, then record the verification commands there or in the change. Reviewers can follow that chain without comparing several competing copies of the requirement.</p>
+</section>
+<section id="walk-one-change-through-the-team" class="level2" data-number="16.5">
+<h2 data-number="16.5" class="anchored" data-anchor-id="walk-one-change-through-the-team"><span class="header-section-number">16.5</span> Walk one change through the team</h2>
+<p>Test the shared workflow against one change. Suppose the product owner requests commercial truck search across the Spring Boot and Angular repositories. How might that request move without turning OpenSpec into a sequence of gates for their own sake?</p>
+<section id="frame-the-proposal-together" class="level3" data-number="16.5.1">
+<h3 data-number="16.5.1" class="anchored" data-anchor-id="frame-the-proposal-together"><span class="header-section-number">16.5.1</span> Frame the proposal together</h3>
+<p>Begin with the business goal, affected behavior, non-goals, and known repository boundaries. Use an exploration session to uncover current routes, generated client code, and existing search scenarios. Do not ask the agent to decide what counts as a commercial truck; assign that definition to an accountable human owner.</p>
+<p>Focus the early review on meaning rather than prose quality:</p>
+<ul>
+<li>Would two reviewers interpret “commercial truck” the same way?</li>
+<li>Which current search modes must remain unchanged?</li>
+<li>Does the request alter a public contract or only add a client-side filter?</li>
+<li>Which repository owns the contract from which the client is generated?</li>
+<li>What outcome should occur for invalid input, no match, and service failure?</li>
+</ul>
+<p>Resolve those questions while changing the proposal remains cheap. Waiting until pull-request review may turn the same disagreement into code rework across both repositories.</p>
+</section>
+<section id="review-behavior-before-design-hardens" class="level3" data-number="16.5.2">
+<h3 data-number="16.5.2" class="anchored" data-anchor-id="review-behavior-before-design-hardens"><span class="header-section-number">16.5.2</span> Review behavior before design hardens</h3>
+<p>Once the proposal and delta scenarios express the requested outcome, ask the product or domain reviewer to accept the behavior boundary. Leave class names, endpoint paths, and component structure to technical review unless those choices affect the product contract.</p>
+<p>Next, examine <code>design.md</code> and the cross-repository implications with the technical reviewer. Would the backend publish the OpenAPI change before the frontend regenerates its client? Could old and new clients coexist during deployment? Which validation belongs in the API, and which feedback belongs in the UI? Let those answers shape the implementation plan without reopening an already settled business outcome.</p>
+</section>
+<section id="turn-tasks-into-handoff-points" class="level3" data-number="16.5.3">
+<h3 data-number="16.5.3" class="anchored" data-anchor-id="turn-tasks-into-handoff-points"><span class="header-section-number">16.5.3</span> Turn tasks into handoff points</h3>
+<p>A private checklist may follow whatever order helps its author. For a team task list, show where work passes to someone else and what must be true at that point.</p>
+<p>For the commercial truck change, a useful sequence could include:</p>
+<ol type="1">
+<li>Review the behavior and non-goals with the named business owner.</li>
+<li>Review the proposed request and response contract with backend and frontend owners.</li>
+<li>Implement and test the backend behavior against the reviewed scenarios.</li>
+<li>Publish the contract artifact and regenerate the Angular client from it.</li>
+<li>Implement the UI states and run focused frontend tests.</li>
+<li>Compare the implementation, generated artifacts, and accepted scenarios before archive.</li>
+</ol>
+<p>Give each step a verification point rather than a bare completion claim. “Regenerate the client” says what to do. “Regenerate from the reviewed backend contract and confirm no hand-written request type remains” gives the next reviewer something to inspect.</p>
+</section>
+<section id="preserve-the-review-result" class="level3" data-number="16.5.4">
+<h3 data-number="16.5.4" class="anchored" data-anchor-id="preserve-the-review-result"><span class="header-section-number">16.5.4</span> Preserve the review result</h3>
+<p>Approval in a meeting or chat may unblock the author, but would it help the developer who takes over next week? Record the result in the artifact that governs the behavior or design. Skip the meeting transcript; preserve enough context to prevent the same question from returning during implementation.</p>
+<p>Carry the OpenSpec change name into commits and pull requests. Name the commands run and any checks that remain outside automation. After synchronization or archive, ask whether the accepted specifications describe the behavior without requiring the active change folder.</p>
+</section>
+</section>
+<section id="match-review-ownership-to-the-decision" class="level2" data-number="16.6">
+<h2 data-number="16.6" class="anchored" data-anchor-id="match-review-ownership-to-the-decision"><span class="header-section-number">16.6</span> Match review ownership to the decision</h2>
+<p>Would every artifact need a separate approver? That rule could add delay without improving the decision. Review ownership may work better when it follows the consequence under review.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Decision</th>
+<th>Likely reviewer</th>
+<th>Review question</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>User-visible behavior and non-goals</td>
+<td>Product or domain owner</td>
+<td>Is this the outcome the system should promise?</td>
+</tr>
+<tr class="even">
+<td>API, data, security, or deployment boundary</td>
+<td>Technical owner</td>
+<td>Can the design preserve the required constraints?</td>
+</tr>
+<tr class="odd">
+<td>Code and automated tests</td>
+<td>Implementation reviewer</td>
+<td>Does the implementation satisfy the reviewed scenarios?</td>
+</tr>
+<tr class="even">
+<td>Synchronization and archive readiness</td>
+<td>Change owner or release reviewer</td>
+<td>Do accepted specs, implementation, and evidence now agree?</td>
+</tr>
+</tbody>
+</table>
+<p>One person may cover several rows on a small team. Still, name the decision behind each approval. A product owner accepting endpoint naming does not replace technical review, and code approval does not settle an ambiguous business rule.</p>
+<p>Define escalation points for consequences that need a specific owner, such as a new public API, a removed scenario, a security boundary, or disagreement between active changes. Keep routine edits with the normal reviewer. Let consequence, rather than title or artifact count, determine the review path.</p>
+</section>
+<section id="scale-the-workflow-to-the-risk" class="level2" data-number="16.7">
+<h2 data-number="16.7" class="anchored" data-anchor-id="scale-the-workflow-to-the-risk"><span class="header-section-number">16.7</span> Scale the workflow to the risk</h2>
+<p>Requiring the same artifact set for a typo and a cross-repository contract change would teach the team to work around the process. How much specification would help before its maintenance cost exceeds the uncertainty it removes?</p>
+<p>Use a simple classification to discuss that choice:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Change shape</th>
+<th>Possible record</th>
+<th>Typical review</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Existing behavior, low risk, easy to reverse</td>
+<td>Issue or pull-request note tied to accepted specs</td>
+<td>Implementation review</td>
+</tr>
+<tr class="even">
+<td>Local behavior with bounded impact</td>
+<td>Proposal, delta scenarios, and focused tasks</td>
+<td>Behavior and implementation review</td>
+</tr>
+<tr class="odd">
+<td>Contract, security, persistence, or cross-repository change</td>
+<td>Full proposal, deltas, design, tasks, and verification record</td>
+<td>Named behavior and technical review</td>
+</tr>
+<tr class="even">
+<td>Urgent production repair</td>
+<td>Small initial record with owner, risk, and verification, followed by artifact repair</td>
+<td>Immediate peer review and scheduled follow-up</td>
+</tr>
+</tbody>
+</table>
+<p>Do not let the matrix make the decision automatically. Use it to expose uncertainty, reversibility, blast radius, contract impact, and the cost of discovering a mistake late. When a smaller artifact set seems sufficient, record the exception so the reviewer can challenge the reason rather than wonder whether files were forgotten.</p>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>Ceremony can hide missing thought
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A complete folder may still contain vague requirements, copied design text, and tasks that prove only that files changed. Review the decisions and scenarios, not the presence of filenames. A smaller record with a precise boundary could serve the team better than a full set of unexamined artifacts.</p>
+</div>
+</div>
+</section>
+<section id="make-copilot-work-from-reviewed-context" class="level2" data-number="16.8">
+<h2 data-number="16.8" class="anchored" data-anchor-id="make-copilot-work-from-reviewed-context"><span class="header-section-number">16.8</span> Make Copilot work from reviewed context</h2>
+<p>Once a team shares artifacts, start Copilot prompts from reviewed material rather than each developer’s reconstruction of the ticket. This only works while the repository context remains current.</p>
+<p>Ask Copilot to compare implementation with accepted scenarios, identify a contract boundary, or draft tests for review. Point to the relevant proposal, delta, design, and repository instructions. State where the agent must stop and request a human decision.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>Read the active <span class="in">`add-commercial-truck-search`</span> artifacts and the accepted truck-search specs.</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>Report any mismatch between the proposed scenarios, backend contract, generated Angular client,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>and current tests.  Do not choose new product behavior or edit accepted specifications.  List any</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>decision that requires the product owner or API owner.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Would another developer find the same governing requirements and unresolved decisions from the same repository state? If the answer depends on instructions held in one person’s prompt history, move those instructions into maintained repository context.</p>
+<p>Review that context after changes to OpenSpec, Copilot customization files, generated-client commands, or test tooling. Run the documented commands, remove contradictory instructions, and revise examples whose paths or behavior changed.</p>
+</section>
+<section id="introduce-the-practice-in-stages" class="level2" data-number="16.9">
+<h2 data-number="16.9" class="anchored" data-anchor-id="introduce-the-practice-in-stages"><span class="header-section-number">16.9</span> Introduce the practice in stages</h2>
+<p>A team may resist SDD for reasonable reasons. The artifacts take time, reviewers can become a bottleneck, and poorly scoped specs can freeze choices that implementation still needs to explore. Starting with every repository and every change could make those costs arrive before the team sees the handoff benefit.</p>
+<p>Gather evidence with a limited pilot:</p>
+<ol type="1">
+<li>Choose one capability with a real handoff or cross-repository boundary.</li>
+<li>Agree on the minimum rules and name the reviewers before opening the change.</li>
+<li>Run two or three changes through proposal, implementation, verification, and archive.</li>
+<li>Ask a developer outside the work to reconstruct one completed change from repository artifacts.</li>
+<li>Revise the agreement where the handoff failed or where an artifact added no useful decision.</li>
+</ol>
+<p>Measure friction in concrete terms. Which questions returned during code review? Which decisions had no owner? Which artifact became stale first? Where did a reviewer still need the author or chat transcript? Those observations say more than a count of created spec files.</p>
+<p>Teams might also watch for signs that the practice is becoming performative:</p>
+<ul>
+<li>Proposals appear after the code and merely describe it.</li>
+<li>Reviewers approve artifact folders without reading scenarios.</li>
+<li>Jira and OpenSpec contain competing versions of the same behavior.</li>
+<li><code>tasks.md</code> records activity but no verification.</li>
+<li>Active changes remain based on specifications that have since moved.</li>
+<li>Archive becomes a cleanup chore disconnected from acceptance.</li>
+</ul>
+<p>Any one occurrence may have a reasonable explanation. When a pattern repeats, revise the working agreement, training, or scope.</p>
+</section>
+<section id="capstone-establish-a-team-workflow" class="level2" data-number="16.10">
+<h2 data-number="16.10" class="anchored" data-anchor-id="capstone-establish-a-team-workflow"><span class="header-section-number">16.10</span> Capstone: establish a team workflow</h2>
+<p>Use a proposed commercial truck search change to test the operating model across the Spring Boot and Angular repositories. The goal is not the largest possible artifact set. Could the team defend the amount of specification, transfer the work between people, and recover the final decision later?</p>
+<ol type="1">
+<li>Name the business owner, technical owner, change author, and implementation reviewer.</li>
+<li>Record the business goal, affected behavior, non-goals, and accepted baseline.</li>
+<li>Classify the change by uncertainty, reversibility, blast radius, and contract impact.</li>
+<li>Choose the OpenSpec artifacts required by that classification and record any exception.</li>
+<li>Review the delta scenarios before implementation begins.</li>
+<li>Record the backend-owned contract boundary and the generated-client handoff.</li>
+<li>Divide <code>tasks.md</code> at points where responsibility or evidence passes between team members.</li>
+<li>Link the Jira issue, OpenSpec change, commits, pull requests, and verification results.</li>
+<li>Complete the verification checkpoint before synchronization or archive.</li>
+</ol>
+</section>
+<section id="verification-checkpoint" class="level2" data-number="16.11">
+<h2 data-number="16.11" class="anchored" data-anchor-id="verification-checkpoint"><span class="header-section-number">16.11</span> Verification checkpoint</h2>
+<p>Give the completed change to a reviewer who did not participate in its Copilot sessions. Without asking the original author, could that reviewer answer the following questions?</p>
+<ul>
+<li>What user-visible behavior changed, and what remained outside scope?</li>
+<li>Who accepted the behavior and the technical boundary?</li>
+<li>Which accepted requirements and delta scenarios governed the implementation?</li>
+<li>Which repository owned the contract, and how was the Angular client produced?</li>
+<li>What verification evidence supports synchronization and archive?</li>
+<li>Which unresolved risks or follow-up items remain?</li>
+</ul>
+<p>Run the structural checks available in the repository as supporting evidence:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">openspec</span> status <span class="at">--change</span> add-commercial-truck-search</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">openspec</span> validate add-commercial-truck-search <span class="at">--strict</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ex">openspec</span> show add-commercial-truck-search <span class="at">--diff</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Then run the focused backend, contract-generation, frontend, and regression checks named in the change. Structural validation could show that OpenSpec can parse the artifacts; it could not show that the right people made the missing product decision.</p>
+<p>If the reviewer cannot reconstruct the work, repair the smallest broken handoff. The missing piece may be an owner, a scenario, a contract dependency, a verification result, or a link. If the reviewer can reconstruct it but the process felt heavier than the risk justified, revise the working agreement before applying it to the next class of change.</p>
+</section>
+<section id="what-you-learned" class="level2" data-number="16.12">
+<h2 data-number="16.12" class="anchored" data-anchor-id="what-you-learned"><span class="header-section-number">16.12</span> What you learned</h2>
+<p>Could a developer who missed the meeting and never saw the chat continue the work without guessing? That modest result would make SDD a team practice. When the test fails, repair the specific handoff rather than produce more paperwork.</p>
+</section>
+<section id="online-references" class="level2" data-number="16.13">
+<h2 data-number="16.13" class="anchored" data-anchor-id="online-references"><span class="header-section-number">16.13</span> Online references</h2>
+<ul>
+<li>OpenSpec documentation<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></li>
+<li>GitHub Copilot customization<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></li>
+<li>Atlassian Jira documentation<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></li>
+</ul>
+
+
+</section>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn1"><p><a href="https://openspec.dev/docs" class="uri">https://openspec.dev/docs</a><a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p><a href="https://docs.github.com/en/copilot/customizing-copilot" class="uri">https://docs.github.com/en/copilot/customizing-copilot</a><a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p><a href="https://support.atlassian.com/jira-software-cloud/" class="uri">https://support.atlassian.com/jira-software-cloud/</a><a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../chapters/15-parallel-changes.html" class="pagination-link" aria-label="Coordinating Parallel Changes">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Coordinating Parallel Changes</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../summary.html" class="pagination-link" aria-label="Summary">
+        <span class="nav-page-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Summary</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

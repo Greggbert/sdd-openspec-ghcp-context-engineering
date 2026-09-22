@@ -258,55 +258,31 @@ VS Code and IntelliJ IDEA instructions appear in parallel throughout the exercis
 
 ## Appendices
 
-### Appendix A: Installing and Updating OpenSpec
+### Appendix A: Environment Setup and Troubleshooting
 
 - Install OpenSpec 1.13.1 with npm on Windows 11 and macOS.
 - Check the installed version and npm package state.
 - Upgrade OpenSpec and update generated skills, prompts, and instructions in an existing repository.
 - Explain PATH, permissions, and version-pinning considerations.
+- Prepare both repositories and confirm baseline builds, tests, ports, and reset points.
+- Diagnose installation, initialization, command discovery, validation, schema, path, and version problems.
 
-### Appendix B: OpenSpec CLI Command Reference
+### Appendix B: OpenSpec Reference
 
 - Document OpenSpec 1.13.1 terminal commands and important options.
 - Separate CLI artifact operations from AI-host workflow commands.
 - Include machine-readable output and local validation examples.
-
-### Appendix C: GitHub Copilot Commands and OpenSpec Skills
-
 - Map OpenSpec workflows across VS Code, IntelliJ IDEA, and GitHub Copilot CLI.
 - Explain prompt-file and Agent Skill discovery.
 - Mark profile-dependent and host-dependent commands.
-
-### Appendix D: OpenSpec `schema.yaml` and Template Reference
-
 - Document schema fields, artifact dependencies, templates, and validation.
 - Show how to fork rather than edit built-in schemas.
+- List official documentation and community resources.
 
-### Appendix E: Troubleshooting OpenSpec
-
-- Diagnose installation, initialization, command discovery, validation, schema, path, and version problems.
-- Provide symptom, likely cause, discriminating check, and repair for each issue.
-
-### Appendix F: Further Reading and Community Resources
-
-- List official OpenSpec, GitHub Copilot, Spring Boot, Angular, OpenAPI Generator, testing, and Quarto sources.
-- Separate authoritative documentation from community examples.
-
-### Appendix G: Lab Setup
-
-- Prepare both repositories on Windows 11 and macOS.
-- Confirm baseline builds, tests, ports, and reset points.
-
-### Appendix H: Prompt Workbook
+### Appendix C: Workshop Resources
 
 - Collect tested prompts for exploration, proposal, artifact review, apply, verification, sync, and archive.
 - Provide paired VS Code and IntelliJ IDEA usage notes.
-
-### Appendix I: Artifact Review Checklists
-
 - Provide checklists for proposals, requirements, designs, tasks, implementation, verification, and archive readiness.
-
-### Appendix J: Instructor Guide
-
 - Map the self-paced chapters into teaching sessions.
 - Provide demonstrations, checkpoints, expected friction, recovery baselines, and discussion prompts.

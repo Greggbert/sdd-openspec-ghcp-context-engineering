@@ -1,6 +1,6 @@
-# Instructor Guide
+## Instructor Guide
 
-## Course shape
+### Course shape
 
 Each morning is planned for 90 minutes and follows the same rhythm: establish one concept, demonstrate one artifact transition, let participants perform it, and review the resulting evidence.
 
@@ -12,7 +12,7 @@ Each morning is planned for 90 minutes and follows the same rhythm: establish on
 | 55-75 min | Apply and test | Modify unit-number length | Apply, sync, and resolve overlap |
 | 75-90 min | Archive and debrief | Archive and compare specs | Governance review and wrap-up |
 
-## Teaching checkpoints
+### Teaching checkpoints
 
 It may help to measure progress by more than whether the agent generated files.  Pause at these points:
 
@@ -21,13 +21,13 @@ It may help to measure progress by more than whether the agent generated files. 
 3.  After apply, consider tracing one scenario through UI, API, persistence, and test code.
 4.  After archive, read the main spec without referring to the completed delta.
 
-## Expected friction
+### Expected friction
 
 Participants may type slash commands into the terminal, accept generated assumptions, or treat task checkmarks as test results.  Keeping the terminal/chat distinction visible can help, as can asking for an artifact review before each apply or archive step.
 
 Tool output may differ across OpenSpec releases or coding-agent models.  Teach the invariant workflow and review criteria rather than requiring identical generated prose.
 
-## Recovery points
+### Recovery points
 
 Maintain three instructor baselines:
 
@@ -37,6 +37,6 @@ Maintain three instructor baselines:
 
 These baselines can keep a setup problem from consuming the next morning.  They also let the instructor demonstrate a delta against a known source of truth.
 
-## Closing discussion
+### Closing discussion
 
 Ask participants to name one change in their own codebase where conflicting interpretations would cost more than writing a short spec.  Then ask for one change too small or reversible to justify the workflow.  The contrast can help keep SDD grounded as an engineering tradeoff rather than a universal ceremony.

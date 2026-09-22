@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.30">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>4&nbsp; Engineering Context for GitHub Copilot – Spec-Driven Development with OpenSpec and GitHub Copilot</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/05-two-repository-lab.html" rel="next">
+<link href="../chapters/03-testable-requirements.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-b6a8276bf55561bdbc268162d41bd1f7.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-5ccb035bea26c1e21f80f44cf7c27909.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01-durable-intent.html">Part I: Why Durable Intent Matters</a></li><li class="breadcrumb-item"><a href="../chapters/04-context-engineering-copilot.html"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Engineering Context for GitHub Copilot</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">Spec-Driven Development with OpenSpec and GitHub Copilot</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Part I: Why Durable Intent Matters</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01-durable-intent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">From Chat Sessions to Durable Intent</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/02-openspec-operating-model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">The OpenSpec Operating Model</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/03-testable-requirements.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Writing Requirements an Agent Can Test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/04-context-engineering-copilot.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Engineering Context for GitHub Copilot</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Part II: Establishing the Greenfield Baseline</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/05-two-repository-lab.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Preparing the Two-Repository Lab</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/06-initialize-configure-openspec.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Initialize and Configure OpenSpec</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/07-explore-unit-number-search.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Exploring the Unit-Number Search</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08-propose-full-stack-change.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Proposing the First Full-Stack Change</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Part III: Applying and Evolving the Specification</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09-apply-spring-boot.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Applying the Spring Boot Change</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10-apply-angular.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Applying the Angular Change</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11-verify-sync-archive.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Verifying, Synchronizing, and Archiving</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12-add-vin-search.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Adding VIN Search to a Brownfield System</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Part IV: Change Under Pressure</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13-modify-accepted-behavior.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Modifying Accepted Behavior</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14-revise-in-flight-change.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Revising an In-Flight Change</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/15-parallel-changes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Coordinating Parallel Changes</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/16-team-practice.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Making SDD a Team Practice</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../summary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Summary</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/a-environment-setup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Environment Setup and Troubleshooting</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/b-openspec-reference.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">OpenSpec Reference</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/c-workshop-resources.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Workshop Resources</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#learning-objective" id="toc-learning-objective" class="nav-link active" data-scroll-target="#learning-objective"><span class="header-section-number">4.1</span> Learning objective</a></li>
+  <li><a href="#context-engineering-in-an-sdd-workflow" id="toc-context-engineering-in-an-sdd-workflow" class="nav-link" data-scroll-target="#context-engineering-in-an-sdd-workflow"><span class="header-section-number">4.2</span> Context engineering in an SDD workflow</a></li>
+  <li><a href="#treat-the-context-window-as-shared-space" id="toc-treat-the-context-window-as-shared-space" class="nav-link" data-scroll-target="#treat-the-context-window-as-shared-space"><span class="header-section-number">4.3</span> Treat the context window as shared space</a>
+  <ul class="collapse">
+  <li><a href="#start-with-the-smallest-authoritative-package" id="toc-start-with-the-smallest-authoritative-package" class="nav-link" data-scroll-target="#start-with-the-smallest-authoritative-package"><span class="header-section-number">4.3.1</span> Start with the smallest authoritative package</a></li>
+  </ul></li>
+  <li><a href="#choose-a-model-with-the-task-and-window-in-mind" id="toc-choose-a-model-with-the-task-and-window-in-mind" class="nav-link" data-scroll-target="#choose-a-model-with-the-task-and-window-in-mind"><span class="header-section-number">4.4</span> Choose a model with the task and window in mind</a></li>
+  <li><a href="#expect-long-conversations-to-be-compacted" id="toc-expect-long-conversations-to-be-compacted" class="nav-link" data-scroll-target="#expect-long-conversations-to-be-compacted"><span class="header-section-number">4.5</span> Expect long conversations to be compacted</a></li>
+  <li><a href="#carry-the-working-state-forward-in-markdown" id="toc-carry-the-working-state-forward-in-markdown" class="nav-link" data-scroll-target="#carry-the-working-state-forward-in-markdown"><span class="header-section-number">4.6</span> Carry the working state forward in Markdown</a></li>
+  <li><a href="#use-each-copilot-client-deliberately" id="toc-use-each-copilot-client-deliberately" class="nav-link" data-scroll-target="#use-each-copilot-client-deliberately"><span class="header-section-number">4.7</span> Use each Copilot client deliberately</a>
+  <ul class="collapse">
+  <li><a href="#vs-code" id="toc-vs-code" class="nav-link" data-scroll-target="#vs-code"><span class="header-section-number">4.7.1</span> VS Code</a></li>
+  <li><a href="#intellij-idea-and-other-jetbrains-ides" id="toc-intellij-idea-and-other-jetbrains-ides" class="nav-link" data-scroll-target="#intellij-idea-and-other-jetbrains-ides"><span class="header-section-number">4.7.2</span> IntelliJ IDEA and other JetBrains IDEs</a></li>
+  <li><a href="#github-copilot-cli" id="toc-github-copilot-cli" class="nav-link" data-scroll-target="#github-copilot-cli"><span class="header-section-number">4.7.3</span> GitHub Copilot CLI</a></li>
+  </ul></li>
+  <li><a href="#understand-caching-without-confusing-it-with-memory" id="toc-understand-caching-without-confusing-it-with-memory" class="nav-link" data-scroll-target="#understand-caching-without-confusing-it-with-memory"><span class="header-section-number">4.8</span> Understand caching without confusing it with memory</a></li>
+  <li><a href="#reduce-context-waste-before-it-reaches-the-model" id="toc-reduce-context-waste-before-it-reaches-the-model" class="nav-link" data-scroll-target="#reduce-context-waste-before-it-reaches-the-model"><span class="header-section-number">4.9</span> Reduce context waste before it reaches the model</a></li>
+  <li><a href="#hands-on-exercise" id="toc-hands-on-exercise" class="nav-link" data-scroll-target="#hands-on-exercise"><span class="header-section-number">4.10</span> Hands-on exercise</a></li>
+  <li><a href="#verification-checkpoint" id="toc-verification-checkpoint" class="nav-link" data-scroll-target="#verification-checkpoint"><span class="header-section-number">4.11</span> Verification checkpoint</a></li>
+  <li><a href="#what-you-learned" id="toc-what-you-learned" class="nav-link" data-scroll-target="#what-you-learned"><span class="header-section-number">4.12</span> What you learned</a></li>
+  <li><a href="#online-references" id="toc-online-references" class="nav-link" data-scroll-target="#online-references"><span class="header-section-number">4.13</span> Online references</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01-durable-intent.html">Part I: Why Durable Intent Matters</a></li><li class="breadcrumb-item"><a href="../chapters/04-context-engineering-copilot.html"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Engineering Context for GitHub Copilot</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Engineering Context for GitHub Copilot</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Suppose you ask Copilot to add unit-number search to a Spring Boot service and its Angular client. You could attach the Jira story, both repositories, an architecture guide, several production logs, the OpenAPI document, and every test under <code>src</code>. Copilot would receive plenty of information, but the relevant constraints would be harder to find.</p>
+<p>A smaller package might work better: the active OpenSpec change, the existing search endpoint, the generated-client boundary, and the commands that verify each repository. Let the agent search outward when those sources expose a gap. This approach treats context as a budget to allocate rather than a pile to maximize.</p>
+<section id="learning-objective" class="level2" data-number="4.1">
+<h2 data-number="4.1" class="anchored" data-anchor-id="learning-objective"><span class="header-section-number">4.1</span> Learning objective</h2>
+<p>Build a bounded context package that preserves intent across a long-running change without crowding the selected model’s context window. Decide what belongs in repository instructions, OpenSpec artifacts, a chat session, or a Markdown handoff, then carry that package between VS Code, IntelliJ IDEA, and GitHub Copilot CLI.</p>
+</section>
+<section id="context-engineering-in-an-sdd-workflow" class="level2" data-number="4.2">
+<h2 data-number="4.2" class="anchored" data-anchor-id="context-engineering-in-an-sdd-workflow"><span class="header-section-number">4.2</span> Context engineering in an SDD workflow</h2>
+<p>Context engineering asks a practical question: what information should the model receive for this decision, in what form, and for how long? Prompt wording still matters, but the prompt forms only one part of the request. Copilot may also receive system instructions, repository customizations, conversation history, editor state, explicit file references, tool definitions, and tool output. VS Code documents this assembly process in its <a href="https://code.visualstudio.com/docs/agents/concepts/context">context guide</a><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>.</p>
+<p>That larger definition fits SDD well. Instead of asking a chat transcript to remember the change, give each kind of information an owner:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Information</th>
+<th>Suggested owner</th>
+<th>Expected lifetime</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Java, Angular, naming, and validation conventions</td>
+<td>Repository or path-specific instructions</td>
+<td>Many changes</td>
+</tr>
+<tr class="even">
+<td>Accepted business behavior</td>
+<td><code>openspec/specs/</code></td>
+<td>Until a later archived change modifies it</td>
+</tr>
+<tr class="odd">
+<td>Proposed behavior and technical choices</td>
+<td>Active OpenSpec <code>proposal.md</code>, delta specs, and <code>design.md</code></td>
+<td>Life of the change, then archive</td>
+</tr>
+<tr class="even">
+<td>Remaining implementation work</td>
+<td>Active OpenSpec <code>tasks.md</code></td>
+<td>Life of the change</td>
+</tr>
+<tr class="odd">
+<td>Reusable multi-step procedure</td>
+<td>Agent Skill</td>
+<td>Many sessions when invoked</td>
+</tr>
+<tr class="even">
+<td>Current hypothesis, recent evidence, and next action</td>
+<td>Focused chat or reviewed handoff file</td>
+<td>Hours or days</td>
+</tr>
+</tbody>
+</table>
+<p>Put facts that a future developer will need in an accepted spec, architecture record, or repository instruction. Keep implementation-specific facts in the active change or handoff. Evidence from one failed-test investigation can remain in chat unless the investigation must survive a session boundary.</p>
+<p>This separation may feel slower than pasting everything into one prompt. It usually asks for more judgment at the beginning. In return, each new session can recover intent from named artifacts rather than from a transcript whose useful parts have become hard to distinguish from abandoned ideas.</p>
+</section>
+<section id="treat-the-context-window-as-shared-space" class="level2" data-number="4.3">
+<h2 data-number="4.3" class="anchored" data-anchor-id="treat-the-context-window-as-shared-space"><span class="header-section-number">4.3</span> Treat the context window as shared space</h2>
+<p>A context window limits how much information a model can process in one request. Your current prompt does not get the whole window. System instructions, custom instructions, chat history, attached files, source snippets, tool schemas, terminal output, and space reserved for the response all compete for it.</p>
+<p>More context can therefore make an answer worse. An obsolete design note might conflict with the accepted delta spec. A large log could push an earlier decision toward compaction. A folder attachment might bury the one validation rule that the implementation must preserve. Even relevant information has a cost when the model must repeatedly process it.</p>
+<p>Evaluate each candidate source with four questions:</p>
+<ol type="1">
+<li>Does it affect the next decision or the requested output?</li>
+<li>Is it more authoritative than another source already present?</li>
+<li>Is it current, or could it describe behavior the team has replaced?</li>
+<li>Could Copilot retrieve it later with a focused search instead of receiving it now?</li>
+</ol>
+<p>Attach the source when the first three answers support it and retrieval would add avoidable uncertainty. Leave it discoverable when only a small part might become relevant. Remove or label it when its authority or freshness remains unclear.</p>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>A large context window does not resolve contradictions
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A model with room for both an old design and a new specification still has to choose between them. State which source wins, remove the stale source, or revise the artifacts before implementation.</p>
+</div>
+</div>
+<section id="start-with-the-smallest-authoritative-package" class="level3" data-number="4.3.1">
+<h3 data-number="4.3.1" class="anchored" data-anchor-id="start-with-the-smallest-authoritative-package"><span class="header-section-number">4.3.1</span> Start with the smallest authoritative package</h3>
+<p>For the unit-number search change, an initial implementation request might include:</p>
+<ul>
+<li>The active OpenSpec proposal, delta spec, design, and tasks.</li>
+<li>The current controller or route that owns nearby search behavior.</li>
+<li>The OpenAPI contract and the frontend service that consumes the generated client.</li>
+<li>The narrow backend and frontend test commands.</li>
+</ul>
+<p>Avoid attaching every controller, component, test, and generated client file. Ask the agent to inspect the named starting points and search for adjacent code before editing. VS Code’s semantic index can find relevant snippets without sending the entire workspace to every model request, while IntelliJ IDEA and Copilot CLI can use their own file references and agent tools to expand the working set as evidence requires.</p>
+<p>A bounded request might read:</p>
+<pre class="text"><code>Implement the next unchecked task in the active add-unit-number-search change.
+Treat its delta spec as the behavioral authority and design.md as the technical
+boundary.  Start with the existing truck search endpoint and generated Angular
+client.  Search for adjacent tests before editing.  Do not change generated files.
+Run the narrow backend or frontend test named in tasks.md, then report the
+scenario covered by the result.</code></pre>
+<p>Notice what this prompt does not repeat. It points to durable context instead of copying the requirements, architecture rules, and task list into chat. A correction to an artifact can then affect the next request without leaving a second version embedded in the transcript.</p>
+</section>
+</section>
+<section id="choose-a-model-with-the-task-and-window-in-mind" class="level2" data-number="4.4">
+<h2 data-number="4.4" class="anchored" data-anchor-id="choose-a-model-with-the-task-and-window-in-mind"><span class="header-section-number">4.4</span> Choose a model with the task and window in mind</h2>
+<p>The selected model affects more than tone or coding style. Models may differ in context-window size, reasoning behavior, latency, supported inputs, and token price. VS Code’s context-window control reports the capacity available for the selected model, while Copilot CLI’s <code>/model</code> picker may offer a default or long-context tier for models that support one. GitHub’s <a href="https://docs.github.com/en/copilot/reference/ai-models/model-comparison">model comparison</a><a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> changes as models enter and leave Copilot, so avoid encoding a permanent list of model names or limits in repository instructions.</p>
+<p>A routine one-file edit rarely needs the largest available window. A faster model with focused context may finish at lower cost. An architecture review that compares both repositories, a contract, and competing designs may justify stronger reasoning and a larger window. Compare the total work required, including retries, rather than price or window size in isolation.</p>
+<p>Before beginning a long task, select the model, context tier, reasoning effort, and tools you expect to use. Changing them later may alter available capacity, price, response behavior, or prompt-cache reuse. In VS Code and IntelliJ IDEA, use the model picker in the chat panel. In Copilot CLI, use <code>/model</code>; the picker can expose long-context options where the selected model supports them.</p>
+<p>Keep two cautions in view:</p>
+<ul>
+<li>A larger window may postpone compaction, but it may also invite an unfocused session and cost more per token.</li>
+<li>A stronger reasoning model may complete a hard task with fewer retries, while the same model may waste credits on mechanical edits.</li>
+</ul>
+<p>Use representative work from your repository to compare quality, retries, latency, and credit use. Recheck those results as Copilot’s model catalog and pricing change.</p>
+</section>
+<section id="expect-long-conversations-to-be-compacted" class="level2" data-number="4.5">
+<h2 data-number="4.5" class="anchored" data-anchor-id="expect-long-conversations-to-be-compacted"><span class="header-section-number">4.5</span> Expect long conversations to be compacted</h2>
+<p>Conversation history cannot grow inside a fixed model window forever. As a session approaches its limit, Copilot can replace older turns with a shorter summary. That process, called context compaction, frees room for new prompts and tool results. It does not preserve every earlier sentence.</p>
+<p>VS Code automatically compacts a conversation when its context window fills. You can inspect usage through the context-window control or run <code>/compact</code> before the limit, with guidance such as:</p>
+<pre class="text"><code>/compact Retain the accepted API contract, rejected persistence approaches,
+failing test evidence, files changed, and the next unchecked OpenSpec task.</code></pre>
+<p>Copilot CLI also compacts automatically. Its current documentation describes background compaction as beginning near 80 percent of the token limit, with a dynamic threshold when static instructions and tool definitions already occupy much of the window. Use <code>/context</code> to inspect the window, <code>/compact</code> to request a focused summary, and <code>/session checkpoints</code> to inspect summaries created during the session. See the <a href="https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli/overview#context-management">Copilot CLI context guidance</a><a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>.</p>
+<p>Do not treat automatic compaction as lossless memory. A summary may omit the reason an approach was rejected, the exact output of a failing test, or a small constraint mentioned many turns earlier. The chance of omission grows when the session mixes unrelated work.</p>
+<p>Protect the state that must survive before compaction occurs:</p>
+<ul>
+<li>Start a new session when the task changes.</li>
+<li>Compact manually at a stable checkpoint rather than waiting for a crowded window.</li>
+<li>Tell the compactor what must survive.</li>
+<li>Move accepted facts into the artifact that owns them.</li>
+<li>Save a reviewed handoff before closing or switching tools.</li>
+</ul>
+<p>IntelliJ IDEA exposes chat history, file references, working sets, and plan handoff features, but its controls may not match VS Code or the CLI release for release. Keep durable context in repository files rather than depending on a client-specific transcript feature.</p>
+</section>
+<section id="carry-the-working-state-forward-in-markdown" class="level2" data-number="4.6">
+<h2 data-number="4.6" class="anchored" data-anchor-id="carry-the-working-state-forward-in-markdown"><span class="header-section-number">4.6</span> Carry the working state forward in Markdown</h2>
+<p>A chat summary belongs to the chat system. A Markdown handoff belongs to the project and can be reviewed, diffed, attached to another session, or read from another client. Use one when an investigation or implementation will cross a session, model, developer, or IDE boundary.</p>
+<p>Ask Copilot to draft the handoff, then verify every line against the repository and the active change. A useful file might look like this:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu"># Unit-number search handoff</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>Updated: 2026-09-21</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>Change: <span class="in">`add-unit-number-search`</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="fu">## Current objective</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>Complete the backend search task without changing the accepted API contract.</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="fu">## Sources of truth</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Behavior: <span class="in">`openspec/changes/add-unit-number-search/specs/vehicle-search/spec.md`</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Technical choices: <span class="in">`openspec/changes/add-unit-number-search/design.md`</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Remaining work: <span class="in">`openspec/changes/add-unit-number-search/tasks.md`</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="fu">## Confirmed decisions</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Unit-number matching uses the rule stated in the delta spec.</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>The backend owns the OpenAPI document.</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>The Angular client remains generated code.</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="fu">## Evidence</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`TruckSearchControllerTest`</span> passes for the existing search path.</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>The new no-match test fails because the repository query is not implemented.</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a><span class="fu">## Rejected or superseded approaches</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Do not edit the generated TypeScript client by hand.</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Do not introduce a second search endpoint.</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a><span class="fu">## Next action</span></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>Implement the repository query, run the focused backend test, and update the</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>matching checkbox in <span class="in">`tasks.md`</span> only after the test passes.</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a><span class="fu">## Open questions</span></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>None for the current task.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Keep this file short. Link to specifications and source files instead of duplicating them. Record evidence with enough detail to reproduce it, and distinguish confirmed decisions from hypotheses. Delete the handoff when it no longer helps, or update it when the next developer would otherwise follow stale instructions.</p>
+<p>A team might store the file at <code>docs/handoffs/&lt;change-name&gt;.md</code>, in a ticket-specific notes directory, or in another reviewed location outside generated output. Agree on one convention. If a handoff contains a lasting business rule, move that rule into the OpenSpec specification rather than allowing the handoff to become a shadow source of truth.</p>
+<p>To start the next session, reference the handoff and the active change:</p>
+<pre class="text"><code>Read docs/handoffs/add-unit-number-search.md and the linked OpenSpec artifacts.
+Verify that the handoff still matches the working tree and current test results.
+Then perform only the Next action.  Stop and report any contradiction before
+editing code.</code></pre>
+<p>That verification clause matters. A durable file can carry context forward, but durability also lets mistakes persist.</p>
+</section>
+<section id="use-each-copilot-client-deliberately" class="level2" data-number="4.7">
+<h2 data-number="4.7" class="anchored" data-anchor-id="use-each-copilot-client-deliberately"><span class="header-section-number">4.7</span> Use each Copilot client deliberately</h2>
+<p>The same repository artifacts can support all three clients, while the attachment and inspection controls differ.</p>
+<section id="vs-code" class="level3" data-number="4.7.1">
+<h3 data-number="4.7.1" class="anchored" data-anchor-id="vs-code"><span class="header-section-number">4.7.1</span> VS Code</h3>
+<p>VS Code can infer context from the active editor, selection, diagnostics, Git state, and workspace index. Use <code>#</code> mentions or <strong>Add Context</strong> when a file, folder, symbol, issue, pull request, terminal result, or URL must be considered. Attach a known source explicitly when omission would change the result; let workspace search discover ordinary neighboring code.</p>
+<p>The context-window control can show current token use and the selected model’s capacity. Use <code>/compact</code> for a focused summary, <code>/fork</code> when exploring an alternative that should inherit the current history, and a new session for unrelated work. Check the response’s references when you need to confirm which instructions and files informed it.</p>
+<p>Repository-wide rules may live in <code>.github/copilot-instructions.md</code> or <code>AGENTS.md</code>. Path-specific <code>.instructions.md</code> files can apply only to Java, TypeScript, tests, or selected folders. Keep always-on instructions short because they enter many requests. VS Code’s <a href="https://code.visualstudio.com/docs/agent-customization/custom-instructions">custom-instructions guide</a><a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> describes the current discovery rules.</p>
+<p>Prompt files can still encode reusable requests for VS Code’s local agent, but current VS Code documentation marks them as deprecated for Agent Host sessions and recommends migration to Agent Skills. Prefer a skill for a reusable, multi-step workflow that should load only when relevant. Avoid moving change-specific requirements into a skill merely to make them reusable.</p>
+</section>
+<section id="intellij-idea-and-other-jetbrains-ides" class="level3" data-number="4.7.2">
+<h3 data-number="4.7.2" class="anchored" data-anchor-id="intellij-idea-and-other-jetbrains-ides"><span class="header-section-number">4.7.2</span> IntelliJ IDEA and other JetBrains IDEs</h3>
+<p>Copilot Chat in IntelliJ IDEA can use the open file or selected code as implicit context. Drag a file into the prompt, or right-click it and choose <strong>GitHub Copilot &gt; Reference File in Chat</strong>, when the file must be part of the request. In edit mode, keep the working set limited to files the change may modify.</p>
+<p>Use plan mode for a cross-cutting change, review the plan, and choose <strong>Open in Editor</strong> when you want the plan as Markdown. Save a reviewed version in the repository when it should outlive the conversation. The <a href="https://docs.github.com/en/copilot/how-tos/chat-with-copilot/chat-in-ide?tool=jetbrains">Copilot Chat guide for JetBrains IDEs</a><a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> covers file references, edit working sets, plan mode, and model selection.</p>
+<p>Repository instructions can give VS Code, JetBrains IDEs, Copilot CLI, and GitHub-hosted Copilot features a shared baseline, subject to each client’s current support. Inspect the response references instead of assuming an instruction file loaded. Avoid placing client-specific button sequences in repository-wide coding rules.</p>
+</section>
+<section id="github-copilot-cli" class="level3" data-number="4.7.3">
+<h3 data-number="4.7.3" class="anchored" data-anchor-id="github-copilot-cli"><span class="header-section-number">4.7.3</span> GitHub Copilot CLI</h3>
+<p>Start Copilot CLI from the narrowest directory that owns the task. Add a file with <code>@relative/path</code>, inspect context use with <code>/context</code>, and check model and token statistics with <code>/usage</code>. Use <code>/new</code> when changing topics and <code>/compact &lt;focus&gt;</code> when the current task should continue with less history.</p>
+<p>The CLI can resume sessions, but a resumed transcript still carries its earlier assumptions and compacted summaries. A checked-in handoff and OpenSpec change may provide a cleaner restart than an old conversation. Use <code>/share file</code> when you need a Markdown export of the session, then distill the useful facts rather than treating the full transcript as project documentation.</p>
+<p>Use <code>/instructions</code> to inspect discovered instruction files. Keep <code>@file</code> references focused, and consider subagents for isolated exploration because each subagent has a separate context window and can return a concise result to the main session. The <a href="https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference">Copilot CLI command reference</a><a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a> documents these commands and the current model options.</p>
+</section>
+</section>
+<section id="understand-caching-without-confusing-it-with-memory" class="level2" data-number="4.8">
+<h2 data-number="4.8" class="anchored" data-anchor-id="understand-caching-without-confusing-it-with-memory"><span class="header-section-number">4.8</span> Understand caching without confusing it with memory</h2>
+<p>Prompt caching may let a model provider reuse an unchanged prefix from a previous request. That prefix can include stable system instructions, tool definitions, custom instructions, and earlier conversation content. When supported by the provider and model, reuse may lower latency and the cost assigned to cached input tokens.</p>
+<p>Caching does not enlarge the context window. It does not guarantee that Copilot will recall an omitted fact. It also does not replace compaction or a handoff file. The same tokens may remain part of the model request even when the provider can process them at a lower cached-input rate.</p>
+<p>GitHub’s current token-based pricing converts input, output, cache-read, and, for some models, cache-write tokens into GitHub AI Credits. The rates vary by model, and one AI credit represents $0.01 USD under that billing model. Some annual plans may still use legacy request-based billing, so check the plan that applies to your account. See <a href="https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing">Models and pricing for GitHub Copilot</a><a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a>.</p>
+<p>To improve cache reuse without weakening the request, choose the model, reasoning effort, context tier, instructions, and tool set before the session begins. Keep stable instructions stable. Avoid repeatedly replacing large attachments or changing the tool catalog between turns without a task-related reason. Forking an existing VS Code session may preserve the earlier prompt prefix better than reconstructing it in a new chat.</p>
+<p>Do not optimize a cache-hit percentage at the expense of correctness. A changed specification should invalidate the old context. A required MCP tool should remain available even if its schema changes the prompt prefix. VS Code’s <a href="https://code.visualstudio.com/docs/agents/agent-troubleshooting/cache-explorer">Cache Explorer</a><a href="#fn8" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a> can show where consecutive requests first diverge, but the documentation cautions that this comparison does not prove how the provider processed or billed the request.</p>
+</section>
+<section id="reduce-context-waste-before-it-reaches-the-model" class="level2" data-number="4.9">
+<h2 data-number="4.9" class="anchored" data-anchor-id="reduce-context-waste-before-it-reaches-the-model"><span class="header-section-number">4.9</span> Reduce context waste before it reaches the model</h2>
+<p>Several small practices can keep the useful signal easier to recover:</p>
+<ul>
+<li>Give each session one change or investigation.</li>
+<li>Attach a precise file or symbol before attaching a folder or codebase.</li>
+<li>Exclude generated output, dependencies, build directories, and noisy logs from search when they should not be discovered.</li>
+<li>Keep tool catalogs narrow; every tool definition and result may consume context.</li>
+<li>Run deterministic bulk work in a script or build tool, then return the concise result instead of many repetitive tool calls.</li>
+<li>Use a subagent for independent research and ask for a sourced summary.</li>
+<li>Ask Copilot to name the files, instructions, assumptions, and test evidence behind a recommendation.</li>
+<li>Correct the owning artifact when a rule changes rather than repeating the correction in later prompts.</li>
+<li>Start a fresh session when the accumulated history costs more than rebuilding a small context package.</li>
+</ul>
+<p>MCP servers can supply current data from issue trackers, documentation systems, or internal services. Add one when the task needs information that the repository cannot contain or should not duplicate. Limit enabled servers and tools to the current job; a large catalog consumes context before any tool runs and gives the agent more choices to evaluate.</p>
+<p>The same restraint applies to custom instructions. A linter can enforce formatting without spending context tokens on a prose rule. Source code can reveal an ordinary framework convention. Reserve instructions for non-obvious constraints, commands, boundaries, and exceptions that Copilot would otherwise have to rediscover or might infer incorrectly.</p>
+</section>
+<section id="hands-on-exercise" class="level2" data-number="4.10">
+<h2 data-number="4.10" class="anchored" data-anchor-id="hands-on-exercise"><span class="header-section-number">4.10</span> Hands-on exercise</h2>
+<p>Take one oversized prompt from your work or use the unit-number search example. Break it into these layers:</p>
+<ol type="1">
+<li>Move stable repository facts into <code>.github/copilot-instructions.md</code> or a path-specific instruction file.</li>
+<li>Move accepted and proposed behavior into the appropriate OpenSpec artifacts.</li>
+<li>Keep the current objective and evidence in a focused session.</li>
+<li>Attach only the files needed to begin, then let the agent search for adjacent code.</li>
+<li>Ask Copilot to draft a Markdown handoff using the template in this chapter.</li>
+<li>Review the handoff against the working tree, test output, and active OpenSpec change.</li>
+<li>Start a fresh session in another client and reference only the handoff and its linked artifacts.</li>
+</ol>
+<p>Ask the new session to state the current objective, authoritative sources, next action, and unresolved questions before editing. If it cannot recover those facts without the old transcript, revise the durable artifacts or handoff rather than pasting the transcript into the new session.</p>
+<p>For a second pass, compare a focused and an overloaded run of the same bounded task. Record the selected model, context use, tool calls, AI credits, retries, and verification result. One run will not establish a universal rule, but it may expose noisy sources or missing instructions in your repository.</p>
+</section>
+<section id="verification-checkpoint" class="level2" data-number="4.11">
+<h2 data-number="4.11" class="anchored" data-anchor-id="verification-checkpoint"><span class="header-section-number">4.11</span> Verification checkpoint</h2>
+<p>Before handing implementation to Copilot, ask:</p>
+<ul>
+<li>Does the session have one bounded objective and an observable completion condition?</li>
+<li>Can every attached source affect the next decision?</li>
+<li>Does each rule have one named owner, with stale or conflicting copies removed?</li>
+<li>Could the selected model hold the required context with room for tools and output?</li>
+<li>Have accepted decisions moved out of chat and into a durable artifact?</li>
+<li>Would automatic compaction be allowed to omit anything that has not been saved?</li>
+<li>Can another client recover the objective from the repository without the old transcript?</li>
+<li>Did you inspect references, tests, and usage rather than infer that context was applied?</li>
+</ul>
+<p>An uncertain answer may call for a smaller task, a better artifact, or a new session. Adding the whole repository rarely resolves that uncertainty.</p>
+</section>
+<section id="what-you-learned" class="level2" data-number="4.12">
+<h2 data-number="4.12" class="anchored" data-anchor-id="what-you-learned"><span class="header-section-number">4.12</span> What you learned</h2>
+<p>Treat context as a bounded input to each model request. Keep stable rules in repository instructions, proposed behavior in OpenSpec, reusable procedures in skills, and short-lived evidence in a focused session. Before a session boundary, move verified working state into a reviewed Markdown handoff.</p>
+<p>Model choice changes the available window, behavior, and price. Compaction summarizes rather than preserving every detail, and caching reduces processing cost rather than creating memory. Give Copilot the smallest current, authoritative package from which it can complete and verify the next task.</p>
+</section>
+<section id="online-references" class="level2" data-number="4.13">
+<h2 data-number="4.13" class="anchored" data-anchor-id="online-references"><span class="header-section-number">4.13</span> Online references</h2>
+<ul>
+<li><a href="https://code.visualstudio.com/docs/agents/guides/context-engineering-guide">VS Code context engineering guide</a></li>
+<li><a href="https://code.visualstudio.com/docs/agents/concepts/context">VS Code context concepts</a></li>
+<li><a href="https://code.visualstudio.com/docs/agents/run/sessions/manage-sessions">VS Code session and compaction management</a></li>
+<li><a href="https://code.visualstudio.com/docs/agents/guides/optimize-usage">VS Code AI credit optimization</a></li>
+<li><a href="https://code.visualstudio.com/docs/agents/agent-troubleshooting/cache-explorer">VS Code prompt-cache diagnostics</a></li>
+<li><a href="https://docs.github.com/en/copilot/how-tos/chat-with-copilot/chat-in-ide?tool=jetbrains">GitHub Copilot Chat in JetBrains IDEs</a></li>
+<li><a href="https://docs.github.com/en/copilot/how-tos/copilot-cli/cli-best-practices">GitHub Copilot CLI best practices</a></li>
+<li><a href="https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference">GitHub Copilot CLI command reference</a></li>
+<li><a href="https://docs.github.com/en/copilot/reference/ai-models/model-comparison">GitHub Copilot model comparison</a></li>
+<li><a href="https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing">GitHub Copilot models and pricing</a></li>
+<li><a href="https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions">GitHub Copilot repository custom instructions</a></li>
+<li><a href="https://openspec.dev/docs/supported-tools">OpenSpec supported tools</a></li>
+<li><a href="https://openspec.dev/docs/skills">OpenSpec skills reference</a></li>
+</ul>
+
+
+</section>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn1"><p><a href="https://code.visualstudio.com/docs/agents/concepts/context" class="uri">https://code.visualstudio.com/docs/agents/concepts/context</a><a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p><a href="https://docs.github.com/en/copilot/reference/ai-models/model-comparison" class="uri">https://docs.github.com/en/copilot/reference/ai-models/model-comparison</a><a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p><a href="https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli/overview#context-management" class="uri">https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli/overview#context-management</a><a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p><a href="https://code.visualstudio.com/docs/agent-customization/custom-instructions" class="uri">https://code.visualstudio.com/docs/agent-customization/custom-instructions</a><a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p><a href="https://docs.github.com/en/copilot/how-tos/chat-with-copilot/chat-in-ide?tool=jetbrains" class="uri">https://docs.github.com/en/copilot/how-tos/chat-with-copilot/chat-in-ide?tool=jetbrains</a><a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn6"><p><a href="https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference" class="uri">https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference</a><a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn7"><p><a href="https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing" class="uri">https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing</a><a href="#fnref7" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn8"><p><a href="https://code.visualstudio.com/docs/agents/agent-troubleshooting/cache-explorer" class="uri">https://code.visualstudio.com/docs/agents/agent-troubleshooting/cache-explorer</a><a href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../chapters/03-testable-requirements.html" class="pagination-link" aria-label="Writing Requirements an Agent Can Test">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Writing Requirements an Agent Can Test</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/05-two-repository-lab.html" class="pagination-link" aria-label="Preparing the Two-Repository Lab">
+        <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Preparing the Two-Repository Lab</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
