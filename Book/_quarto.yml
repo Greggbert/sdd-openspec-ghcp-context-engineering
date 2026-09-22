@@ -5,7 +5,7 @@ book:
   title: "Spec-Driven Development with OpenSpec and GitHub Copilot"
   subtitle: "A Practical Guide for Java and Angular Developers"
   author: "Gregg Obst"
-  date: "2026-09-21"
+  date: "2026-09-22"
   date-format: "MM/DD/YYYY"
   output-file: "Spec-Driven_Development_with_OpenSpec_and_GitHub_Copilot"
   chapters:
@@ -83,5 +83,13 @@ format:
     include-in-header:
       text: |
         \usepackage{wrapfig}
+        \usepackage[automark]{scrlayer-scrpage}
+        \clearpairofpagestyles
+        \lofoot{Spec-Driven Development with OpenSpec and GitHub Copilot - Gregg Obst}
+        \lefoot{Spec-Driven Development with OpenSpec and GitHub Copilot - Gregg Obst}
+        \rofoot{\pagemark}
+        \refoot{\pagemark}
+        \pagestyle{scrheadings}
+        \renewcommand{\chapterpagestyle}{scrheadings}
         % Allow inline code to break at dots, hyphens, and underscores in PDF output
         \renewcommand{\texttt}[1]{\nolinkurl{#1}}

@@ -32,7 +32,7 @@ This workflow can expose ambiguity before code generation, give reviewers an exp
 
 ## The running example
 
-The book builds a unit-search capability for a fictional application in the Penske maintenance portfolio.  The example is small enough to keep the focus on the workflow, but broad enough to cover greenfield and brownfield development, changes to accepted specifications, and revisions to work already in progress.
+The book builds a truck search capability for a fictional application developed by a fictional company.  The example is small enough to keep the focus on the workflow, but broad enough to cover greenfield and brownfield development, changes to accepted specifications, and revisions to work already in progress.
 
 - The backend uses Java 21 and Spring Boot 4.x.
 - The frontend uses Angular 21 and TypeScript.

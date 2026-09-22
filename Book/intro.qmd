@@ -8,7 +8,7 @@ SDD moves that account into the development workflow.  In this book, a specifica
 
 ## The running example
 
-The class builds a search capability for a Penske's existing commercial vehicle fleet.  The stack is Java 21 with Spring Boot 4 on the backend and Angular 21 with TypeScript on the frontend. 
+The class builds a truck search capability for an existing commercial vehicle fleet.  The stack is Java 21 with Spring Boot 4 on the backend and Angular 21 with TypeScript on the frontend. 
 
 The domain evolves in four steps:
 
